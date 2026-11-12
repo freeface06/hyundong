@@ -1,0 +1,12 @@
+{
+  "book-mall-session-context": {
+    "enabled": true,
+    "SessionStart": [
+      {
+        "type": "command",
+        "command": "powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"../scripts/session-status.ps1\"",
+        "timeout": 10
+      }
+    ]
+  }
+}

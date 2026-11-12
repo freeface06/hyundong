@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>관리자 로그인 — 현동서재 운영 관리 센터</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" />
+  <link rel="stylesheet" href="./css/tokens.css" />
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+  <link rel="alternate icon" href="./favicon.ico" />
+  <style>
+    .admin-login-page {
+      min-height: calc(100vh - 45px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 16px;
+      background: linear-gradient(145deg, #efede8 0%, #e4dfd5 50%, #d8d1c4 100%);
+    }
+
+    .admin-login-shell {
+      width: 100%;
+      max-width: 900px;
+      background: var(--color-surface);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      border: 1px solid var(--color-border);
+      display: grid;
+      grid-template-columns: 1fr 1.05fr;
+      overflow: hidden;
+      animation: viewFadeSlideIn 0.44s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    .admin-login-brand {
+      background: var(--color-brand-800);
+      color: #f4f1ea;
+      padding: 44px 36px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .admin-login-brand h1 {
+      margin: 14px 0 10px;
+      font-family: var(--font-serif);
+      font-size: 1.6rem;
+      line-height: 1.35;
+      color: #ffffff;
+    }
+
+    .admin-login-feature-list {
+      list-style: none;
+      margin: 18px 0 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      font-size: 0.86rem;
+      color: #dfdcd3;
+    }
+
+    .admin-login-feature-list li {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .admin-login-feature-list li::before {
+      content: "✓";
+      color: var(--color-brand-300);
+      font-weight: 800;
+    }
+
+    .admin-login-form-pane {
+      padding: 44px 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    @media (max-width: 767px) {
+      .admin-login-page {
+        padding: 20px 16px;
+        align-items: flex-start;
+      }
+
+      .admin-login-shell {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .admin-login-brand {
+        padding: 24px 22px;
+      }
+
+      .admin-login-brand h1 {
+        font-size: 1.3rem;
+      }
+
+      .admin-login-feature-list {
+        display: none;
+      }
+
+      .admin-login-form-pane {
+        padding: 26px 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 고객 시연 화면 전환 바 -->
+  <div class="demo-switcher-bar">
+    <div class="demo-switcher-inner">
+      <div class="demo-switcher-badge">
+        <span class="demo-dot"></span>
+        <span><strong>현동서재 화면 미리보기</strong> · 운영자 전용 관리자 로그인 페이지</span>
+      </div>
+      <div class="demo-switcher-actions">
+        <a href="./index.html" class="demo-switch-link">쇼핑몰 홈</a>
+        <a href="./login.html" class="demo-switch-link">회원 로그인</a>
+        <a href="./signup.html" class="demo-switch-link">회원가입</a>
+        <a href="./admin-login.html" class="demo-switch-link is-active">관리자 로그인</a>
+        <a href="./admin.html" class="demo-switch-link">관리자 센터 →</a>
+      </div>
+    </div>
+  </div>
+
+  <main class="admin-login-page">
+    <div class="admin-login-shell">
+      <!-- 좌측 운영센터 소개 패널 -->
+      <section class="admin-login-brand">
+        <div>
+          <span class="brand-seal-mark">玄同</span>
+          <h1>현동서재<br/>쇼핑몰 관리자 센터</h1>
+          <p style="margin:0; font-size:0.9rem; color:#d6d0c4; line-height:1.6;">
+            도서 상품 등록부터 택배 송장 발송, 고객 문의 답변, 배너·약관 설정까지 한곳에서 편리하게 운영할 수 있습니다.
+          </p>
+          <ul class="admin-login-feature-list">
+            <li>기간별 매출 그래프 및 인기 도서 판매 현황</li>
+            <li>도서 가격 · 재고 수량 · 추천 도서 간편 관리</li>
+            <li>택배사 선택 및 운송장 번호 등록 · 배송 관리</li>
+            <li>회원 적립금 · 1:1 문의 답변 · 공지/FAQ 관리</li>
+            <li>쇼핑몰 메인 배너 · 이용약관 · 입금계좌 설정</li>
+          </ul>
+        </div>
+        <div style="font-size:0.78rem; color:#afa89a;">
+          도서출판 물고기 · 현동학당 운영진 전용 시스템<br/>
+          문의: 출판부 운영팀 (02-974-8545)<br/>
+          <span style="display:inline-block; margin-top:6px; color:#968e80;">Copyright © <span class="js-current-year">2026</span> 도서출판 물고기 · 현동학당. All rights reserved.</span>
+        </div>
+      </section>
+
+      <!-- 우측 로그인 입력 폼 -->
+      <section class="admin-login-form-pane">
+        <div style="margin-bottom:24px;">
+          <span class="badge badge-brand">운영자 전용</span>
+          <h2 style="margin:8px 0 4px; font-size:1.35rem; color:var(--color-brand-900);">관리자 로그인</h2>
+          <p style="margin:0; font-size:0.86rem; color:var(--color-text-muted);">
+            발급받은 관리자 아이디와 비밀번호를 입력해 주세요.
+          </p>
+        </div>
+
+        <form id="adminLoginForm">
+          <div class="form-field">
+            <label for="admLoginId">관리자 아이디</label>
+            <input type="text" id="admLoginId" class="form-input" value="admin" placeholder="관리자 아이디 입력" required />
+          </div>
+          <div class="form-field">
+            <label for="admLoginPw">비밀번호</label>
+            <input type="password" id="admLoginPw" class="form-input" value="12345678" placeholder="비밀번호 입력" required />
+          </div>
+
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; font-size:0.84rem;">
+            <label class="check-label">
+              <input type="checkbox" checked />
+              <span>아이디 기억하기</span>
+            </label>
+            <span style="color:var(--color-text-muted); font-size:0.78rem;">시연용 계정이 자동 입력되어 있습니다</span>
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="width:100%; font-size:0.98rem;">
+            관리자 센터 입장하기 →
+          </button>
+        </form>
+
+        <div style="margin-top:22px; padding-top:18px; border-top:1px solid var(--color-border); display:flex; justify-content:space-between; align-items:center; font-size:0.84rem;">
+          <span style="color:var(--color-text-muted);">고객 화면으로 돌아가시겠어요?</span>
+          <a href="./index.html" style="font-weight:700; color:var(--color-brand-700);">쇼핑몰 메인 보기 →</a>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script src="./js/mock-data.js"></script>
+  <script>
+    (function () {
+      const Store = window.HyundongStore;
+      const state = Store.loadState();
+
+      document.getElementById("adminLoginForm").addEventListener("submit", function (e) {
+        e.preventDefault();
+        const adminId = document.getElementById("admLoginId").value.trim() || "admin";
+        state.adminSession = {
+          loggedIn: true,
+          adminId: adminId,
+          adminName: adminId === "admin" ? "출판부 총괄관리자" : adminId + " 매니저"
+        };
+        Store.saveState(state);
+        window.location.href = "./admin.html";
+      });
+    })();
+  </script>
+</body>
+</html>

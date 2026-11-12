@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <linearGradient id="taupeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#918a7d"/>
+      <stop offset="100%" stop-color="#787165"/>
+    </linearGradient>
+    <linearGradient id="sealGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#9b3e35"/>
+      <stop offset="100%" stop-color="#7a2a22"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#2c2925" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+  <!-- Background Taupe Base -->
+  <rect width="128" height="128" rx="28" fill="url(#taupeGrad)"/>
+  <rect x="6" y="6" width="116" height="116" rx="22" fill="none" stroke="#b0a89a" stroke-width="2" stroke-opacity="0.4"/>
+  <!-- Traditional Korean Vermilion Seal Stamp -->
+  <rect x="18" y="18" width="92" height="92" rx="14" fill="url(#sealGrad)" filter="url(#shadow)"/>
+  <rect x="22" y="22" width="84" height="84" rx="10" fill="none" stroke="#f2efe9" stroke-width="2.5" stroke-opacity="0.85"/>
+  <rect x="26" y="26" width="76" height="76" rx="7" fill="none" stroke="#f2efe9" stroke-width="1.2" stroke-opacity="0.5"/>
+  <!-- Seal Script Characters "玄同" -->
+  <g fill="#fbf9f5" font-family="'Noto Serif KR', 'Batang', serif" font-weight="900" text-anchor="middle">
+    <text x="64" y="61" font-size="34" letter-spacing="1">玄</text>
+    <text x="64" y="96" font-size="32" letter-spacing="1">同</text>
+  </g>
+</svg>

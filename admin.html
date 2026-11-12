@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>현동서재 관리자 센터 — 매출 · 상품 · 주문배송 · 문의 · 배너/약관 관리</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" />
+  <link rel="stylesheet" href="./css/tokens.css" />
+  <link rel="stylesheet" href="./css/admin.css" />
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+  <link rel="alternate icon" href="./favicon.ico" />
+</head>
+<body>
+
+  <!-- 고객 시연 화면 전환 바 -->
+  <div class="demo-switcher-bar">
+    <div class="demo-switcher-inner">
+      <div class="demo-switcher-badge">
+        <span class="demo-dot"></span>
+        <span><strong>현동서재 화면 미리보기</strong> · 쇼핑몰 운영 관리자 센터</span>
+      </div>
+      <div class="demo-switcher-actions">
+        <a href="./index.html" class="demo-switch-link">쇼핑몰 홈</a>
+        <a href="./login.html" class="demo-switch-link">회원 로그인</a>
+        <a href="./signup.html" class="demo-switch-link">회원가입</a>
+        <a href="./admin-login.html" class="demo-switch-link">관리자 로그인</a>
+        <a href="./admin.html" class="demo-switch-link is-active">관리자 센터</a>
+        <a href="./admin-book-new.html" class="demo-switch-link">신규 도서 등록</a>
+        <button type="button" class="demo-switch-link" id="btnAdminResetDemo">처음 상태로 초기화</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 모바일 드로어 배경 -->
+  <div class="admin-drawer-backdrop" id="adminDrawerBackdrop"></div>
+
+  <div class="admin-shell">
+    <!-- 좌측 사이드바 (그룹별 직관적 메뉴 + 부연 설명) -->
+    <aside class="admin-sidebar" id="adminSidebar" aria-label="관리자 메뉴">
+      <div class="admin-sidebar-brand">
+        <div class="admin-sidebar-brand-left">
+          <span class="brand-seal-mark">玄同</span>
+          <div>
+            <strong style="display:block; font-family:var(--font-serif); font-size:1.05rem;">현동서재 관리자</strong>
+            <span style="font-size:0.74rem; color:#cbc5b8;">도서출판 물고기 운영센터</span>
+          </div>
+        </div>
+        <button type="button" class="btn btn-sm btn-outline admin-mobile-close-btn" id="btnCloseAdminDrawer" style="min-height:34px; padding:0 10px;">닫기</button>
+      </div>
+
+      <div class="admin-nav-scroll">
+        <div class="admin-nav-group-label">현황 한눈에 보기</div>
+        <ul class="admin-nav-list">
+          <li>
+            <button type="button" class="admin-nav-btn is-active" data-admin-sec="dashboard">
+              <span class="admin-nav-btn-text">
+                <strong>매출 · 운영 대시보드</strong>
+                <small>매출 그래프 · 오늘 처리할 업무</small>
+              </span>
+            </button>
+          </li>
+        </ul>
+
+        <div class="admin-nav-group-label">상품 · 주문 · 배송</div>
+        <ul class="admin-nav-list">
+          <li>
+            <button type="button" class="admin-nav-btn" data-admin-sec="books">
+              <span class="admin-nav-btn-text">
+                <strong>도서 상품 · 재고 관리</strong>
+                <small>책 등록 · 판매가 · 재고 변경</small>
+              </span>
+              <span class="badge badge-brand" id="navBookCount">0</span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="admin-nav-btn" data-admin-sec="orders">
+              <span class="admin-nav-btn-text">
+                <strong>주문 · 택배 발송 관리</strong>
+                <small>포장 준비 · 택배 송장번호 등록</small>
+              </span>
+              <span class="badge badge-warning" id="navPendingShipCount">0</span>
+            </button>
+          </li>
+        </ul>
+
+        <div class="admin-nav-group-label">회원 · 고객 게시판</div>
+        <ul class="admin-nav-list">
+          <li>
+            <button type="button" class="admin-nav-btn" data-admin-sec="members">
+              <span class="admin-nav-btn-text">
+                <strong>회원 목록 · 적립금 관리</strong>
+                <small>가입 회원 정보 · 등급 · 적립금</small>
+              </span>
+              <span class="badge badge-brand" id="navMemberCount">0</span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="admin-nav-btn" data-admin-sec="qna">
+              <span class="admin-nav-btn-text">
+                <strong>1:1 문의 (Q&amp;A) 답변</strong>
+                <small>고객 질문 확인 · 답변 등록</small>
+              </span>
+              <span class="badge badge-danger" id="navPendingQnaCount">0</span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="admin-nav-btn" data-admin-sec="boards">
+              <span class="admin-nav-btn-text">
+                <strong>공지사항 · 자주 묻는 질문</strong>
+                <small>공지글 · FAQ 등록 및 노출 관리</small>
+              </span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="admin-nav-btn" data-admin-sec="reviews">
+              <span class="admin-nav-btn-text">
+                <strong>독자 구매후기 관리</strong>
+                <small>베스트 후기 선정 · 숨김 처리</small>
+              </span>
+            </button>
+          </li>
+        </ul>
+
+        <div class="admin-nav-group-label">코드 · 배너 · 약관 설정</div>
+        <ul class="admin-nav-list">
+          <li>
+            <button type="button" class="admin-nav-btn" data-admin-sec="codes">
+              <span class="admin-nav-btn-text">
+                <strong>분류 · 선택항목 코드관리</strong>
+                <small>도서분야 · 단권/세트 · 회원/택배 코드</small>
+              </span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="admin-nav-btn" data-admin-sec="banners">
+              <span class="admin-nav-btn-text">
+                <strong>메인 배너 · 띠배너 관리</strong>
+                <small>첫 화면 배너 문구 · 노출 켜기/끄기</small>
+              </span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="admin-nav-btn" data-admin-sec="settings">
+              <span class="admin-nav-btn-text">
+                <strong>약관 · 입금계좌 · 배송비 설정</strong>
+                <small>이용약관 · 개인정보방침 · 기본정보</small>
+              </span>
+            </button>
+          </li>
+        </ul>
+      </div>
+
+      <div class="admin-sidebar-foot">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+          <div>
+            <strong id="sidebarAdminName">출판부 총괄관리자</strong>
+            <div style="font-size:0.72rem; opacity:0.78;">접속 중</div>
+          </div>
+          <a href="./admin-login.html" class="btn btn-sm btn-outline" style="min-height:32px; padding:0 10px; font-size:0.76rem;">로그아웃</a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- 우측 작업 영역 -->
+    <div class="admin-workspace">
+      <header class="admin-topbar">
+        <div class="admin-topbar-left">
+          <button type="button" class="btn btn-sm btn-outline admin-mobile-menu-btn" id="btnOpenAdminDrawer">
+            ☰ 전체 메뉴
+          </button>
+          <h1 class="admin-page-title" id="adminPageTitle">매출 · 운영 대시보드</h1>
+        </div>
+        <div class="admin-topbar-right">
+          <a href="./index.html" class="btn btn-sm btn-outline">쇼핑몰 화면 보기 ↗</a>
+          <a href="./admin-book-new.html" class="btn btn-sm btn-primary">+ 새 도서 등록</a>
+        </div>
+      </header>
+
+      <main class="admin-content" id="adminMainContent"></main>
+      <footer class="admin-footer">
+        <span>현동서재 운영 관리자 센터 · 도서출판 물고기 · 현동학당</span>
+        <span>Copyright © <span class="js-current-year">2026</span> 현동서재 (도서출판 물고기 · 현동학당). All rights reserved.</span>
+      </footer>
+    </div>
+  </div>
+
+  <!-- 모바일 하단 빠른 이동 탭바 -->
+  <nav class="admin-mobile-bottom-bar" aria-label="관리자 모바일 빠른 메뉴">
+    <button type="button" class="admin-mob-tab is-active" data-admin-sec="dashboard">대시보드</button>
+    <button type="button" class="admin-mob-tab" data-admin-sec="books">도서관리</button>
+    <button type="button" class="admin-mob-tab" data-admin-sec="orders">주문·발송</button>
+    <button type="button" class="admin-mob-tab" data-admin-sec="qna">문의답변</button>
+    <button type="button" class="admin-mob-tab" id="btnMobMoreMenu">전체메뉴 ☰</button>
+  </nav>
+
+  <!-- 모달: 택배 송장번호 등록 모달 -->
+  <div class="modal-backdrop" id="waybillModal" role="dialog" aria-modal="true" aria-labelledby="waybillModalTitle">
+    <div class="modal-panel modal-sm">
+      <div class="modal-header">
+        <h2 class="modal-title" id="waybillModalTitle">택배 송장번호 등록 · 발송 처리</h2>
+        <button type="button" class="modal-close" data-close-admin-modal="waybillModal" aria-label="닫기">×</button>
+      </div>
+      <form id="waybillIssueForm">
+        <div class="modal-body" id="waybillModalBody"></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-close-admin-modal="waybillModal">닫기</button>
+          <button type="submit" class="btn btn-primary">송장 등록 및 발송 완료</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 모달 3: 회원 상세 정보 및 적립금/메모 관리 모달 -->
+  <div class="modal-backdrop" id="memberDetailModal" role="dialog" aria-modal="true" aria-labelledby="memberDetailModalTitle">
+    <div class="modal-panel modal-sm">
+      <div class="modal-header">
+        <h2 class="modal-title" id="memberDetailModalTitle">회원 상세 정보 및 관리</h2>
+        <button type="button" class="modal-close" data-close-admin-modal="memberDetailModal" aria-label="닫기">×</button>
+      </div>
+      <form id="memberEditForm">
+        <div class="modal-body" id="memberDetailModalBody"></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-close-admin-modal="memberDetailModal">닫기</button>
+          <button type="submit" class="btn btn-primary">변경 내용 저장</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 모달 4: 1:1 문의 답변 작성 모달 -->
+  <div class="modal-backdrop" id="qnaReplyModal" role="dialog" aria-modal="true" aria-labelledby="qnaReplyModalTitle">
+    <div class="modal-panel modal-sm">
+      <div class="modal-header">
+        <h2 class="modal-title" id="qnaReplyModalTitle">1:1 고객 문의 답변하기</h2>
+        <button type="button" class="modal-close" data-close-admin-modal="qnaReplyModal" aria-label="닫기">×</button>
+      </div>
+      <form id="qnaReplyForm">
+        <div class="modal-body" id="qnaReplyModalBody"></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-close-admin-modal="qnaReplyModal">취소</button>
+          <button type="submit" class="btn btn-primary">답변 저장하기</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 모달 5: 공지사항 / 자주 묻는 질문(FAQ) 등록 및 수정 모달 -->
+  <div class="modal-backdrop" id="boardPostModal" role="dialog" aria-modal="true" aria-labelledby="boardPostModalTitle">
+    <div class="modal-panel modal-sm">
+      <div class="modal-header">
+        <h2 class="modal-title" id="boardPostModalTitle">게시글 작성 · 수정</h2>
+        <button type="button" class="modal-close" data-close-admin-modal="boardPostModal" aria-label="닫기">×</button>
+      </div>
+      <form id="boardPostForm">
+        <div class="modal-body" id="boardPostModalBody"></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-close-admin-modal="boardPostModal">취소</button>
+          <button type="submit" class="btn btn-primary" id="btnSubmitBoardPost">게시글 등록하기</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 모달 6: 배너 문구 및 이미지 수정 모달 -->
+  <div class="modal-backdrop" id="bannerEditModal" role="dialog" aria-modal="true" aria-labelledby="bannerEditModalTitle">
+    <div class="modal-panel modal-sm">
+      <div class="modal-header">
+        <h2 class="modal-title" id="bannerEditModalTitle">배너 이미지 및 문구 수정</h2>
+        <button type="button" class="modal-close" data-close-admin-modal="bannerEditModal" aria-label="닫기">×</button>
+      </div>
+      <form id="bannerEditForm">
+        <div class="modal-body" id="bannerEditModalBody"></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-close-admin-modal="bannerEditModal">취소</button>
+          <button type="submit" class="btn btn-primary" id="btnSubmitBannerEdit">배너 변경 저장</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 모달 7: 분류 · 선택항목 코드 추가/수정 모달 -->
+  <div class="modal-backdrop" id="codeItemModal" role="dialog" aria-modal="true" aria-labelledby="codeItemModalTitle">
+    <div class="modal-panel modal-sm">
+      <div class="modal-header">
+        <h2 class="modal-title" id="codeItemModalTitle">새 코드 항목 추가</h2>
+        <button type="button" class="modal-close" data-close-admin-modal="codeItemModal" aria-label="닫기">×</button>
+      </div>
+      <form id="codeItemForm">
+        <div class="modal-body" id="codeItemModalBody"></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-close-admin-modal="codeItemModal">취소</button>
+          <button type="submit" class="btn btn-primary" id="btnSubmitCodeItem">코드 저장하기</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="./js/mock-data.js"></script>
+  <script src="./js/admin.js"></script>
+</body>
+</html>

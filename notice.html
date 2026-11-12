@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>공지사항 — 현동서재 (玄同書齋)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" />
+  <link rel="stylesheet" href="./css/tokens.css" />
+  <link rel="stylesheet" href="./css/store.css" />
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+  <link rel="alternate icon" href="./favicon.ico" />
+</head>
+<body>
+
+  <!-- 고객 시연 화면 전환 바 -->
+  <div class="demo-switcher-bar">
+    <div class="demo-switcher-inner">
+      <div class="demo-switcher-badge">
+        <span class="demo-dot"></span>
+        <span><strong>현동서재 화면 미리보기</strong> · 출판부 공지사항 및 신간 소식 안내 페이지</span>
+      </div>
+      <div class="demo-switcher-actions">
+        <a href="./index.html" class="demo-switch-link">쇼핑몰 홈</a>
+        <a href="./login.html" class="demo-switch-link">회원 로그인</a>
+        <a href="./signup.html" class="demo-switch-link">회원가입</a>
+        <a href="./admin-login.html" class="demo-switch-link">관리자 로그인</a>
+        <a href="./admin.html" class="demo-switch-link">관리자 센터 →</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- PC 상단 안내바 -->
+  <div class="store-util-bar" id="topRibbonBar">
+    <div class="store-container store-util-inner">
+      <div id="topRibbonText">도서출판 물고기 직영몰 · <strong>50,000원 이상 구매 시 무료배송</strong> (평일 오후 3시 이전 주문 당일 발송)</div>
+      <div class="store-util-links" id="pcAuthUtilLinks"></div>
+    </div>
+  </div>
+
+  <!-- 메인 헤더 -->
+  <header class="store-header">
+    <div class="store-container store-header-main">
+      <button type="button" class="header-icon-btn mobile-only-btn" id="btnMobileMenu" aria-label="전체 메뉴 열기">
+        ☰
+      </button>
+
+      <a href="./index.html" class="brand-logo">
+        <span class="brand-seal-mark">玄同</span>
+        <div class="brand-logo-text">
+          <strong>현동서재 玄同書齋</strong>
+          <span>현동학당 · 도서출판 물고기 공식 서점</span>
+        </div>
+      </a>
+
+      <!-- PC 도서 검색창 -->
+      <form class="store-search-box pc-only-search" action="./index.html" method="GET">
+        <select class="store-search-select" name="searchTarget" aria-label="검색 항목">
+          <option value="ALL">통합검색</option>
+          <option value="TITLE">도서명</option>
+          <option value="AUTHOR">저자·역자</option>
+          <option value="ISBN">ISBN</option>
+        </select>
+        <input
+          type="search"
+          class="store-search-input"
+          name="keyword"
+          placeholder="동의보감, 맥결집성, 처방집, 난경본의 검색..."
+        />
+        <button type="submit" class="store-search-submit">검색</button>
+      </form>
+
+      <!-- 우측 바로가기 -->
+      <div class="store-header-actions">
+        <a href="./index.html?view=cart" class="header-icon-btn">
+          <span>장바구니</span>
+          <span class="count-pill" id="headerCartCount">0</span>
+        </a>
+        <a href="./index.html?view=orders" class="header-icon-btn pc-only-action">
+          <span>주문·배송</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- PC 수평 메뉴 바 -->
+    <nav class="store-gnb" aria-label="주요 메뉴">
+      <div class="store-container">
+        <ul class="store-gnb-list">
+          <li><a href="./index.html" class="store-gnb-btn">홈</a></li>
+          <li><a href="./index.html?cat=ALL" class="store-gnb-btn">전체 도서</a></li>
+          <li><a href="./index.html?cat=DONGEUI" class="store-gnb-btn">동의보감·경전</a></li>
+          <li><a href="./index.html?cat=DIAGNOSIS" class="store-gnb-btn">진단·맥진학</a></li>
+          <li><a href="./index.html?cat=FORMULA" class="store-gnb-btn">방제·처방집</a></li>
+          <li><a href="./index.html?cat=CLINICAL" class="store-gnb-btn">임상·강의집</a></li>
+          <li><a href="./index.html?cat=PHILOSOPHY" class="store-gnb-btn">양생·인체생리</a></li>
+          <li class="store-gnb-item-right"><a href="./notice.html" class="store-gnb-btn is-active">공지사항</a></li>
+          <li><a href="./faq.html" class="store-gnb-btn">자주 묻는 질문</a></li>
+          <li><a href="./inquiry.html" class="store-gnb-btn">1:1 문의</a></li>
+          <li><a href="./qna.html" class="store-gnb-btn">독자 Q&amp;A</a></li>
+        </ul>
+      </div>
+    </nav>
+  </header>
+
+  <!-- 모바일 슬라이드 메뉴 드로어 -->
+  <div class="mobile-nav-drawer-backdrop" id="mobileDrawerBackdrop"></div>
+  <aside class="mobile-nav-drawer" id="mobileDrawer" aria-label="모바일 전체 메뉴">
+    <div class="mobile-drawer-head">
+      <div>
+        <strong style="font-family: var(--font-serif); font-size: 1.05rem;">현동서재 전체 메뉴</strong>
+        <div style="font-size: 0.78rem; opacity: 0.86; margin-top: 3px;" id="mobileUserStatusText"></div>
+      </div>
+      <button type="button" class="btn btn-sm btn-outline" id="btnCloseMobileDrawer">닫기</button>
+    </div>
+    <div class="mobile-drawer-body">
+      <div style="display:flex; gap:8px; margin-bottom:14px;" id="mobileAuthActionRow"></div>
+      <div style="border-top:1px solid var(--color-border); margin:14px 0 8px; padding-top:10px;">
+        <a href="./index.html?cat=ALL" class="mobile-drawer-cat-btn"><span>전체 도서 목록</span><span>→</span></a>
+        <a href="./notice.html" class="mobile-drawer-cat-btn" style="font-weight:700; color:var(--color-brand-800);"><span>공지사항 (알림)</span><span>→</span></a>
+        <a href="./faq.html" class="mobile-drawer-cat-btn"><span>자주 묻는 질문 (FAQ)</span><span>→</span></a>
+        <a href="./inquiry.html" class="mobile-drawer-cat-btn"><span>1:1 문의하기</span><span>→</span></a>
+        <a href="./qna.html" class="mobile-drawer-cat-btn"><span>독자 Q&amp;A 게시판</span><span>→</span></a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- 메인 본문 영역 -->
+  <main class="standalone-page-wrap">
+    <div class="store-container">
+      <!-- Breadcrumb -->
+      <nav class="breadcrumb-nav" aria-label="경로 탐색">
+        <a href="./index.html">홈</a>
+        <span class="breadcrumb-sep">&gt;</span>
+        <span>고객센터</span>
+        <span class="breadcrumb-sep">&gt;</span>
+        <span class="breadcrumb-current">공지사항</span>
+      </nav>
+
+      <!-- Sub Navigation Tabs -->
+      <div class="sub-nav-tabs">
+        <a href="./notice.html" class="sub-nav-tab is-active">공지사항</a>
+        <a href="./faq.html" class="sub-nav-tab">자주 묻는 질문</a>
+        <a href="./inquiry.html" class="sub-nav-tab">1:1 문의하기</a>
+        <a href="./qna.html" class="sub-nav-tab">독자 Q&amp;A</a>
+      </div>
+
+      <div class="standalone-head">
+        <h1>공지사항 (Notice)</h1>
+        <p>현동학당 출판부의 신간 도서 출간 일정, 배송 마감 안내, 강독 세미나 소식을 전해드립니다.</p>
+      </div>
+
+      <!-- Category Filter & Search Bar -->
+      <div class="notice-filter-bar">
+        <div class="notice-cat-chips" id="noticeCatChips">
+          <button type="button" class="chip-btn is-active" data-cat="ALL">전체</button>
+          <button type="button" class="chip-btn" data-cat="출간" data-alt-cat="신간소식">출간소식</button>
+          <button type="button" class="chip-btn" data-cat="신간소식" style="display:none;" aria-hidden="true" tabindex="-1">출간소식</button>
+          <button type="button" class="chip-btn" data-cat="배송" data-alt-cat="발송안내">배송안내</button>
+          <button type="button" class="chip-btn" data-cat="발송안내" style="display:none;" aria-hidden="true" tabindex="-1">배송안내</button>
+          <button type="button" class="chip-btn" data-cat="세미나">강독·세미나</button>
+          <button type="button" class="chip-btn" data-cat="구매혜택" data-alt-cat="이벤트">혜택·이벤트</button>
+          <button type="button" class="chip-btn" data-cat="이벤트" style="display:none;" aria-hidden="true" tabindex="-1">이벤트</button>
+        </div>
+
+        <form id="noticeSearchForm" style="display:flex; gap:6px; min-width:260px;">
+          <input
+            type="search"
+            id="noticeSearchInput"
+            class="form-input"
+            style="min-height:38px; font-size:0.86rem;"
+            placeholder="공지 제목 검색..."
+          />
+          <button type="submit" class="btn btn-sm btn-primary" style="min-height:38px;">검색</button>
+        </form>
+      </div>
+
+      <!-- Notice List Table -->
+      <div class="notice-list-wrap">
+        <div class="notice-list-header">
+          <div>번호</div>
+          <div>분류</div>
+          <div class="col-title">제목</div>
+          <div>등록일</div>
+          <div class="col-views">조회수</div>
+        </div>
+
+        <div id="noticeListContainer">
+          <!-- Dynamically populated or fallback -->
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- 푸터 -->
+  <footer class="store-footer">
+    <div class="store-container">
+      <div class="footer-policy-links">
+        <a href="./terms.html" class="footer-policy-btn">이용약관</a>
+        <a href="./privacy.html" class="footer-policy-btn"><strong>개인정보처리방침</strong></a>
+        <a href="./shipping-guide.html" class="footer-policy-btn">배송·교환·반품 안내</a>
+        <a href="./inquiry.html" class="footer-policy-btn">고객센터 · 1:1 문의</a>
+      </div>
+      <div class="footer-grid" id="storeFooterInfo"></div>
+      <div class="footer-copyright-bar" id="storeFooterCopyright">
+        <span>Copyright © <span class="js-current-year">2026</span> 현동서재 (현동학당 · 도서출판 물고기). All rights reserved.</span>
+        <span>현동학당 출판부 공식 직영 서점</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="./js/mock-data.js"></script>
+  <script>
+    (function () {
+      const Store = window.HyundongStore;
+      let state = Store ? Store.loadState() : null;
+
+      let currentCat = "ALL";
+      let searchKeyword = "";
+
+      function renderNotices() {
+        const container = document.getElementById("noticeListContainer");
+        if (!container || !state) return;
+
+        let list = state.notices.filter(function (n) { return n.visible; });
+
+        if (currentCat !== "ALL") {
+          list = list.filter(function (n) {
+            const cat = String(n.category || "");
+            if (currentCat === "출간" || currentCat === "신간소식" || currentCat === "신간") {
+              return cat.includes("출간") || cat.includes("신간");
+            }
+            if (currentCat === "배송" || currentCat === "발송안내" || currentCat === "발송") {
+              return cat.includes("배송") || cat.includes("발송");
+            }
+            if (currentCat === "세미나") {
+              return cat.includes("세미나") || cat.includes("강독");
+            }
+            if (currentCat === "구매혜택" || currentCat === "이벤트" || currentCat === "혜택") {
+              return cat.includes("혜택") || cat.includes("이벤트") || cat.includes("구매");
+            }
+            return cat.includes(currentCat);
+          });
+        }
+
+        if (searchKeyword) {
+          const kw = searchKeyword.toLowerCase();
+          list = list.filter(function (n) {
+            return (n.title && n.title.toLowerCase().includes(kw)) ||
+                   (n.content && n.content.toLowerCase().includes(kw));
+          });
+        }
+
+        // Sort: pinned first, then by date desc
+        list.sort(function (a, b) {
+          if (a.pinned && !b.pinned) return -1;
+          if (!a.pinned && b.pinned) return 1;
+          return (b.id || "").localeCompare(a.id || "");
+        });
+
+        if (list.length === 0) {
+          container.innerHTML = `
+            <div style="padding:48px 20px; text-align:center; color:var(--color-text-secondary);">
+              <p style="margin:0 0 10px;">등록된 공지사항이 없거나 검색 결과가 없습니다.</p>
+              <button type="button" class="btn btn-sm btn-outline" id="btnResetNoticeFilter">전체 공지 다시보기</button>
+            </div>
+          `;
+          const btnReset = document.getElementById("btnResetNoticeFilter");
+          if (btnReset) {
+            btnReset.addEventListener("click", function () {
+              currentCat = "ALL";
+              searchKeyword = "";
+              document.getElementById("noticeSearchInput").value = "";
+              document.querySelectorAll(".chip-btn").forEach(function (c) {
+                c.classList.toggle("is-active", c.getAttribute("data-cat") === "ALL");
+              });
+              renderNotices();
+            });
+          }
+          return;
+        }
+
+        container.innerHTML = list.map(function (nt, idx) {
+          const isPinned = Boolean(nt.pinned);
+          const views = nt.views || (120 + (idx * 37) % 350);
+          return `
+            <div class="notice-row ${isPinned ? "is-pinned" : ""}" data-notice-id="${nt.id}">
+              <div class="col-num">${isPinned ? `<span class="badge badge-seal">고정</span>` : (list.length - idx)}</div>
+              <div><span class="badge badge-brand">${Store.escapeHtml(nt.category)}</span></div>
+              <div class="col-title">${Store.escapeHtml(nt.title)}</div>
+              <div class="col-date">${nt.createdAt || "2026-11-12"}</div>
+              <div class="col-views">${views.toLocaleString()}회</div>
+            </div>
+            <div class="notice-content-drawer" id="noticeDrawer_${nt.id}">
+              <div style="font-weight:700; margin-bottom:10px; color:var(--color-brand-900); font-size:1.05rem;">
+                ${Store.escapeHtml(nt.title)}
+              </div>
+              <div style="line-height:1.8; color:var(--color-text-secondary); white-space:pre-wrap;">${Store.escapeHtml(nt.content)}</div>
+            </div>
+          `;
+        }).join("");
+      }
+
+      // Filter chips
+      const chips = document.querySelectorAll("#noticeCatChips .chip-btn");
+      chips.forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          currentCat = btn.getAttribute("data-cat") || "ALL";
+          chips.forEach(function (b) {
+            const bCat = b.getAttribute("data-cat");
+            const isActive = (bCat === currentCat) ||
+              (currentCat === "출간" && bCat === "신간소식") ||
+              (currentCat === "신간소식" && bCat === "출간") ||
+              (currentCat === "배송" && bCat === "발송안내") ||
+              (currentCat === "발송안내" && bCat === "배송") ||
+              (currentCat === "구매혜택" && bCat === "이벤트") ||
+              (currentCat === "이벤트" && bCat === "구매혜택");
+            b.classList.toggle("is-active", isActive);
+          });
+          renderNotices();
+        });
+      });
+
+      // Search form
+      const searchForm = document.getElementById("noticeSearchForm");
+      if (searchForm) {
+        searchForm.addEventListener("submit", function (e) {
+          e.preventDefault();
+          searchKeyword = document.getElementById("noticeSearchInput").value.trim();
+          renderNotices();
+        });
+      }
+
+      // Click to toggle notice drawer & increment views
+      document.addEventListener("click", function (e) {
+        const row = e.target.closest(".notice-row");
+        if (row) {
+          const id = row.getAttribute("data-notice-id");
+          const drawer = document.getElementById("noticeDrawer_" + id);
+          if (drawer) {
+            const isOpen = drawer.classList.toggle("is-open");
+            if (isOpen && state) {
+              const item = state.notices.find(function (n) { return n.id === id; });
+              if (item) {
+                item.views = (item.views || 100) + 1;
+                Store.saveState(state);
+                const viewsCol = row.querySelector(".col-views");
+                if (viewsCol) viewsCol.textContent = item.views.toLocaleString() + "회";
+              }
+            }
+          }
+        }
+      });
+
+      if (state) {
+        const cartCount = state.cart.reduce(function (sum, c) { return sum + c.qty; }, 0);
+        const cartEl = document.getElementById("headerCartCount");
+        if (cartEl) cartEl.textContent = cartCount;
+
+        const pcAuthEl = document.getElementById("pcAuthUtilLinks");
+        if (pcAuthEl) {
+          if (state.currentUser && state.currentUser.loggedIn) {
+            pcAuthEl.innerHTML = `
+              <span><strong>${Store.escapeHtml(state.currentUser.name || state.currentUser.nameMasked)}</strong>님</span>
+              <a href="./index.html?view=orders" class="store-util-btn">주문·배송</a>
+              <span>고객센터 ${Store.escapeHtml(state.siteConfig.csPhone)}</span>
+            `;
+          } else {
+            pcAuthEl.innerHTML = `
+              <a href="./login.html" class="store-util-btn"><strong>로그인</strong></a>
+              <a href="./signup.html" class="store-util-btn">회원가입</a>
+              <a href="./index.html?view=orders" class="store-util-btn">주문·배송</a>
+              <span>고객센터 ${Store.escapeHtml(state.siteConfig.csPhone)}</span>
+            `;
+          }
+        }
+
+        const foot = document.getElementById("storeFooterInfo");
+        if (foot) {
+          const cfg = state.siteConfig;
+          foot.innerHTML = `
+            <div>
+              <strong style="font-family: var(--font-serif); font-size: 1.08rem; color: #ffffff;">
+                ${Store.escapeHtml(cfg.mallName)}
+              </strong>
+              <p style="margin: 8px 0 4px;">${Store.escapeHtml(cfg.address)} | 대표: ${Store.escapeHtml(cfg.ceoName)}</p>
+              <p style="margin: 0;">대표전화: ${Store.escapeHtml(cfg.csPhone)} | 상담시간: ${Store.escapeHtml(cfg.csHours)}</p>
+            </div>
+            <div>
+              <strong style="color: #ffffff;">무통장 입금 및 배송 안내</strong>
+              <p style="margin: 8px 0 4px;">· 입금 계좌: ${Store.escapeHtml(cfg.bankAccount)}</p>
+              <p style="margin: 0 0 4px;">· 배송비: ${Store.formatKRW(cfg.freeShippingThreshold)} 이상 무료배송 (미만 시 ${Store.formatKRW(cfg.baseShippingFee)})</p>
+              <p style="margin: 0;">· 발송 안내: ${Store.escapeHtml(cfg.cutoffNotice)}</p>
+            </div>
+          `;
+        }
+      }
+
+      renderNotices();
+
+      // Mobile Drawer
+      const btnMenu = document.getElementById("btnMobileMenu");
+      const btnClose = document.getElementById("btnCloseMobileDrawer");
+      const drawer = document.getElementById("mobileDrawer");
+      const backdrop = document.getElementById("mobileDrawerBackdrop");
+
+      if (btnMenu && drawer && backdrop) {
+        btnMenu.addEventListener("click", function () {
+          drawer.classList.add("is-open");
+          backdrop.classList.add("is-open");
+        });
+        const closeFn = function () {
+          drawer.classList.remove("is-open");
+          backdrop.classList.remove("is-open");
+        };
+        if (btnClose) btnClose.addEventListener("click", closeFn);
+        backdrop.addEventListener("click", closeFn);
+      }
+    })();
+  </script>
+</body>
+</html>

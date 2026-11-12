@@ -1,0 +1,6 @@
+{
+  "name": "book-mall-agents",
+  "displayName": "Book Mall Harness Agents",
+  "description": "book-mall 도서 쇼핑몰 전용 보안 감사(PII 암호화·인증) 및 프론트-관리기 API 경계 검증 서브에이전트 번들",
+  "version": "1.0.0"
+}

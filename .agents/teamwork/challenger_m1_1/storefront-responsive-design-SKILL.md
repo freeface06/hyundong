@@ -1,0 +1,44 @@
+# Local copy of storefront-responsive-design skill
+Source: c:\Users\freef\workspace\book-mall\.agents\skills\storefront-responsive-design\SKILL.md
+
+---
+name: storefront-responsive-design
+description: >-
+  Applies the book-mall brand color system (#918a7d warm taupe palette) and enforces 100% responsive
+  PC-to-Mobile structural layout adaptation (320px to 1440px+) across BOTH mall-front and mall-admin
+  (backend admin UI). Use whenever creating or modifying stylesheets, theme tokens, layouts, templates,
+  pages, tables/cards, or UI components in either mall-front or mall-admin.
+---
+
+# 브랜드 컬러(#918a7d) 및 프론트·관리기 100% 반응형 구조 전환 스킬 (storefront-responsive-design)
+
+mall-front(쇼핑몰 프론트)와 mall-admin(관리기/백단 웹 화면)의 모든 레이아웃·페이지·템플릿·컴포넌트 스타일을 작성하거나 수정할 때 반드시 이 절차를 따른다.
+
+## 필수 참조 명세
+- 프론트 & 관리기 PC <-> 모바일 구조 전환 및 #918a7d 컬러 규격: docs/specs/ui-design-system.md
+- YES24 / 알라딘 벤치마킹 화면 IA 및 운영 기능 규격: docs/specs/bookstore-benchmark-spec.md
+
+---
+
+## 구현 절차 (Step-by-Step)
+
+### Step 1. #918a7d 브랜드 토큰 공통 바인딩 (mall-front & mall-admin)
+1. 양쪽 프로젝트의 글로벌 스타일시트(및 Tailwind/CSS 테마 설정)에 --color-brand-50 ~ --color-brand-900 변수를 선언하고 --color-brand-500: #918a7d를 메인 컬러로 고정한다.
+2. 프레임워크 기본 블루/인디고/퍼플 계열(bg-blue-*, text-indigo-*, 미커스텀 Bootstrap 블루 등)을 절대 사용하지 않고 brand 시맨틱 토큰으로 통일한다.
+3. 명암비(WCAG AA)를 위해 밝은 배경 위 작은 텍스트는 brand-700(#5f594f)~brand-900(#2c2925), 솔리드 #918a7d 버튼은 세미볼드(600) 흰색 텍스트 + brand-600(#787165) Hover 상태를 적용한다.
+
+### Step 2. PC <-> 모바일 레이아웃 구조 전환 구현 (단순 축소 금지)
+단순히 폭만 줄이거나 넓은 <table>에 가로 스크롤만 씌우는 방식을 금지하고, 뷰포트에 따라 레이아웃 골격을 전환한다.
+
+1. mall-front (쇼핑몰 프론트):
+   - App Shell: PC 풀 헤더 + 수평 GNB <-> 모바일 컴팩트 상단바 + 카테고리 드로어 + 하단 탭 네비게이션(상세/장바구니/주문서는 하단 Sticky 액션바)
+   - 목록/상세/주문: PC 좌측 필터 사이드바 및 우측 Sticky 결제 요약 2단 구조 <-> 모바일 상단 필터 칩/바텀시트 + 1열 카드 스택 + 하단 고정 구매/결제 바
+2. mall-admin (관리기 / 백단 사이트):
+   - Admin Shell: PC 좌측 고정 사이드바(240~260px) <-> 모바일 상단 헤더 + 오프캔버스 슬라이드 드로어 메뉴 (좌측 고정폭 영역이 모바일 화면을 침범하지 않도록 완전 분리)
+   - 검색 필터 바: PC 다중 인라인 수평 필터 <-> 모바일 키워드 검색창 + [상세 필터] 접이식 아코디언/바텀시트
+   - 데이터 목록: PC 다열 <table> <-> 모바일 운영 액션 카드(Admin Action Card) 리스트(상품 재고수정, 주문 운송장 등록, 고객 마스킹 조회 등을 카드 하단 터치 버튼으로 즉시 처리 가능하게 구성)
+   - 폼 & 모달: PC 2~3열 그리드 폼 & 센터 모달 <-> 모바일 1열 풀폭 수직 폼(font-size >= 16px, 터치 높이 >= 44px) & 풀스크린/바텀 시트 + 하단 고정 저장/출고 바
+
+### Step 3. 다중 해상도 및 정적 검증 (프론트 · 관리기 모두 필수)
+1. powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify-harness.ps1를 실행하여 양쪽 프로젝트의 #918a7d 토큰 정의, 기본 블루/퍼플 유틸리티 혼입 여부, 줌 차단 여부를 점검한다.
+2. 프론트와 관리기 화면 모두 360px(모바일, 320px 최소폭 포함) · 768px(태블릿) · 1440px(PC) 3개 구간에서 구조 전환 작동 여부와 가로 넘침 제로(scrollWidth <= innerWidth)를 확인한다.
