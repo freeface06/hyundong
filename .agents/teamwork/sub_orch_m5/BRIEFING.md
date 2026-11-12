@@ -49,20 +49,25 @@ Sub-orchestrator for Milestone 5 (End-to-End Verification, Harness & Git Push): 
 ## Team Roster
 | Agent | Type | Work Item | Status | Conv ID |
 |-------|------|-----------|--------|---------|
-| worker_m5_1 | teamwork_worker | Git config, harness, test suite, commit, push | in-progress | 6d5425de-2010-4aca-a9b5-3fceb727c3d9 |
+| worker_m5_1 | teamwork_worker | Git config, harness, test suite, commit, push | completed | 6d5425de-2010-4aca-a9b5-3fceb727c3d9 |
+| reviewer_m5_1 | teamwork_reviewer | Independent Review 1 | completed | 6e6372a1-511a-4ea5-96dc-48f140386737 |
+| reviewer_m5_2 | teamwork_reviewer | Independent Review 2 | completed | 4199224e-42c4-47e4-a8be-e6f0c525669d |
+| challenger_m5_1 | teamwork_challenger | Adversarial Stress-Test 1 | completed | 1919c1eb-80f9-47d6-8584-aaf38fa4e813 |
+| challenger_m5_2 | teamwork_challenger | Adversarial Stress-Test 2 | completed | 91d77465-2c65-470a-b3ef-a7cc62c50e7b |
+| auditor_m5_1 | teamwork_auditor | Forensic Integrity Audit | completed | b47d2bf3-4ecd-461a-9519-668939f9e039 |
 
 ## Succession Status
 - Succession required: no
-- Spawn count: 1 / 16
-- Pending subagents: 6d5425de-2010-4aca-a9b5-3fceb727c3d9
+- Spawn count: 6 / 16
+- Pending subagents: none
 - Predecessor: none
 - Successor spawned: not yet spawned
 - Successor generation: none
 - Successor state folder: none
 
 ## Active Timers
-- Heartbeat cron: b6dc21ee-3aa0-46af-ac67-87795a76b0ef/task-25
-- Safety timer: b6dc21ee-3aa0-46af-ac67-87795a76b0ef/task-35
+- Heartbeat cron: killed
+- Safety timer: killed
 - On succession: kill all timers before spawning successor
 - On context truncation: handle timers as step 4 of the State Recovery section of your prompt says
 

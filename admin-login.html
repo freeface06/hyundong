@@ -8,12 +8,12 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" />
-  <link rel="stylesheet" href="./css/tokens.css" />
-  <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
-  <link rel="alternate icon" href="./favicon.ico" />
+  <link rel="stylesheet" href="./css/tokens.css?v=20261113" />
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg?v=20261113" />
+  <link rel="alternate icon" href="./favicon.ico?v=20261113" />
   <style>
     .admin-login-page {
-      min-height: calc(100vh - 45px);
+      min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -82,22 +82,23 @@
       justify-content: center;
     }
 
-    @media (max-width: 767px) {
+    @media (max-width: 860px) {
       .admin-login-page {
         padding: 20px 16px;
-        align-items: flex-start;
+        align-items: center;
       }
 
       .admin-login-shell {
+        max-width: 560px;
         grid-template-columns: minmax(0, 1fr);
       }
 
       .admin-login-brand {
-        padding: 24px 22px;
+        padding: 26px 24px;
       }
 
       .admin-login-brand h1 {
-        font-size: 1.3rem;
+        font-size: 1.35rem;
       }
 
       .admin-login-feature-list {
@@ -105,37 +106,39 @@
       }
 
       .admin-login-form-pane {
-        padding: 26px 20px;
+        padding: 28px 24px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .admin-login-page {
+        padding: 16px 12px;
+        align-items: flex-start;
+      }
+
+      .admin-login-brand {
+        padding: 20px 18px;
+      }
+
+      .admin-login-brand h1 {
+        font-size: 1.22rem;
+      }
+
+      .admin-login-form-pane {
+        padding: 22px 16px;
       }
     }
   </style>
 </head>
 <body>
 
-  <!-- 고객 시연 화면 전환 바 -->
-  <div class="demo-switcher-bar">
-    <div class="demo-switcher-inner">
-      <div class="demo-switcher-badge">
-        <span class="demo-dot"></span>
-        <span><strong>현동서재 화면 미리보기</strong> · 운영자 전용 관리자 로그인 페이지</span>
-      </div>
-      <div class="demo-switcher-actions">
-        <a href="./index.html" class="demo-switch-link">쇼핑몰 홈</a>
-        <a href="./login.html" class="demo-switch-link">회원 로그인</a>
-        <a href="./signup.html" class="demo-switch-link">회원가입</a>
-        <a href="./admin-login.html" class="demo-switch-link is-active">관리자 로그인</a>
-        <a href="./admin.html" class="demo-switch-link">관리자 센터 →</a>
-      </div>
-    </div>
-  </div>
-
   <main class="admin-login-page">
     <div class="admin-login-shell">
       <!-- 좌측 운영센터 소개 패널 -->
       <section class="admin-login-brand">
         <div>
-          <span class="brand-seal-mark">玄同</span>
-          <h1>현동서재<br/>쇼핑몰 관리자 센터</h1>
+          <img src="./images/logo-mark-light.svg" alt="현동서재 관리자 로고" class="brand-logo-mark admin-brand-logo-mark" width="48" height="48" style="width:48px; height:48px; border-radius:12px;" />
+          <h1>현동서재<br/>한의학 도서 관리자 센터</h1>
           <p style="margin:0; font-size:0.9rem; color:#d6d0c4; line-height:1.6;">
             도서 상품 등록부터 택배 송장 발송, 고객 문의 답변, 배너·약관 설정까지 한곳에서 편리하게 운영할 수 있습니다.
           </p>
@@ -157,8 +160,11 @@
       <!-- 우측 로그인 입력 폼 -->
       <section class="admin-login-form-pane">
         <div style="margin-bottom:24px;">
-          <span class="badge badge-brand">운영자 전용</span>
-          <h2 style="margin:8px 0 4px; font-size:1.35rem; color:var(--color-brand-900);">관리자 로그인</h2>
+          <div style="display:inline-flex; align-items:center; gap:8px; margin-bottom:6px;">
+            <img src="./images/logo-mark.svg" alt="현동서재 로고" width="28" height="28" style="border-radius:7px; flex-shrink:0;" />
+            <span class="badge badge-brand">운영자 전용</span>
+          </div>
+          <h2 style="margin:6px 0 4px; font-size:1.35rem; color:var(--color-brand-900);">관리자 로그인</h2>
           <p style="margin:0; font-size:0.86rem; color:var(--color-text-muted);">
             발급받은 관리자 아이디와 비밀번호를 입력해 주세요.
           </p>
@@ -195,7 +201,7 @@
     </div>
   </main>
 
-  <script src="./js/mock-data.js"></script>
+  <script src="./js/mock-data.js?v=20261113"></script>
   <script>
     (function () {
       const Store = window.HyundongStore;

@@ -42,7 +42,7 @@
 | M2 | Admin Operations & Layout | Features 6, 7, 8, 9, 10 (Full-width layout, Notice/FAQ edit, switch far-right, banner image upload, editor fixed height) | none | DONE (Gate PASS: 2 Reviewers APPROVE, 2 Challengers 31/31 passed, Auditor CLEAN, Harness PASSED) |
 | M3 | Visual Design, Responsive UI & Brand Assets | Features 11, 12, 13 (Mobile header 1-line, selectbox centering, logo/favicon/hero images generation & hero refresh) | none | DONE (Gate PASS: 2 Reviewers APPROVE, 2 Challengers 110/110 passed, Auditor CLEAN, Harness PASSED) |
 | M4 | Order/Fulfillment & Multi-Address Management | Features 14, 15, 16, 17 (2-step order status, order thumbnails, multi-address CRUD, Rosen Logistics) | M1, M2 | DONE (Gate PASS: 2 Reviewers APPROVE, 2 Challengers APPROVE, Auditor CLEAN, 44/44 canonical E2E passed, Harness PASSED) |
-| M5 | End-to-End Verification & Git Push | Feature 18 (Harness verification, all acceptance criteria pass, git commit & push to remote main) | M1, M2, M3, M4 | IN_PROGRESS |
+| M5 | End-to-End Verification & Git Push | Feature 18 (Harness verification, all acceptance criteria pass, git commit & push to remote main) | M1, M2, M3, M4 | DONE (Gate PASS: 2 Reviewers APPROVE, 2 Challengers APPROVE, Auditor CLEAN, 226/226 E2E tests passed, Harness PASSED, commit 10aad73 pushed to origin/main) |
 
 ## Interface Contracts
 

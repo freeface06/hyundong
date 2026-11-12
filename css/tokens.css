@@ -99,38 +99,71 @@ input[type="radio"] {
 }
 
 /* ==========================================================================
-   Client Preview Mode Switcher Bar (화면 미리보기 전환 바)
+   Client Preview Mode Switcher Bar (화면 미리보기 전환 바 - 레거시 호환 1줄 고정)
    ========================================================================== */
 .demo-switcher-bar {
   background: var(--color-brand-900);
   color: #f4f2ed;
-  font-size: 0.8rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.76rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   position: relative;
   z-index: 120;
+  height: 34px;
+  min-height: 34px;
+  max-height: 34px;
+  overflow: hidden;
 }
 
 .demo-switcher-inner {
   max-width: 1380px;
   margin: 0 auto;
-  padding: 7px 16px;
+  padding: 0 16px;
+  height: 34px;
+  min-height: 34px;
+  max-height: 34px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  flex-wrap: wrap;
+  gap: 10px;
+  flex-wrap: nowrap !important;
+  white-space: nowrap !important;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.demo-switcher-inner::-webkit-scrollbar {
+  display: none;
 }
 
 .demo-switcher-badge {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   color: #dfdcd3;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap !important;
+}
+
+.demo-switcher-badge > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap !important;
+}
+
+@media (max-width: 960px) {
+  .demo-switcher-badge {
+    display: none !important;
+  }
 }
 
 .demo-dot {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: var(--color-brand-500);
   box-shadow: 0 0 0 3px rgba(145, 138, 125, 0.28);
@@ -153,24 +186,26 @@ input[type="radio"] {
   display: flex;
   align-items: center;
   gap: 6px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap !important;
+  flex-shrink: 0;
+  white-space: nowrap !important;
 }
 
 .demo-switch-link {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 4px 11px;
+  padding: 2px 9px;
   border-radius: 999px;
   font-weight: 600;
-  font-size: 0.77rem;
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  font-size: 0.74rem;
+  border: 1px solid rgba(255, 255, 255, 0.16);
   color: #dfdcd3;
   background: transparent;
   cursor: pointer;
   transition: all 0.16s ease;
-  min-height: 30px;
-  white-space: nowrap;
+  min-height: 24px;
+  white-space: nowrap !important;
 }
 
 .demo-switch-link:hover {
@@ -185,17 +220,59 @@ input[type="radio"] {
 }
 
 /* ==========================================================================
-   Shared Brand Identity, Cards & Typography Helpers
+   Shared Brand Identity (Herbal Medicine + Classic Book Emblem), Cards & Helpers
    ========================================================================== */
+.brand-logo-mark {
+  width: 38px;
+  height: 38px;
+  border-radius: 9px;
+  object-fit: contain;
+  flex-shrink: 0;
+  display: block;
+  box-shadow: 0 2px 6px rgba(44, 41, 37, 0.12);
+}
+
+.admin-brand-logo-mark {
+  width: 38px;
+  height: 38px;
+  border-radius: 9px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22);
+}
+
+.auth-card-logo {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  object-fit: contain;
+  margin: 0 auto 8px;
+  display: block;
+  box-shadow: 0 4px 12px rgba(44, 41, 37, 0.14);
+}
+
+.footer-brand-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.footer-brand-mark {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
 .brand-seal-mark {
-  width: 40px;
-  height: 40px;
-  border-radius: 6px;
-  background: var(--color-brand-500);
+  width: 38px;
+  height: 38px;
+  border-radius: 9px;
+  background: var(--color-brand-800);
   color: #ffffff;
   font-family: var(--font-serif);
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 0.95rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -296,9 +373,9 @@ select.form-input,
 
 .toolbar-select {
   width: auto;
-  min-width: 140px;
-  height: 40px;
-  min-height: 40px;
+  min-width: 136px;
+  height: 44px;
+  min-height: 44px;
   font-size: 0.86rem;
 }
 
@@ -956,7 +1033,7 @@ textarea.form-input {
 .modal-panel {
   background: var(--color-surface);
   width: 100%;
-  max-width: 860px;
+  max-width: 840px;
   max-height: 90vh;
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
@@ -970,7 +1047,8 @@ textarea.form-input {
   max-width: 520px;
 }
 
-.modal-header {
+.modal-header,
+.modal-head {
   padding: 16px 22px;
   border-bottom: 1px solid var(--color-border);
   display: flex;
@@ -986,7 +1064,8 @@ textarea.form-input {
   font-weight: 700;
 }
 
-.modal-close {
+.modal-close,
+.modal-close-btn {
   width: 38px;
   height: 38px;
   border-radius: 50%;
@@ -1006,7 +1085,8 @@ textarea.form-input {
   flex: 1;
 }
 
-.modal-footer {
+.modal-footer,
+.modal-foot {
   padding: 14px 22px;
   border-top: 1px solid var(--color-border);
   background: var(--color-surface);
@@ -1014,6 +1094,24 @@ textarea.form-input {
   justify-content: flex-end;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+.postcode-result-item {
+  width: 100%;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 11px 14px;
+  cursor: pointer;
+  transition: border-color 0.16s ease, background-color 0.16s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.postcode-result-item:hover {
+  border-color: var(--color-brand-500);
+  background: var(--color-brand-50);
 }
 
 /* Responsive Shared Form & Modal Adjustments */

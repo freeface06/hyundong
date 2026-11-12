@@ -8,101 +8,236 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" />
-  <link rel="stylesheet" href="./css/tokens.css" />
-  <link rel="stylesheet" href="./css/store.css" />
-  <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
-  <link rel="alternate icon" href="./favicon.ico" />
+  <link rel="stylesheet" href="./css/tokens.css?v=20261113" />
+  <link rel="stylesheet" href="./css/store.css?v=20261113" />
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg?v=20261113" />
+  <link rel="alternate icon" href="./favicon.ico?v=20261113" />
+  <style>
+    .detail-utility-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 4px;
+    }
+    .detail-utility-actions #btnAskThisBook {
+      border-color: var(--color-brand-500);
+      color: var(--color-brand-800);
+      background: var(--color-surface);
+      font-weight: 700;
+    }
+    .detail-utility-actions #btnAskThisBook:hover {
+      background: var(--color-brand-500);
+      border-color: var(--color-brand-500);
+      color: #ffffff;
+    }
+    .detail-toc-box {
+      position: relative;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+    }
+    .detail-toc-pre {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      word-break: keep-all;
+      font-family: var(--font-sans);
+      background: var(--color-brand-50);
+      padding: 20px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--color-border);
+      line-height: 1.8;
+      margin: 0;
+      font-size: 0.91rem;
+      color: var(--color-text-primary);
+    }
+    .detail-toc-fade {
+      position: absolute;
+      left: 1px;
+      right: 1px;
+      bottom: 1px;
+      height: 44px;
+      background: linear-gradient(180deg, rgba(248, 247, 244, 0) 0%, var(--color-brand-50) 90%);
+      pointer-events: none;
+      border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+    }
+    .detail-toc-toggle-wrap {
+      margin-top: 10px;
+      display: flex;
+      justify-content: center;
+    }
+    .detail-toc-toggle-wrap[hidden],
+    .detail-toc-fade[hidden] {
+      display: none !important;
+    }
+    .detail-toc-toggle-btn {
+      min-width: 200px;
+      border-color: var(--color-brand-400);
+      color: var(--color-brand-800);
+      background: var(--color-surface);
+      font-weight: 700;
+    }
+    .detail-toc-toggle-btn:hover {
+      background: var(--color-brand-50);
+      border-color: var(--color-brand-500);
+    }
+    .review-card-item {
+      border-bottom: 1px solid var(--color-border);
+      padding: 14px 0;
+      font-size: 0.9rem;
+    }
+    .review-card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 6px;
+    }
+    .review-card-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .review-card-actions .btn-sm {
+      min-height: 30px;
+      padding: 0 9px;
+      font-size: 0.78rem;
+    }
+    .review-inline-edit-form {
+      background: var(--color-brand-50);
+      border: 1px solid var(--color-brand-300);
+      border-radius: var(--radius-sm);
+      padding: 14px;
+      margin-top: 8px;
+    }
+    .review-edit-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+    .detail-qna-callout {
+      margin-top: 22px;
+      padding: 16px 18px;
+      background: var(--color-brand-50);
+      border: 1px solid var(--color-border-strong);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    @media (max-width: 619px) {
+      .detail-toc-pre {
+        padding: 14px;
+      }
+      .detail-toc-toggle-btn {
+        width: 100%;
+      }
+      .detail-qna-callout .btn {
+        width: 100%;
+      }
+    }
+  </style>
 </head>
 <body>
 
-  <!-- 고객 시연 화면 전환 바 -->
-  <div class="demo-switcher-bar">
-    <div class="demo-switcher-inner">
-      <div class="demo-switcher-badge">
-        <span class="demo-dot"></span>
-        <span><strong>현동서재 화면 미리보기</strong> · 독립 도서 상세 페이지 (실시간 장바구니 및 구매 연동)</span>
-      </div>
-      <div class="demo-switcher-actions">
-        <a href="./index.html" class="demo-switch-link">쇼핑몰 홈</a>
-        <a href="./login.html" class="demo-switch-link">회원 로그인</a>
-        <a href="./signup.html" class="demo-switch-link">회원가입</a>
-        <a href="./admin-login.html" class="demo-switch-link">관리자 로그인</a>
-        <a href="./admin.html" class="demo-switch-link">관리자 센터 →</a>
-      </div>
-    </div>
-  </div>
-
-  <!-- PC 상단 안내바 -->
+  <!-- 상단 1줄 안내바 -->
   <div class="store-util-bar" id="topRibbonBar">
     <div class="store-container store-util-inner">
-      <div id="topRibbonText">도서출판 물고기 직영몰 · <strong>50,000원 이상 구매 시 무료배송</strong> (평일 오후 3시 이전 주문 당일 발송)</div>
+      <div id="topRibbonText">[직영 혜택] 50,000원 이상 무료배송 · 평일 오후 3시 이전 당일발송</div>
       <div class="store-util-links" id="pcAuthUtilLinks"></div>
     </div>
   </div>
 
-  <!-- 메인 헤더 -->
-  <header class="store-header">
-    <div class="store-container store-header-main">
-      <button type="button" class="header-icon-btn mobile-only-btn" id="btnMobileMenu" aria-label="전체 메뉴 열기">
-        ☰
-      </button>
+  <!-- 메인 헤더 + 1줄 가로 슬라이드 GNB 고정 래퍼 -->
+  <div class="store-sticky-chrome">
+    <header class="store-header">
+      <div class="store-container store-header-main">
+        <button type="button" class="header-icon-btn header-icon-only mobile-only-btn" id="btnMobileMenu" aria-label="전체 메뉴 열기">
+          <svg class="header-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
 
-      <a href="./index.html" class="brand-logo">
-        <span class="brand-seal-mark">玄同</span>
-        <div class="brand-logo-text">
-          <strong>현동서재 玄同書齋</strong>
-          <span>현동학당 · 도서출판 물고기 공식 서점</span>
+        <a href="./index.html" class="brand-logo">
+          <img src="./images/logo-mark.svg" alt="현동서재 로고" class="brand-logo-mark" width="38" height="38" />
+          <div class="brand-logo-text">
+            <strong>현동서재 <em class="brand-hanja">玄同書齋</em></strong>
+            <span>한의학 · 본초 전문 출판 서점</span>
+          </div>
+        </a>
+
+        <!-- 통합 도서 검색창 -->
+        <form class="store-search-box pc-only-search" id="pcSearchForm" action="./index.html" method="GET">
+          <select class="store-search-select" id="pcSearchTarget" name="searchTarget" aria-label="검색 항목">
+            <option value="ALL">통합검색</option>
+            <option value="TITLE">도서명</option>
+            <option value="AUTHOR">저자·역자</option>
+            <option value="ISBN">ISBN</option>
+          </select>
+          <input
+            type="search"
+            class="store-search-input"
+            id="pcSearchInput"
+            name="keyword"
+            placeholder="동의보감, 맥결집성, 처방집, 난경본의 검색..."
+          />
+          <button type="submit" class="store-search-submit">검색</button>
+        </form>
+
+        <!-- 우측 바로가기 -->
+        <div class="store-header-actions">
+          <button type="button" class="header-icon-btn header-icon-only mobile-only-btn" id="btnMobileSearchToggle" aria-label="도서 검색 열기">
+            <svg class="header-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          </button>
+          <a href="./index.html?view=mypage" class="header-icon-btn pc-wide-only-action" data-nav="addresses" aria-label="마이페이지">
+            <svg class="header-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M5 20a7 7 0 0 1 14 0"/></svg><span class="header-action-label">마이페이지</span>
+          </a>
+          <a href="./index.html?view=orders" class="header-icon-btn pc-only-action" data-nav="orders" aria-label="주문·배송">
+            <svg class="header-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4 7v10l8 4 8-4V7l-8-4Z"/><path d="m4 7 8 4 8-4"/><path d="M12 11v10"/></svg><span class="header-action-label">주문·배송</span>
+          </a>
+          <a href="./index.html?view=cart" class="header-icon-btn" data-nav="cart" aria-label="장바구니">
+            <svg class="header-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 7h12l1 12H5L6 7Z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg><span class="header-action-label">장바구니</span><span class="count-pill" id="headerCartCount">0</span>
+          </a>
         </div>
-      </a>
-
-      <!-- PC 도서 검색창 -->
-      <form class="store-search-box pc-only-search" action="./index.html" method="GET">
-        <select class="store-search-select" name="searchTarget" aria-label="검색 항목">
-          <option value="ALL">통합검색</option>
-          <option value="TITLE">도서명</option>
-          <option value="AUTHOR">저자·역자</option>
-          <option value="ISBN">ISBN</option>
-        </select>
-        <input
-          type="search"
-          class="store-search-input"
-          name="keyword"
-          placeholder="동의보감, 맥결집성, 처방집, 난경본의 검색..."
-        />
-        <button type="submit" class="store-search-submit">검색</button>
-      </form>
-
-      <!-- 우측 바로가기 -->
-      <div class="store-header-actions">
-        <a href="./index.html?view=cart" class="header-icon-btn">
-          <span>장바구니</span>
-          <span class="count-pill" id="headerCartCount">0</span>
-        </a>
-        <a href="./index.html?view=orders" class="header-icon-btn pc-only-action">
-          <span>주문·배송</span>
-        </a>
       </div>
-    </div>
 
-    <!-- PC 수평 메뉴 바 -->
-    <nav class="store-gnb" aria-label="주요 메뉴">
-      <div class="store-container">
+      <!-- 모바일 접이식 검색창 -->
+      <div class="mobile-search-drawer" id="mobileSearchDrawer">
+        <form class="store-search-box" id="mobileSearchForm" action="./index.html" method="GET">
+          <select class="store-search-select" id="mobileSearchTarget" name="searchTarget" aria-label="모바일 검색 항목">
+            <option value="ALL">통합</option>
+            <option value="TITLE">도서명</option>
+            <option value="AUTHOR">저자</option>
+          </select>
+          <input
+            type="search"
+            class="store-search-input"
+            id="mobileSearchInput"
+            name="keyword"
+            placeholder="찾으시는 도서명을 입력하세요"
+          />
+          <button type="submit" class="store-search-submit">검색</button>
+        </form>
+      </div>
+    </header>
+
+    <!-- 전 구간 1줄 가로 슬라이드 GNB (스크롤바 숨김 · 도서 탐색 전용 IA) -->
+    <nav class="store-gnb" aria-label="주요 도서 메뉴">
+      <div class="store-container store-gnb-rail">
         <ul class="store-gnb-list" id="pcGnbList">
           <li><a href="./index.html" class="store-gnb-btn">홈</a></li>
-          <li><a href="./index.html?cat=ALL" class="store-gnb-btn" id="gnbCat_ALL">전체 도서</a></li>
-          <li><a href="./index.html?cat=DONGEUI" class="store-gnb-btn" id="gnbCat_DONGEUI">동의보감·경전</a></li>
-          <li><a href="./index.html?cat=DIAGNOSIS" class="store-gnb-btn" id="gnbCat_DIAGNOSIS">진단·맥진학</a></li>
-          <li><a href="./index.html?cat=FORMULA" class="store-gnb-btn" id="gnbCat_FORMULA">방제·처방집</a></li>
-          <li><a href="./index.html?cat=CLINICAL" class="store-gnb-btn" id="gnbCat_CLINICAL">임상·강의집</a></li>
-          <li><a href="./index.html?cat=PHILOSOPHY" class="store-gnb-btn" id="gnbCat_PHILOSOPHY">양생·인체생리</a></li>
-          <li class="store-gnb-item-right"><a href="./notice.html" class="store-gnb-btn">공지사항</a></li>
-          <li><a href="./faq.html" class="store-gnb-btn">자주 묻는 질문</a></li>
-          <li><a href="./inquiry.html" class="store-gnb-btn">1:1 문의</a></li>
-          <li><a href="./qna.html" class="store-gnb-btn">독자 Q&amp;A</a></li>
+          <li><a href="./index.html?view=catalog" class="store-gnb-btn" id="gnbCat_ALL">전체 도서</a></li>
+          <li><a href="./index.html?view=catalog&cat=DONGEUI" class="store-gnb-btn" id="gnbCat_DONGEUI">동의보감·경전</a></li>
+          <li><a href="./index.html?view=catalog&cat=DIAGNOSIS" class="store-gnb-btn" id="gnbCat_DIAGNOSIS">진단·맥진학</a></li>
+          <li><a href="./index.html?view=catalog&cat=FORMULA" class="store-gnb-btn" id="gnbCat_FORMULA">방제·처방집</a></li>
+          <li><a href="./index.html?view=catalog&cat=CLINICAL" class="store-gnb-btn" id="gnbCat_CLINICAL">임상·강의집</a></li>
+          <li><a href="./index.html?view=catalog&cat=PHILOSOPHY" class="store-gnb-btn" id="gnbCat_PHILOSOPHY">양생·인체생리</a></li>
         </ul>
       </div>
     </nav>
-  </header>
+  </div>
 
   <!-- 모바일 슬라이드 메뉴 드로어 -->
   <div class="mobile-nav-drawer-backdrop" id="mobileDrawerBackdrop"></div>
@@ -142,9 +277,14 @@
       <!-- 2-Column Hero Card -->
       <section class="detail-hero-card" id="detailHeroCard">
         <div class="detail-hero-grid">
-          <!-- Left: Book Cover Container (aspect-ratio 3/4) -->
-          <div class="detail-cover-container" id="detailCoverContainer">
-            <!-- Rendered by Store.renderBookCoverHTML -->
+          <!-- Left: Book Cover Container (aspect-ratio 3/4) + 본문 미리보기 -->
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            <div class="detail-cover-container" id="detailCoverContainer">
+              <!-- Rendered by Store.renderBookCoverHTML -->
+            </div>
+            <button type="button" class="btn btn-sm btn-outline" id="btnOpenBookPreview" style="width:100%;">
+              본문 · 목차 미리보기
+            </button>
           </div>
 
           <!-- Right: Book Purchase Info -->
@@ -160,6 +300,13 @@
 
             <div class="detail-biblio-summary" id="detailBiblioSummary">
               <!-- Author | Publisher | Date | ISBN -->
+            </div>
+
+            <div class="detail-utility-actions">
+              <button type="button" class="btn btn-sm btn-soft" id="btnCopyIsbn">ISBN 복사</button>
+              <button type="button" class="btn btn-sm btn-soft" id="btnCopyBookUrl">도서 링크 공유</button>
+              <a href="./qna.html" class="btn btn-sm btn-outline" id="btnAskThisBook">이 도서에 대해 질문하기</a>
+              <a href="./inquiry.html" class="btn btn-sm btn-soft" id="btnAskAboutBook">1:1 문의하기</a>
             </div>
 
             <div class="detail-pricing-panel">
@@ -189,16 +336,29 @@
             </div>
 
             <!-- PC/태블릿 액션 버튼 -->
-            <div class="detail-action-buttons">
+            <div class="detail-action-buttons" id="detailHeroActionRow">
               <button type="button" class="btn btn-primary" id="btnHeroAddCart">
                 장바구니 담기
               </button>
               <button type="button" class="btn btn-dark" id="btnHeroBuyNow">
                 바로 구매하기
               </button>
+              <button type="button" class="btn btn-outline" id="btnRestockAlert" style="display:none;">
+                재입고 알림 신청
+              </button>
             </div>
           </div>
         </div>
+      </section>
+
+      <!-- 세트 ↔ 단권 상호 이동 및 연관 추천 도서 -->
+      <section class="detail-section-card" id="secRelatedBooks" style="margin-bottom:20px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:12px;">
+          <h2 style="margin:0;" id="relatedSectionTitle">함께 읽으면 좋은 연관 의서 · 세트 안내</h2>
+          <a href="./index.html?view=catalog" class="btn btn-sm btn-outline" id="relatedMoreLink">분야 전체 보기 →</a>
+        </div>
+        <div id="setSingleCrossBanner"></div>
+        <div class="related-books-grid" id="relatedBooksGrid"></div>
       </section>
 
       <!-- Sticky Tab Navigation -->
@@ -248,7 +408,15 @@
       <!-- 3. 목차 섹션 -->
       <section class="detail-section-card" id="secToc">
         <h2>상세 목차</h2>
-        <pre id="detailTocContent" style="white-space:pre-wrap; font-family:var(--font-sans); background:var(--color-brand-50); padding:20px; border-radius:var(--radius-sm); border:1px solid var(--color-border); line-height:1.8; margin:0; font-size:0.91rem; color:var(--color-text-primary);"></pre>
+        <div class="detail-toc-box" id="detailTocBox" data-toc-expanded="true">
+          <pre id="detailTocContent" class="detail-toc-pre" data-toc-expanded="true"></pre>
+          <div class="detail-toc-fade" id="detailTocFade" aria-hidden="true" hidden></div>
+        </div>
+        <div id="detailTocToggleWrap" class="detail-toc-toggle-wrap" hidden>
+          <button type="button" class="btn btn-sm btn-outline detail-toc-toggle-btn" id="btnToggleToc" data-toc-expanded="false" aria-expanded="false" aria-controls="detailTocContent">
+            목차 전체 펼쳐보기 ▾
+          </button>
+        </div>
       </section>
 
       <!-- 4. 저자·역자 소개 -->
@@ -259,8 +427,17 @@
 
       <!-- 5. 구매후기 섹션 -->
       <section class="detail-section-card" id="secReviews">
-        <h2>독자 구매후기 및 평점</h2>
-        
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
+          <h2 style="margin:0;">독자 구매후기 및 평점</h2>
+          <select id="reviewSortSelect" class="toolbar-select" aria-label="구매후기 정렬">
+            <option value="NEWEST">최신 등록순</option>
+            <option value="HELPFUL">도움순</option>
+            <option value="HIGH_RATING">높은 평점순</option>
+          </select>
+        </div>
+
+        <div id="reviewSummaryStats"></div>
+
         <!-- 후기 작성 폼 -->
         <form id="detailNewReviewForm" style="background:var(--color-brand-50); padding:20px; border-radius:var(--radius-md); border:1px solid var(--color-border); margin-bottom:24px;">
           <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px; flex-wrap:wrap;">
@@ -282,30 +459,38 @@
         <div id="detailReviewsList">
           <!-- Rendered reviews -->
         </div>
+
+        <!-- 도서 학술/내용 Q&A 직결 안내 -->
+        <div class="detail-qna-callout" id="detailQnaCallout">
+          <div style="min-width:0;">
+            <strong style="font-size:0.94rem; color:var(--color-brand-900); display:block;">도서 원문 직역 · 판본 · 강독 관련 궁금한 점이 있으신가요?</strong>
+            <span style="font-size:0.83rem; color:var(--color-text-secondary);">독자 Q&amp;A 게시판에서 이 도서를 지정해 질문하시면 출판부 학술위원이 직접 답변해 드립니다.</span>
+          </div>
+          <a href="./qna.html" class="btn btn-sm btn-primary" id="btnReviewsAskThisBook" data-ask-this-book="true">이 도서 Q&amp;A 질문 작성 →</a>
+        </div>
       </section>
 
       <!-- 6. 배송·교환 안내 섹션 -->
       <section class="detail-section-card" id="secShipping">
         <h2>배송 및 교환·반품 안내</h2>
-        <div style="font-size:0.92rem; line-height:1.8; color:var(--color-text-secondary);">
-          <div style="background:var(--color-brand-50); border:1px solid var(--color-border); border-radius:var(--radius-md); padding:16px 20px; margin-bottom:18px;">
-            <strong style="color:var(--color-brand-900);">로젠택배 (1588-9988) 공식 지정 배송</strong>
-            <p style="margin:4px 0 0;">
-              평일 오후 15시 이전 결제 확인 건은 출판부에서 직접 완충 포장하여 당일 발송합니다.
-              총 주문액 50,000원 이상 시 무료배송(미만 시 배송료 3,000원)입니다.
-            </p>
-          </div>
-          <p>
-            · <strong>파본/파손 도서 100% 무상 맞교환:</strong> 배송 중 파손이나 인쇄 낙장 발견 시 수령 후 30일 이내에 출판부(02-974-8545)로 연락주시면 왕복 배송비 전액 출판부 부담으로 새 책을 즉시 맞교환해 드립니다.<br />
-            · <strong>단순 변심 반품:</strong> 도서 수령 후 7일 이내 미사용(랩핑 미개봉) 상태에 한하여 반품 가능합니다 (왕복 택배비 6,000원 고객 부담).
-          </p>
-          <div style="margin-top:12px;">
-            <a href="./shipping-guide.html" class="btn btn-sm btn-outline">상세 배송·교환 규정 전문 보기 →</a>
-          </div>
-        </div>
+        <div style="font-size:0.92rem; line-height:1.8; color:var(--color-text-secondary);" id="detailShippingGuideBox"></div>
       </section>
     </div>
   </main>
+
+  <!-- 본문 미리보기 모달 -->
+  <div class="modal-backdrop" id="bookPreviewModal" role="dialog" aria-modal="true" aria-labelledby="bookPreviewTitle">
+    <div class="modal-panel" style="max-width:740px;">
+      <div class="modal-head">
+        <h2 class="modal-title" id="bookPreviewTitle">본문 · 직역 조판 미리보기</h2>
+        <button type="button" class="modal-close-btn" id="btnCloseBookPreview" aria-label="닫기">&times;</button>
+      </div>
+      <div class="modal-body" id="bookPreviewBody"></div>
+      <div class="modal-foot">
+        <button type="button" class="btn btn-outline" id="btnCloseBookPreviewFoot">닫기</button>
+      </div>
+    </div>
+  </div>
 
   <!-- 모바일 하단 고정 구매 바 (Safe-area 지원) -->
   <aside class="mobile-bottom-action-bar" id="mobileBottomActionBar" aria-label="모바일 도서 구매 바">
@@ -340,24 +525,21 @@
     </div>
   </footer>
 
-  <script src="./js/mock-data.js"></script>
+  <script src="./js/mock-data.js?v=20261113"></script>
   <script>
     (function () {
       const Store = window.HyundongStore;
       let state = Store ? Store.loadState() : null;
 
       if (!state || !state.books || state.books.length === 0) {
-        alert("도서 데이터를 불러올 수 없습니다.");
         return;
       }
 
       // Parse query param ?id={bookId}
       const params = new URLSearchParams(window.location.search);
       const rawBookId = params.get("id");
-      let bookId = rawBookId;
       let book = rawBookId ? state.books.find(function (b) { return b.id === rawBookId; }) : null;
 
-      // Fallback if not found
       if (!book) {
         if (rawBookId) {
           const noticeEl = document.getElementById("detailFallbackNotice");
@@ -371,24 +553,46 @@
           }
         }
         book = state.books[0];
-        bookId = book.id;
       }
 
       document.title = `${book.title} — 현동서재 (玄同書齋)`;
+
+      // Record recently viewed book & sync unified header/GNB/drawer/floating shell
+      if (typeof Store.recordRecentBook === "function") {
+        Store.recordRecentBook(book.id);
+        state = Store.loadState();
+      }
+      if (typeof Store.syncStoreShell === "function") {
+        Store.syncStoreShell({
+          isSPA: false,
+          state: state,
+          activeCategoryId: book.categoryId
+        });
+      }
 
       // Breadcrumb
       const bcCat = document.getElementById("bcCategoryLink");
       if (bcCat) {
         bcCat.textContent = book.categoryName || "도서";
-        bcCat.href = `./index.html?cat=${encodeURIComponent(book.categoryId || "ALL")}`;
+        bcCat.href = `./index.html?view=catalog&cat=${encodeURIComponent(book.categoryId || "ALL")}`;
       }
       const bcTitle = document.getElementById("bcBookTitle");
       if (bcTitle) bcTitle.textContent = book.title;
 
-      // Highlight Category in GNB
-      if (book.categoryId) {
-        const catGnbLink = document.getElementById(`gnbCat_${book.categoryId}`);
-        if (catGnbLink) catGnbLink.classList.add("is-active");
+      const qnaDirectHref = `./qna.html?bookId=${encodeURIComponent(book.id)}&write=1`;
+      const askThisBookBtn = document.getElementById("btnAskThisBook");
+      if (askThisBookBtn) {
+        askThisBookBtn.href = qnaDirectHref;
+        askThisBookBtn.setAttribute("data-book-id", book.id);
+      }
+      const reviewsAskBtn = document.getElementById("btnReviewsAskThisBook");
+      if (reviewsAskBtn) {
+        reviewsAskBtn.href = qnaDirectHref;
+        reviewsAskBtn.setAttribute("data-book-id", book.id);
+      }
+      const askBookLink = document.getElementById("btnAskAboutBook");
+      if (askBookLink) {
+        askBookLink.href = `./inquiry.html?bookId=${encodeURIComponent(book.id)}`;
       }
 
       // Hero Cover
@@ -397,10 +601,11 @@
         coverWrap.innerHTML = Store.renderBookCoverHTML(book);
       }
 
+      const isSoldOut = book.saleStatus === "OUT_OF_STOCK" || book.stockQuantity <= 0;
+
       // Hero Badges
       const badgeRow = document.getElementById("detailBadgeRow");
       if (badgeRow) {
-        const soldOut = book.saleStatus === "OUT_OF_STOCK" || book.stockQuantity <= 0;
         badgeRow.innerHTML = `
           <span class="badge badge-brand">${Store.escapeHtml(book.categoryName)}</span>
           <span class="badge ${book.isSet ? "badge-seal" : "badge-brand"}" style="${book.isSet ? "" : "background:var(--color-surface); border:1px solid var(--color-border-strong); color:var(--color-brand-800);"}">
@@ -408,7 +613,7 @@
           </span>
           ${book.setBadge ? `<span class="badge badge-seal">${Store.escapeHtml(book.setBadge)}</span>` : ""}
           ${book.mdPick ? `<span class="badge badge-seal">학당추천</span>` : ""}
-          ${soldOut ? `<span class="badge badge-danger">일시품절</span>` : `<span class="badge badge-success">${Store.escapeHtml(book.shippingEta)}</span>`}
+          ${isSoldOut ? `<span class="badge badge-danger">일시품절</span>` : `<span class="badge badge-success">${Store.escapeHtml(book.shippingEta)}</span>`}
         `;
       }
 
@@ -420,6 +625,62 @@
         ${Store.escapeHtml(book.publisher)} | 출간일 ${book.publishedDate} | ISBN ${book.isbn13}
       `;
 
+      // Copy ISBN & URL utilities
+      function copyTextWithToast(txt, msg) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(txt).then(function () { Store.showToast(msg); }).catch(function () { Store.showToast(msg); });
+        } else {
+          const ta = document.createElement("textarea");
+          ta.value = txt;
+          ta.style.position = "fixed";
+          ta.style.opacity = "0";
+          document.body.appendChild(ta);
+          ta.select();
+          try { document.execCommand("copy"); } catch (err) { /* ignore */ }
+          ta.remove();
+          Store.showToast(msg);
+        }
+      }
+      document.getElementById("btnCopyIsbn").addEventListener("click", function () {
+        copyTextWithToast(book.isbn13 || "", `ISBN (${book.isbn13}) 번호가 복사되었습니다.`);
+      });
+      document.getElementById("btnCopyBookUrl").addEventListener("click", function () {
+        copyTextWithToast(window.location.href, "도서 상세 페이지 링크가 클립보드에 복사되었습니다.");
+      });
+
+      // Book Preview Modal
+      const previewModal = document.getElementById("bookPreviewModal");
+      document.getElementById("btnOpenBookPreview").addEventListener("click", function () {
+        document.getElementById("bookPreviewTitle").textContent = `『${book.title}』 본문 · 목차 미리보기`;
+        const tocSnippet = String(book.tableOfContents || "").split("\n").slice(0, 10).join("\n");
+        document.getElementById("bookPreviewBody").innerHTML = `
+          <div class="preview-reader-sheet">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; border-bottom:1px solid var(--color-border-strong); padding-bottom:10px; margin-bottom:14px;">
+              <strong style="font-family:var(--font-serif); color:var(--color-brand-900);">현동학당 원문 대조 직역본 조판 견본</strong>
+              <span class="badge badge-brand">${Store.escapeHtml(book.dimensions || "신국판 양장")} · ${book.pageCount.toLocaleString()}쪽</span>
+            </div>
+            <div style="padding:14px 16px; background:#fffdf9; border:1px solid var(--color-border); border-radius:var(--radius-sm); margin-bottom:14px;">
+              <div style="font-family:var(--font-serif); font-size:1.05rem; color:var(--color-brand-900); margin-bottom:6px; letter-spacing:0.03em;">
+                【原文】 恬惔虛無 眞氣從之 精神內守 病安從來
+              </div>
+              <div style="font-size:0.92rem; line-height:1.8; color:var(--color-text-primary);">
+                <strong>【직역】</strong> 마음을 고요하고 담박하게 비워 욕심을 없애면 참된 기운(眞氣)이 이를 따르고, 정신(精神)을 안으로 온전히 지키면 병이 어디로부터 찾아오겠는가.
+              </div>
+              <div style="margin-top:8px; font-size:0.83rem; color:var(--color-text-secondary); border-top:1px dashed var(--color-border); padding-top:8px;">
+                <strong>【현동 강해】</strong> ${Store.escapeHtml(book.summary || book.description || "")}
+              </div>
+            </div>
+            <strong style="display:block; font-size:0.9rem; margin-bottom:6px; color:var(--color-brand-800);">수록 목차 발췌</strong>
+            <pre style="white-space:pre-wrap; font-family:var(--font-sans); font-size:0.85rem; line-height:1.7; margin:0; color:var(--color-text-secondary);">${Store.escapeHtml(tocSnippet)}</pre>
+          </div>
+        `;
+        previewModal.classList.add("is-open");
+      });
+      function closePreview() { previewModal.classList.remove("is-open"); }
+      document.getElementById("btnCloseBookPreview").addEventListener("click", closePreview);
+      document.getElementById("btnCloseBookPreviewFoot").addEventListener("click", closePreview);
+      previewModal.addEventListener("click", function (e) { if (e.target === previewModal) closePreview(); });
+
       // Pricing
       document.getElementById("detailDiscount").textContent = `${book.discountRate}% 할인`;
       document.getElementById("detailListPrice").textContent = Store.formatKRW(book.listPrice);
@@ -427,7 +688,6 @@
       document.getElementById("detailRewardPoints").textContent = Store.formatKRW(book.rewardPoints);
       document.getElementById("detailShippingEta").textContent = book.shippingEta;
 
-      const isSoldOut = book.saleStatus === "OUT_OF_STOCK" || book.stockQuantity <= 0;
       const stockEl = document.getElementById("detailStockStatus");
       if (stockEl) {
         stockEl.textContent = isSoldOut ? "일시품절 (입고준비중)" : `보유 중 (${book.stockQuantity}부 남음)`;
@@ -474,52 +734,46 @@
         updatePriceDisplay();
       });
 
-      // Cart & Purchase Handlers
+      function syncCartChrome() {
+        const cartCount = state.cart.reduce(function (sum, c) { return sum + Number(c.qty || 0); }, 0);
+        const cartEl = document.getElementById("headerCartCount");
+        if (cartEl) cartEl.textContent = cartCount;
+      }
+
+      // Cart & Isolated Direct-Buy Handlers (non-blocking toast UX)
       function handleAddToCart() {
         if (isSoldOut) {
-          alert("현재 일시품절된 도서입니다.");
+          Store.showToast("현재 재인쇄 준비 중인 도서입니다.");
           return;
         }
+        const maxStock = Math.max(1, Number(book.stockQuantity || 99));
         let cartItem = state.cart.find(function (c) { return c.bookId === book.id; });
         if (cartItem) {
-          cartItem.qty += currentQty;
+          cartItem.qty = Math.min(maxStock, cartItem.qty + currentQty);
+          cartItem.checked = true;
         } else {
           state.cart.push({
             bookId: book.id,
-            qty: currentQty,
+            qty: Math.min(maxStock, currentQty),
             checked: true
           });
         }
         Store.saveState(state);
         syncCartChrome();
-
-        if (confirm(`${book.title} ${currentQty}권이 장바구니에 담겼습니다.\n장바구니로 바로 이동하시겠습니까?`)) {
-          window.location.href = "./index.html?view=cart";
-        }
+        Store.showToast(`『${book.title}』 ${currentQty}권이 장바구니에 담겼습니다.`);
       }
 
       function handleBuyNow() {
         if (isSoldOut) {
-          alert("현재 일시품절된 도서입니다.");
+          Store.showToast("현재 재인쇄 준비 중인 도서입니다.");
           return;
         }
-        let cartItem = state.cart.find(function (c) { return c.bookId === book.id; });
-        if (cartItem) {
-          cartItem.qty = currentQty;
-          cartItem.checked = true;
-        } else {
-          state.cart.push({
-            bookId: book.id,
-            qty: currentQty,
-            checked: true
-          });
-        }
-        Store.saveState(state);
-        window.location.href = "./index.html?view=cart";
+        window.location.href = `./index.html?view=checkout&direct=${encodeURIComponent(book.id)}&qty=${currentQty}`;
       }
 
       const btnHeroCart = document.getElementById("btnHeroAddCart");
       const btnHeroBuy = document.getElementById("btnHeroBuyNow");
+      const btnRestock = document.getElementById("btnRestockAlert");
       const btnMobCart = document.getElementById("btnMobAddCart");
       const btnMobBuy = document.getElementById("btnMobBuyNow");
 
@@ -528,6 +782,25 @@
         if (btnHeroBuy) { btnHeroBuy.disabled = true; btnHeroBuy.textContent = "품절 도서"; }
         if (btnMobCart) { btnMobCart.disabled = true; btnMobCart.textContent = "품절"; }
         if (btnMobBuy) { btnMobBuy.disabled = true; btnMobBuy.textContent = "품절"; }
+        if (btnRestock) {
+          btnRestock.style.display = "";
+          const alreadyAsked = (state.restockAlerts || []).some(function (a) { return a.bookId === book.id; });
+          if (alreadyAsked) btnRestock.textContent = "재입고 알림 신청완료 ✓";
+          btnRestock.addEventListener("click", function () {
+            if (!Array.isArray(state.restockAlerts)) state.restockAlerts = [];
+            if (!state.restockAlerts.some(function (a) { return a.bookId === book.id; })) {
+              state.restockAlerts.push({
+                bookId: book.id,
+                bookTitle: book.title,
+                memberId: (state.currentUser && state.currentUser.loginId) || "guest",
+                createdAt: new Date().toISOString().slice(0, 10)
+              });
+              Store.saveState(state);
+            }
+            btnRestock.textContent = "재입고 알림 신청완료 ✓";
+            Store.showToast(`『${book.title}』 재입고 시 우선 알림을 보내드립니다.`);
+          });
+        }
       } else {
         if (btnHeroCart) btnHeroCart.addEventListener("click", handleAddToCart);
         if (btnHeroBuy) btnHeroBuy.addEventListener("click", handleBuyNow);
@@ -535,9 +808,52 @@
         if (btnMobBuy) btnMobBuy.addEventListener("click", handleBuyNow);
       }
 
+      // Set <-> Single Cross-Link & Related Books
+      const crossBannerEl = document.getElementById("setSingleCrossBanner");
+      const relatedMoreEl = document.getElementById("relatedMoreLink");
+      if (relatedMoreEl && book.categoryId) {
+        relatedMoreEl.href = `./index.html?view=catalog&cat=${encodeURIComponent(book.categoryId)}`;
+      }
+      if (crossBannerEl) {
+        let companion = null;
+        if (book.isSet) {
+          companion = state.books.find(function (b) { return !b.isSet && b.categoryId === book.categoryId && b.id !== book.id && b.saleStatus !== "HIDDEN"; });
+        } else {
+          companion = state.books.find(function (b) { return b.isSet && b.categoryId === book.categoryId && b.id !== book.id && b.saleStatus !== "HIDDEN"; });
+        }
+        if (companion) {
+          crossBannerEl.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; padding:12px 16px; margin-bottom:14px; background:var(--color-brand-50); border:1px solid var(--color-border-strong); border-radius:var(--radius-sm);">
+              <div>
+                <span class="badge badge-seal" style="margin-right:6px;">${book.isSet ? "단권 강의집 안내" : "전집 세트 할인 안내"}</span>
+                <strong style="font-size:0.92rem; color:var(--color-brand-900);">${Store.escapeHtml(companion.title)}</strong>
+                <span style="font-size:0.84rem; color:var(--color-text-secondary); margin-left:6px;">(${Store.formatKRW(companion.salePrice)} · ${companion.discountRate}% 직판할인)</span>
+              </div>
+              <a href="./book-detail.html?id=${encodeURIComponent(companion.id)}" class="btn btn-sm btn-primary">${book.isSet ? "연계 단권 보러가기 →" : "세트 구성 보러가기 →"}</a>
+            </div>
+          `;
+        }
+      }
+      const relatedGrid = document.getElementById("relatedBooksGrid");
+      if (relatedGrid) {
+        const sameCat = state.books.filter(function (b) { return b.id !== book.id && b.saleStatus !== "HIDDEN" && b.categoryId === book.categoryId; });
+        const others = state.books.filter(function (b) { return b.id !== book.id && b.saleStatus !== "HIDDEN" && b.categoryId !== book.categoryId; });
+        const related = sameCat.concat(others).slice(0, 4);
+        relatedGrid.innerHTML = related.map(function (rb) {
+          return `
+            <a href="./book-detail.html?id=${encodeURIComponent(rb.id)}" class="related-book-card">
+              <div style="max-width:108px; width:100%; margin:0 auto 8px;">${Store.renderBookCoverHTML(rb)}</div>
+              <strong style="font-family:var(--font-serif); font-size:0.9rem; color:var(--color-brand-900); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${Store.escapeHtml(rb.title)}</strong>
+              <span style="font-size:0.78rem; color:var(--color-text-muted); margin-top:2px;">${Store.escapeHtml(rb.author)}</span>
+              <strong style="font-size:0.88rem; color:var(--color-brand-800); margin-top:4px;">${Store.formatKRW(rb.salePrice)}</strong>
+            </a>
+          `;
+        }).join("");
+      }
+
       // Fill Section 1: Biblio
       document.getElementById("tblIsbn").textContent = book.isbn13 || "-";
-      document.getElementById("tblPubInfo").textContent = `${book.publishedDate} 출간 | ${Store.escapeHtml(book.dimensions || "")} | ${book.pageCount.toLocaleString()}쪽`;
+      document.getElementById("tblPubInfo").textContent = `${book.publishedDate} 출간 | ${book.dimensions || ""} | ${book.pageCount.toLocaleString()}쪽`;
       document.getElementById("tblTarget").textContent = book.targetReaders || "한의사, 한의대생, 한의학 연구자";
       document.getElementById("tblPublisherReview").textContent = book.publisherReview || "현동학당 도서출판 물고기 공식 정본";
 
@@ -550,17 +866,130 @@
         richIntroEl.innerHTML = `<p>${Store.escapeHtml(book.description || "")}</p>`;
       }
 
-      // Fill Section 3: TOC
-      document.getElementById("detailTocContent").textContent = book.tableOfContents || "목차 준비 중입니다.";
+      // Fill Section 3: TOC (Long TOC More / Collapse Toggle)
+      const fullToc = String(book.tableOfContents || "목차 준비 중입니다.");
+      const tocLines = fullToc.split(/\r?\n/);
+      const isLongToc = tocLines.length > 8 || fullToc.length > 180;
+      const tocEl = document.getElementById("detailTocContent");
+      const tocBoxEl = document.getElementById("detailTocBox");
+      const tocFadeEl = document.getElementById("detailTocFade");
+      const tocToggleWrapEl = document.getElementById("detailTocToggleWrap");
+      const btnToggleToc = document.getElementById("btnToggleToc");
+      let tocExpanded = !isLongToc;
+
+      function getCollapsedTocText(text, lines) {
+        if (lines.length > 8) {
+          return lines.slice(0, 6).join("\n");
+        }
+        if (lines.length >= 3) {
+          return lines.slice(0, Math.min(2, lines.length - 1)).join("\n");
+        }
+        return text.slice(0, 140).trimEnd();
+      }
+
+      function renderTocSection() {
+        if (!tocEl) return;
+        if (!isLongToc) {
+          tocEl.textContent = fullToc;
+          tocEl.setAttribute("data-toc-expanded", "true");
+          if (tocBoxEl) tocBoxEl.setAttribute("data-toc-expanded", "true");
+          if (tocFadeEl) tocFadeEl.hidden = true;
+          if (tocToggleWrapEl) tocToggleWrapEl.hidden = true;
+          return;
+        }
+
+        if (tocToggleWrapEl) tocToggleWrapEl.hidden = false;
+        const expandedStr = tocExpanded ? "true" : "false";
+        tocEl.textContent = tocExpanded ? fullToc : getCollapsedTocText(fullToc, tocLines);
+        tocEl.setAttribute("data-toc-expanded", expandedStr);
+        if (tocBoxEl) tocBoxEl.setAttribute("data-toc-expanded", expandedStr);
+        if (tocFadeEl) tocFadeEl.hidden = tocExpanded;
+        if (btnToggleToc) {
+          btnToggleToc.setAttribute("data-toc-expanded", expandedStr);
+          btnToggleToc.setAttribute("aria-expanded", expandedStr);
+          btnToggleToc.textContent = tocExpanded ? "목차 접기 ▴" : "목차 전체 펼쳐보기 ▾";
+        }
+      }
+      renderTocSection();
+
+      if (btnToggleToc) {
+        btnToggleToc.addEventListener("click", function () {
+          tocExpanded = !tocExpanded;
+          renderTocSection();
+        });
+      }
 
       // Fill Section 4: Author
       document.getElementById("detailAuthorContent").textContent = book.authorBio || `${book.author} 저자 소개 준비 중입니다.`;
 
-      // Fill Section 5: Reviews
+      // Fill Section 5: Reviews (Rating Distribution + Sort + Helpful + Verified Buyer + Edit/Delete)
+      let reviewSortBy = "NEWEST";
+      let editingReviewId = null;
+
+      function isMyReview(rv) {
+        if (!state.currentUser || !state.currentUser.loggedIn || !rv) return false;
+        const curLoginId = String(state.currentUser.loginId || "").trim();
+        const curUserName = String(state.currentUser.name || "").trim();
+        if (curLoginId && (rv.loginId === curLoginId || rv.writerId === curLoginId)) return true;
+        if (curUserName && (rv.authorName === curUserName || rv.writerName === curUserName)) return true;
+        return false;
+      }
+
+      function syncBookReviewAggregates() {
+        const visibleRevs = (state.reviews || []).filter(function (r) {
+          return r.bookId === book.id && r.visible;
+        });
+        book.reviewCount = visibleRevs.length;
+        book.ratingAvg = visibleRevs.length
+          ? Number((visibleRevs.reduce(function (s, r) { return s + Number(r.rating || 5); }, 0) / visibleRevs.length).toFixed(2))
+          : 0;
+      }
+
       function renderReviews() {
-        const bookReviews = state.reviews.filter(function (r) { return r.bookId === book.id && r.visible; });
+        const rawReviews = (state.reviews || []).filter(function (r) { return r.bookId === book.id && r.visible; });
         const countSpan = document.getElementById("tabReviewCount");
-        if (countSpan) countSpan.textContent = bookReviews.length;
+        if (countSpan) countSpan.textContent = rawReviews.length;
+
+        const statsEl = document.getElementById("reviewSummaryStats");
+        if (statsEl) {
+          const avg = rawReviews.length
+            ? (rawReviews.reduce(function (s, r) { return s + Number(r.rating || 5); }, 0) / rawReviews.length).toFixed(1)
+            : "0.0";
+          const avgRounded = rawReviews.length ? Math.max(0, Math.min(5, Math.round(Number(avg)))) : 0;
+          const summaryStars = "★".repeat(avgRounded) + "☆".repeat(5 - avgRounded);
+          const distRows = [5, 4, 3, 2, 1].map(function (score) {
+            const cnt = rawReviews.filter(function (r) { return Number(r.rating) === score; }).length;
+            const pct = rawReviews.length ? Math.round((cnt / rawReviews.length) * 100) : 0;
+            return `
+              <div style="display:flex; align-items:center; gap:8px; font-size:0.8rem;">
+                <span style="width:36px; font-weight:600;">${score}점</span>
+                <div style="flex:1; height:8px; background:var(--color-border); border-radius:999px; overflow:hidden;">
+                  <div style="width:${pct}%; height:100%; background:var(--color-brand-600);"></div>
+                </div>
+                <span style="width:32px; text-align:right; color:var(--color-text-muted);">${cnt}</span>
+              </div>
+            `;
+          }).join("");
+          statsEl.innerHTML = `
+            <div class="review-summary-box">
+              <div style="text-align:center; padding:8px 16px;">
+                <div style="font-size:0.8rem; color:var(--color-text-muted);">독자 평균 평점</div>
+                <strong id="reviewAvgScore" style="font-size:2rem; color:var(--color-brand-900); font-family:var(--font-serif);">${avg}</strong>
+                <div style="color:var(--color-brand-700); font-size:0.9rem;">${summaryStars} (<span id="reviewTotalCount">${rawReviews.length}</span>건)</div>
+              </div>
+              <div style="flex:1; min-width:0; display:flex; flex-direction:column; gap:4px;">
+                ${distRows}
+              </div>
+            </div>
+          `;
+        }
+
+        const bookReviews = rawReviews.slice();
+        if (reviewSortBy === "HELPFUL") {
+          bookReviews.sort(function (a, b) { return Number(b.helpfulCount || 0) - Number(a.helpfulCount || 0); });
+        } else if (reviewSortBy === "HIGH_RATING") {
+          bookReviews.sort(function (a, b) { return Number(b.rating || 0) - Number(a.rating || 0); });
+        }
 
         const revList = document.getElementById("detailReviewsList");
         if (!revList) return;
@@ -571,54 +1000,210 @@
         }
 
         revList.innerHTML = bookReviews.map(function (rv) {
-          const stars = "★".repeat(rv.rating) + "☆".repeat(5 - rv.rating);
-          return `
-            <div style="border-bottom:1px solid var(--color-border); padding:14px 0; font-size:0.9rem;">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                <div>
-                  <strong style="color:var(--color-brand-800);">${stars} (${rv.rating}.0)</strong>
-                  <span style="margin-left:8px; font-weight:600;">${Store.escapeHtml(rv.memberMask)}</span>
+          const ratingNum = Math.max(1, Math.min(5, Number(rv.rating || 5)));
+          const stars = "★".repeat(ratingNum) + "☆".repeat(5 - ratingNum);
+          const isMine = isMyReview(rv);
+          const isEditing = isMine && editingReviewId === rv.id;
+          const safeId = Store.escapeHtml(rv.id);
+
+          const bodyHtml = isEditing
+            ? `
+              <form class="review-inline-edit-form" id="reviewInlineEditForm" data-edit-review-form="${safeId}">
+                <div class="review-edit-controls">
+                  <label for="editReviewRatingSelect" style="font-weight:700; font-size:0.84rem; color:var(--color-brand-900);">평점 수정:</label>
+                  <select id="editReviewRatingSelect" data-edit-review-rating="${safeId}" class="toolbar-select" style="min-height:38px; height:38px;">
+                    <option value="5" ${ratingNum === 5 ? "selected" : ""}>★★★★★ (5점 만점 - 매우 추천)</option>
+                    <option value="4" ${ratingNum === 4 ? "selected" : ""}>★★★★☆ (4점 - 추천)</option>
+                    <option value="3" ${ratingNum === 3 ? "selected" : ""}>★★★☆☆ (3점 - 보통)</option>
+                    <option value="2" ${ratingNum === 2 ? "selected" : ""}>★★☆☆☆ (2점 - 아쉬움)</option>
+                    <option value="1" ${ratingNum === 1 ? "selected" : ""}>★☆☆☆☆ (1점)</option>
+                  </select>
                 </div>
-                <span style="color:var(--color-text-muted); font-size:0.82rem;">${rv.createdAt}</span>
+                <div class="inline-input-group">
+                  <input type="text" id="editReviewTextInput" data-edit-review-input="${safeId}" class="form-input" value="${Store.escapeHtml(rv.content)}" required />
+                  <button type="submit" class="btn btn-sm btn-primary" id="btnSaveReviewEdit" data-save-edit-review="${safeId}" style="min-height:44px; padding:0 14px; font-weight:700;">수정 저장</button>
+                  <button type="button" class="btn btn-sm btn-outline" id="btnCancelReviewEdit" data-cancel-edit-review="${safeId}" style="min-height:44px; padding:0 12px;">취소</button>
+                </div>
+              </form>
+            `
+            : `<div style="color:var(--color-text-primary); line-height:1.7;" data-review-content="${safeId}">${Store.escapeHtml(rv.content)}</div>`;
+
+          return `
+            <div class="review-card-item" data-review-card="${safeId}">
+              <div class="review-card-head">
+                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                  <strong style="color:var(--color-brand-800);">${stars} (${ratingNum}.0)</strong>
+                  <span style="font-weight:600;">${Store.escapeHtml(rv.memberMask)}</span>
+                  ${rv.verifiedBuyer ? `<span class="badge badge-success">실구매 인증</span>` : ""}
+                  ${rv.isBest ? `<span class="badge badge-seal">베스트 서평</span>` : ""}
+                  ${rv.updatedAt ? `<span style="font-size:0.76rem; color:var(--color-text-muted);">(수정됨)</span>` : ""}
+                </div>
+                <div class="review-card-actions">
+                  <span style="color:var(--color-text-muted); font-size:0.82rem;">${Store.escapeHtml(rv.createdAt)}</span>
+                  <button type="button" class="btn btn-sm btn-soft" data-helpful-review="${safeId}">
+                    도움돼요 (${Number(rv.helpfulCount || 0)})
+                  </button>
+                  ${isMine ? `
+                    <button type="button" class="btn btn-sm btn-outline" data-edit-review="${safeId}">수정</button>
+                    <button type="button" class="btn btn-sm btn-danger-outline" data-delete-review="${safeId}">삭제</button>
+                  ` : ""}
+                </div>
               </div>
-              <div style="color:var(--color-text-primary); line-height:1.7;">${Store.escapeHtml(rv.content)}</div>
+              ${bodyHtml}
             </div>
           `;
         }).join("");
       }
       renderReviews();
 
+      document.getElementById("reviewSortSelect").addEventListener("change", function (e) {
+        reviewSortBy = e.target.value || "NEWEST";
+        renderReviews();
+      });
+
+      const reviewsListEl = document.getElementById("detailReviewsList");
+      reviewsListEl.addEventListener("click", function (e) {
+        const helpBtn = e.target.closest("[data-helpful-review]");
+        if (helpBtn) {
+          const rvId = helpBtn.getAttribute("data-helpful-review");
+          const rv = state.reviews.find(function (r) { return r.id === rvId; });
+          if (rv) {
+            rv.helpfulCount = Number(rv.helpfulCount || 0) + 1;
+            Store.saveState(state);
+            renderReviews();
+          }
+          return;
+        }
+
+        const editBtn = e.target.closest("[data-edit-review]");
+        if (editBtn) {
+          const rvId = editBtn.getAttribute("data-edit-review");
+          const targetRv = state.reviews.find(function (r) { return r.id === rvId; });
+          if (targetRv && isMyReview(targetRv)) {
+            editingReviewId = rvId;
+            renderReviews();
+            const editInput = document.getElementById("editReviewTextInput");
+            if (editInput) editInput.focus();
+          }
+          return;
+        }
+
+        const cancelBtn = e.target.closest("[data-cancel-edit-review]");
+        if (cancelBtn) {
+          editingReviewId = null;
+          renderReviews();
+          return;
+        }
+
+        const delBtn = e.target.closest("[data-delete-review]");
+        if (delBtn) {
+          const rvId = delBtn.getAttribute("data-delete-review");
+          const targetRv = state.reviews.find(function (r) { return r.id === rvId; });
+          if (!targetRv || !isMyReview(targetRv)) return;
+          state.reviews = state.reviews.filter(function (r) { return r.id !== rvId; });
+          if (editingReviewId === rvId) editingReviewId = null;
+          syncBookReviewAggregates();
+          Store.saveState(state);
+          Store.showToast("작성하신 서평이 삭제되었습니다.");
+          renderReviews();
+        }
+      });
+
+      reviewsListEl.addEventListener("submit", function (e) {
+        const inlineForm = e.target.closest("[data-edit-review-form]");
+        if (!inlineForm) return;
+        e.preventDefault();
+        const rvId = inlineForm.getAttribute("data-edit-review-form");
+        const targetRv = state.reviews.find(function (r) { return r.id === rvId; });
+        if (!targetRv || !isMyReview(targetRv)) return;
+
+        const ratingEl = inlineForm.querySelector("[data-edit-review-rating]");
+        const inputEl = inlineForm.querySelector("[data-edit-review-input]");
+        const nextRating = Math.max(1, Math.min(5, parseInt(ratingEl ? ratingEl.value : targetRv.rating, 10) || 5));
+        const nextContent = inputEl ? inputEl.value.trim() : "";
+        if (!nextContent) {
+          Store.showToast("수정할 후기 내용을 입력해 주세요.");
+          return;
+        }
+
+        targetRv.rating = nextRating;
+        targetRv.content = nextContent;
+        targetRv.updatedAt = new Date().toISOString().slice(0, 10);
+        editingReviewId = null;
+        syncBookReviewAggregates();
+        Store.saveState(state);
+        Store.showToast("작성하신 구매후기가 수정되었습니다.");
+        renderReviews();
+      });
+
       // Submit new review
       const revForm = document.getElementById("detailNewReviewForm");
       if (revForm) {
         revForm.addEventListener("submit", function (e) {
           e.preventDefault();
-          const rating = parseInt(document.getElementById("reviewRatingSelect").value, 10);
+          const rating = parseInt(document.getElementById("reviewRatingSelect").value, 10) || 5;
           const content = document.getElementById("reviewTextInput").value.trim();
           if (!content) return;
 
-          const maskName = (state.currentUser && state.currentUser.nameMasked) || "구매독자";
-          const grade = (state.currentUser && state.currentUser.grade) || "회원";
+          const isLoggedIn = Boolean(state.currentUser && state.currentUser.loggedIn);
+          const curLoginId = isLoggedIn ? (state.currentUser.loginId || "") : "";
+          const curWriterId = curLoginId || "guest";
+          const curAuthorName = isLoggedIn ? (state.currentUser.name || "") : "";
+          const maskName = isLoggedIn
+            ? (state.currentUser.nameMasked || Store.maskKoreanName(curAuthorName) || "회원독자")
+            : "구매독자";
+          const grade = isLoggedIn ? (state.currentUser.grade || "회원") : "독자";
+          const isVerified = Boolean(curLoginId) && (state.orders || []).some(function (o) {
+            return o.memberLoginId === curLoginId && o.orderStatus !== "CANCELED" && (o.items || []).some(function (it) { return it.bookId === book.id; });
+          });
 
           state.reviews.unshift({
-            id: "RV-" + Date.now(),
+            id: "RV-" + Date.now() + "-" + Math.floor(100 + Math.random() * 900),
             bookId: book.id,
+            loginId: curLoginId,
+            writerId: curWriterId,
+            authorName: curAuthorName,
+            verifiedBuyer: isVerified,
+            helpfulCount: 0,
             memberMask: `${maskName} (${grade})`,
             rating: rating,
             isBest: false,
             visible: true,
-            createdAt: "2026-11-12",
+            createdAt: new Date().toISOString().slice(0, 10),
             content: content
           });
 
-          // Update book review count
-          book.reviewCount = (book.reviewCount || 0) + 1;
-
+          syncBookReviewAggregates();
           Store.saveState(state);
           document.getElementById("reviewTextInput").value = "";
-          alert("구매 후기가 등록되었습니다. 소중한 의견 감사합니다.");
+          document.getElementById("reviewRatingSelect").value = "5";
+          Store.showToast("독자 서평이 등록되었습니다. 소중한 의견 감사합니다.");
           renderReviews();
         });
+      }
+
+      // Fill Section 6: Dynamic Shipping Guide (3,500원 / 50,000원 실시간 반영)
+      const shipBox = document.getElementById("detailShippingGuideBox");
+      if (shipBox) {
+        const cfg = state.siteConfig;
+        const baseFee = Number(cfg.baseShippingFee || 3500);
+        const thresh = Number(cfg.freeShippingThreshold || 50000);
+        shipBox.innerHTML = `
+          <div style="background:var(--color-brand-50); border:1px solid var(--color-border); border-radius:var(--radius-md); padding:16px 20px; margin-bottom:18px;">
+            <strong style="color:var(--color-brand-900);">로젠택배 (1588-9988) 공식 지정 전담 배송</strong>
+            <p style="margin:4px 0 0;">
+              ${Store.escapeHtml(cfg.cutoffNotice)} · 출판부에서 인쇄 상태를 직접 검수하고 에어캡 완충 포장하여 발송합니다.
+              총 실결제액 <strong>${Store.formatKRW(thresh)} 이상 무료배송</strong> (미만 시 기본 배송비 <strong>${Store.formatKRW(baseFee)}</strong>)입니다.
+            </p>
+          </div>
+          <p style="margin:0;">
+            · <strong>파본/파손 도서 100% 무상 맞교환:</strong> 배송 중 파손이나 인쇄 낙장 발견 시 수령 후 14일 이내 출판부(${Store.escapeHtml(cfg.csPhone)}) 또는 1:1 문의로 연락주시면 왕복 배송비 전액 출판사 부담으로 새 책을 즉시 교환해 드립니다.<br />
+            · <strong>단순 변심 반품:</strong> 도서 수령 후 7일 이내 미사용(랩핑 미개봉) 새 책 상태에 한하여 반품 가능합니다 (왕복 택배비 ${Store.formatKRW(baseFee * 2)} 고객 부담).
+          </p>
+          <div style="margin-top:12px;">
+            <a href="./shipping-guide.html" class="btn btn-sm btn-outline">상세 배송·교환 규정 전문 보기 →</a>
+          </div>
+        `;
       }
 
       // Sticky Tabs smooth scroll
@@ -630,39 +1215,14 @@
           const targetId = btn.getAttribute("data-tab-target");
           const targetSection = document.getElementById(targetId);
           if (targetSection) {
-            const yOffset = -120;
+            const yOffset = -175;
             const y = targetSection.getBoundingClientRect().top + window.pageYOffset + yOffset;
             window.scrollTo({ top: y, behavior: "smooth" });
           }
         });
       });
 
-      // Sync Cart chrome
-      function syncCartChrome() {
-        const cartCount = state.cart.reduce(function (sum, c) { return sum + c.qty; }, 0);
-        const cartEl = document.getElementById("headerCartCount");
-        if (cartEl) cartEl.textContent = cartCount;
-      }
       syncCartChrome();
-
-      // User Status
-      const pcAuthEl = document.getElementById("pcAuthUtilLinks");
-      if (pcAuthEl) {
-        if (state.currentUser && state.currentUser.loggedIn) {
-          pcAuthEl.innerHTML = `
-            <span><strong>${Store.escapeHtml(state.currentUser.name || state.currentUser.nameMasked)}</strong>님</span>
-            <a href="./index.html?view=orders" class="store-util-btn">주문·배송</a>
-            <span>고객센터 ${Store.escapeHtml(state.siteConfig.csPhone)}</span>
-          `;
-        } else {
-          pcAuthEl.innerHTML = `
-            <a href="./login.html" class="store-util-btn"><strong>로그인</strong></a>
-            <a href="./signup.html" class="store-util-btn">회원가입</a>
-            <a href="./index.html?view=orders" class="store-util-btn">주문·배송</a>
-            <span>고객센터 ${Store.escapeHtml(state.siteConfig.csPhone)}</span>
-          `;
-        }
-      }
 
       // Footer Info
       const foot = document.getElementById("storeFooterInfo");
@@ -670,9 +1230,12 @@
         const cfg = state.siteConfig;
         foot.innerHTML = `
           <div>
-            <strong style="font-family: var(--font-serif); font-size: 1.08rem; color: #ffffff;">
-              ${Store.escapeHtml(cfg.mallName)}
-            </strong>
+            <div class="footer-brand-row">
+              <img src="./images/logo-mark-light.svg" alt="현동서재 로고" class="footer-brand-mark" width="32" height="32" />
+              <strong style="font-family: var(--font-serif); font-size: 1.08rem; color: #ffffff;">
+                ${Store.escapeHtml(cfg.mallName)}
+              </strong>
+            </div>
             <p style="margin: 8px 0 4px;">${Store.escapeHtml(cfg.address)} | 대표: ${Store.escapeHtml(cfg.ceoName)}</p>
             <p style="margin: 0;">대표전화: ${Store.escapeHtml(cfg.csPhone)} | 상담시간: ${Store.escapeHtml(cfg.csHours)}</p>
           </div>
@@ -685,7 +1248,7 @@
         `;
       }
 
-      // Mobile Drawer
+      // Mobile Drawer open/close
       const btnMenu = document.getElementById("btnMobileMenu");
       const btnClose = document.getElementById("btnCloseMobileDrawer");
       const drawer = document.getElementById("mobileDrawer");

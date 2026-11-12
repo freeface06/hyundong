@@ -8,27 +8,18 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" />
-  <link rel="stylesheet" href="./css/tokens.css" />
-  <link rel="stylesheet" href="./css/store.css" />
-  <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
-  <link rel="alternate icon" href="./favicon.ico" />
+  <link rel="stylesheet" href="./css/tokens.css?v=20261113" />
+  <link rel="stylesheet" href="./css/store.css?v=20261113" />
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg?v=20261113" />
+  <link rel="alternate icon" href="./favicon.ico?v=20261113" />
 </head>
 <body>
 
-  <!-- 고객 시연 화면 전환 바 -->
-  <div class="demo-switcher-bar">
-    <div class="demo-switcher-inner">
-      <div class="demo-switcher-badge">
-        <span class="demo-dot"></span>
-        <span><strong>현동서재 화면 미리보기</strong> · 고객용 회원 로그인 페이지</span>
-      </div>
-      <div class="demo-switcher-actions">
-        <a href="./index.html" class="demo-switch-link">쇼핑몰 홈</a>
-        <a href="./login.html" class="demo-switch-link is-active">회원 로그인</a>
-        <a href="./signup.html" class="demo-switch-link">회원가입</a>
-        <a href="./admin-login.html" class="demo-switch-link">관리자 로그인</a>
-        <a href="./admin.html" class="demo-switch-link">관리자 센터 →</a>
-      </div>
+  <!-- 상단 1줄 안내바 -->
+  <div class="store-util-bar" id="topRibbonBar">
+    <div class="store-container store-util-inner">
+      <div id="topRibbonText">[직영 혜택] 50,000원 이상 무료배송 · 평일 오후 3시 이전 당일발송</div>
+      <div class="store-util-links" id="pcAuthUtilLinks"></div>
     </div>
   </div>
 
@@ -36,10 +27,10 @@
   <header class="store-header auth-header">
     <div class="store-container auth-header-inner">
       <a href="./index.html" class="brand-logo">
-        <span class="brand-seal-mark">玄同</span>
+        <img src="./images/logo-mark.svg" alt="현동서재 로고" class="brand-logo-mark" width="38" height="38" />
         <div class="brand-logo-text">
-          <strong>현동서재 玄同書齋</strong>
-          <span class="auth-brand-sub">현동학당 · 도서출판 물고기 공식 서점</span>
+          <strong>현동서재 <em class="brand-hanja">玄同書齋</em></strong>
+          <span class="auth-brand-sub">한의학 · 본초 전문 출판 서점</span>
         </div>
       </a>
       <div class="auth-header-actions">
@@ -53,7 +44,7 @@
     <div class="store-container">
       <div class="auth-card">
         <div class="auth-card-head">
-          <span class="brand-seal-mark" style="margin:0 auto;">玄同</span>
+          <img src="./images/logo-mark.svg" alt="현동서재 로고" class="auth-card-logo" width="52" height="52" />
           <h1>회원 로그인</h1>
           <p>현동서재 회원으로 로그인하시면 도서 구매 적립금과 빠른 배송조회를 이용하실 수 있습니다.</p>
         </div>
@@ -101,6 +92,7 @@
             <input type="tel" id="guestPhone" class="form-input" value="010-3928-4821" placeholder="010-0000-0000" required />
           </div>
           <button type="submit" class="btn btn-dark" style="width:100%;">주문 · 배송내역 조회하기</button>
+          <div id="guestOrderLookupResult" style="margin-top:14px;"></div>
         </form>
 
         <div style="margin-top:24px; padding-top:20px; border-top:1px solid var(--color-border); text-align:center;">
@@ -113,6 +105,52 @@
     </div>
   </main>
 
+  <!-- 아이디 찾기 / 비밀번호 재설정 모달 -->
+  <div class="modal-backdrop" id="findAccountModal" role="dialog" aria-modal="true" aria-labelledby="findAccountModalTitle">
+    <div class="modal-panel" style="max-width:460px;">
+      <div class="modal-header">
+        <h2 class="modal-title" id="findAccountModalTitle">계정 정보 찾기</h2>
+        <button type="button" class="modal-close" id="btnCloseFindAccountModal" aria-label="닫기">×</button>
+      </div>
+      <div class="modal-body">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:16px;">
+          <button type="button" class="btn btn-sm btn-primary" id="tabModalFindId">아이디 찾기</button>
+          <button type="button" class="btn btn-sm btn-outline" id="tabModalFindPw">비밀번호 재설정</button>
+        </div>
+
+        <form id="formModalFindId">
+          <div class="form-field">
+            <label for="findIdName">가입 시 등록한 성함 *</label>
+            <input type="text" id="findIdName" class="form-input" placeholder="예: 정지훈" required />
+          </div>
+          <div class="form-field">
+            <label for="findIdContact">휴대폰 번호 또는 이메일 *</label>
+            <input type="text" id="findIdContact" class="form-input" placeholder="010-3928-4821 또는 이메일" required />
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%;">일치하는 아이디 조회</button>
+        </form>
+
+        <form id="formModalFindPw" style="display:none;">
+          <div class="form-field">
+            <label for="findPwLoginId">아이디 *</label>
+            <input type="text" id="findPwLoginId" class="form-input" placeholder="예: dr_jeong82" required />
+          </div>
+          <div class="form-field">
+            <label for="findPwContact">가입 휴대폰 번호 *</label>
+            <input type="tel" id="findPwContact" class="form-input" placeholder="010-3928-4821" required />
+          </div>
+          <div class="form-field">
+            <label for="findPwNew">새 비밀번호 설정 (8자 이상) *</label>
+            <input type="password" id="findPwNew" class="form-input" placeholder="새 비밀번호 입력" minlength="8" required />
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%;">비밀번호 즉시 변경</button>
+        </form>
+
+        <div id="findAccountResult" style="margin-top:14px;"></div>
+      </div>
+    </div>
+  </div>
+
   <footer class="store-footer">
     <div class="store-container">
       <div class="footer-policy-links">
@@ -121,16 +159,19 @@
         <a href="./shipping-guide.html" class="footer-policy-btn">배송·교환·반품 안내</a>
         <a href="./inquiry.html" class="footer-policy-btn">고객센터 · 1:1 문의</a>
       </div>
-      <div class="footer-grid">
+      <div class="footer-grid" id="authFooterInfo">
         <div>
-          <strong style="font-family: var(--font-serif); font-size: 1.05rem; color: #ffffff;">현동서재 (玄同書齋)</strong>
-          <p style="margin: 8px 0 4px; font-size: 0.82rem; color: #b8b1a5;">
+          <div class="footer-brand-row">
+            <img src="./images/logo-mark-light.svg" alt="현동서재 로고" class="footer-brand-mark" width="32" height="32" />
+            <strong style="font-family: var(--font-serif); font-size: 1.05rem; color: #ffffff;">현동서재 (玄同書齋)</strong>
+          </div>
+          <p style="margin: 8px 0 4px; font-size: 0.82rem; color: #b8b1a5;" id="authFooterAddrLine">
             현동학당 · 도서출판 물고기 | 고객센터 02-974-8545 | 서울특별시 중랑구 신내로 25가길 2, 현동빌딩 503호
           </p>
         </div>
         <div>
-          <p style="margin: 0; font-size: 0.82rem; color: #b8b1a5;">
-            상담시간: 평일 09:00 ~ 17:00 (점심시간 12:00 ~ 13:00, 주말·공휴일 휴무)
+          <p style="margin: 0; font-size: 0.82rem; color: #b8b1a5;" id="authFooterHoursLine">
+            상담시간: 평일 09:30 ~ 17:30 (점심 12:30~13:30 / 주말·공휴일 휴무)
           </p>
         </div>
       </div>
@@ -141,48 +182,94 @@
     </div>
   </footer>
 
-  <script src="./js/mock-data.js"></script>
+  <script src="./js/mock-data.js?v=20261113"></script>
   <script>
     (function () {
       const Store = window.HyundongStore;
       const state = Store.loadState();
 
+      // 데모 초기화 버튼 및 푸터 설정 동기화
+      const demoActions = document.querySelector(".demo-switcher-actions");
+      if (demoActions && !document.getElementById("btnResetDemo")) {
+        const resetBtn = document.createElement("button");
+        resetBtn.type = "button";
+        resetBtn.className = "demo-switch-link";
+        resetBtn.id = "btnResetDemo";
+        resetBtn.textContent = "처음 상태로 초기화";
+        resetBtn.addEventListener("click", function () {
+          Store.resetState();
+          Store.showToast("초기 시연 상태로 복원되었습니다.");
+          setTimeout(function () { window.location.reload(); }, 250);
+        });
+        demoActions.appendChild(resetBtn);
+      }
+
+      if (state && state.siteConfig) {
+        const cfg = state.siteConfig;
+        const addrLine = document.getElementById("authFooterAddrLine");
+        const hoursLine = document.getElementById("authFooterHoursLine");
+        if (addrLine) {
+          addrLine.textContent = `${cfg.mallName} | 고객센터 ${cfg.csPhone} | ${cfg.address}`;
+        }
+        if (hoursLine) {
+          hoursLine.textContent = `상담시간: ${cfg.csHours} | 지정택배: 로젠택배(1588-9988)`;
+        }
+      }
+
       const tabMember = document.getElementById("tabMemberLogin");
       const tabGuest = document.getElementById("tabGuestOrder");
       const formMember = document.getElementById("memberLoginForm");
       const formGuest = document.getElementById("guestOrderForm");
+      const guestResultEl = document.getElementById("guestOrderLookupResult");
 
-      tabMember.addEventListener("click", function () {
-        tabMember.className = "btn btn-sm btn-primary";
-        tabGuest.className = "btn btn-sm btn-outline";
-        formMember.style.display = "";
-        formGuest.style.display = "none";
-      });
+      function switchMainTab(mode) {
+        if (mode === "guest") {
+          tabGuest.className = "btn btn-sm btn-primary";
+          tabMember.className = "btn btn-sm btn-outline";
+          formGuest.style.display = "";
+          formMember.style.display = "none";
+        } else {
+          tabMember.className = "btn btn-sm btn-primary";
+          tabGuest.className = "btn btn-sm btn-outline";
+          formMember.style.display = "";
+          formGuest.style.display = "none";
+        }
+      }
 
-      tabGuest.addEventListener("click", function () {
-        tabGuest.className = "btn btn-sm btn-primary";
-        tabMember.className = "btn btn-sm btn-outline";
-        formGuest.style.display = "";
-        formMember.style.display = "none";
-      });
+      tabMember.addEventListener("click", function () { switchMainTab("member"); });
+      tabGuest.addEventListener("click", function () { switchMainTab("guest"); });
+
+      // #guest 해시 또는 ?tab=guest 진입 시 비회원 주문조회 탭 자동 활성화
+      const urlParams = new URLSearchParams(window.location.search);
+      if (window.location.hash === "#guest" || urlParams.get("tab") === "guest") {
+        switchMainTab("guest");
+      }
 
       formMember.addEventListener("submit", function (e) {
         e.preventDefault();
         const idVal = document.getElementById("loginIdInput").value.trim();
-        const found = state.members.find(function (m) {
+        const pwVal = document.getElementById("loginPwInput").value;
+        const latest = Store.loadState();
+        const found = (latest.members || []).find(function (m) {
           return m.loginId.toLowerCase() === idVal.toLowerCase();
         });
 
+        if (found && found.password && pwVal && found.password !== pwVal) {
+          Store.showToast("비밀번호가 일치하지 않습니다. 다시 확인해 주세요.");
+          return;
+        }
+
         if (found) {
-          state.currentUser = {
+          const resolvedGrade = found.grade || found.memberGrade || "일반 회원";
+          latest.currentUser = {
             loggedIn: true,
             loginId: found.loginId,
             name: found.name,
-            nameMasked: found.nameMasked,
-            grade: found.memberGrade
+            nameMasked: found.nameMasked || Store.maskKoreanName(found.name),
+            grade: resolvedGrade
           };
         } else {
-          state.currentUser = {
+          latest.currentUser = {
             loggedIn: true,
             loginId: idVal,
             name: "방문회원",
@@ -190,21 +277,192 @@
             grade: "일반 회원"
           };
         }
-        Store.saveState(state);
-        window.location.href = "./index.html";
+        Store.saveState(latest);
+
+        const rawReturn = urlParams.get("returnUrl") || "";
+        const safeReturn = (rawReturn.startsWith("./") && !rawReturn.startsWith("//")) ? rawReturn : "./index.html";
+        window.location.href = safeReturn;
       });
 
       formGuest.addEventListener("submit", function (e) {
         e.preventDefault();
-        window.location.href = "./index.html?view=orders";
+        const ordNo = document.getElementById("guestOrderNo").value.trim();
+        const phoneDigits = document.getElementById("guestPhone").value.replace(/[^0-9]/g, "");
+        const latest = Store.loadState();
+        const matched = (latest.orders || []).find(function (o) {
+          const oPhone = String(o.recipientPhone || o.buyerPhone || "").replace(/[^0-9]/g, "");
+          return o.orderNo.toLowerCase() === ordNo.toLowerCase() && (!phoneDigits || oPhone === phoneDigits);
+        });
+
+        if (!matched) {
+          guestResultEl.innerHTML = `
+            <div style="padding:14px 16px; border:1px solid var(--color-border-strong); border-radius:var(--radius-sm); background:var(--color-brand-50); font-size:0.86rem; color:var(--color-text-secondary);">
+              입력하신 주문번호(<strong>${Store.escapeHtml(ordNo)}</strong>)와 휴대폰 번호가 일치하는 주문 내역이 없습니다. 번호를 다시 확인해 주세요.
+            </div>
+          `;
+          Store.showToast("일치하는 주문 내역을 찾지 못했습니다.");
+          return;
+        }
+
+        const isShipped = matched.orderStatus === "SHIPPED";
+        const carrier = Store.getCarrierInfo("LOGEN");
+        const firstBookTitle = matched.items && matched.items.length
+          ? matched.items[0].title + (matched.items.length > 1 ? ` 외 ${matched.items.length - 1}권` : "")
+          : "주문 도서";
+
+        guestResultEl.innerHTML = `
+          <div style="padding:16px; border:1px solid var(--color-border-strong); border-radius:var(--radius-md); background:var(--color-surface-soft); text-align:left;">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
+              <strong style="font-size:0.92rem; color:var(--color-brand-900);">${Store.escapeHtml(matched.orderNo)}</strong>
+              <span class="badge ${isShipped ? "badge-success" : "badge-seal"}">${Store.escapeHtml(Store.getOrderStatusLabel(matched.orderStatus))}</span>
+            </div>
+            <div style="font-size:0.86rem; color:var(--color-text-primary); font-weight:600; margin-bottom:4px;">${Store.escapeHtml(firstBookTitle)}</div>
+            <div style="font-size:0.82rem; color:var(--color-text-secondary); margin-bottom:10px;">
+              결제금액 <strong>${Store.formatKRW(matched.finalAmount)}</strong> · 수령인 ${Store.escapeHtml(Store.maskKoreanName(matched.recipientName || matched.buyerName))}
+            </div>
+            ${isShipped && matched.trackingNumber ? `
+              <div style="padding:10px 12px; background:var(--color-surface); border:1px solid var(--color-border); border-radius:var(--radius-sm); font-size:0.82rem; margin-bottom:10px;">
+                <div><strong>로젠택배 (${carrier.phone})</strong> · 송장번호 <strong>${Store.escapeHtml(matched.trackingNumber)}</strong></div>
+                <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:8px;">
+                  <button type="button" class="btn btn-sm btn-outline" id="btnCopyGuestWaybill">송장번호 복사</button>
+                  <a href="${carrier.trackingUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-primary">로젠택배 배송조회 ↗</a>
+                </div>
+              </div>
+            ` : `
+              <div style="font-size:0.8rem; color:var(--color-text-muted); margin-bottom:10px;">출판부 검수 및 완충 포장 후 로젠택배 송장번호가 등록됩니다.</div>
+            `}
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button type="button" class="btn btn-sm btn-outline" id="btnGuestReceiptModal" style="flex:1;">거래명세서 보기</button>
+              <a href="./index.html?view=orders" class="btn btn-sm btn-dark" id="btnGoGuestOrderDetail" style="flex:1; text-align:center;">상세 주문조회 화면 →</a>
+            </div>
+          </div>
+        `;
+
+        const btnCopy = document.getElementById("btnCopyGuestWaybill");
+        if (btnCopy) {
+          btnCopy.addEventListener("click", function () {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(matched.trackingNumber).catch(function () {});
+            }
+            Store.showToast("로젠택배 운송장 번호가 복사되었습니다.");
+          });
+        }
+        const btnRcpt = document.getElementById("btnGuestReceiptModal");
+        if (btnRcpt && Store.openOrderReceiptModal) {
+          btnRcpt.addEventListener("click", function () {
+            Store.openOrderReceiptModal(matched);
+          });
+        }
+        const btnDetail = document.getElementById("btnGoGuestOrderDetail");
+        if (btnDetail) {
+          btnDetail.addEventListener("click", function () {
+            try {
+              sessionStorage.setItem("hyundong_guest_order_lookup", JSON.stringify({
+                orderNo: matched.orderNo,
+                phone: matched.recipientPhone || ""
+              }));
+            } catch (err) {}
+          });
+        }
       });
 
-      document.getElementById("btnFindId").addEventListener("click", function () {
-        Store.showToast("가입 시 등록하신 휴대폰 번호 인증을 통해 아이디를 확인하실 수 있습니다.");
+      // 아이디 찾기 / 비밀번호 재설정 모달 제어
+      const findModal = document.getElementById("findAccountModal");
+      const tabFindId = document.getElementById("tabModalFindId");
+      const tabFindPw = document.getElementById("tabModalFindPw");
+      const formFindId = document.getElementById("formModalFindId");
+      const formFindPw = document.getElementById("formModalFindPw");
+      const findResultEl = document.getElementById("findAccountResult");
+
+      function openFindModal(mode) {
+        findResultEl.innerHTML = "";
+        if (mode === "pw") {
+          tabFindPw.className = "btn btn-sm btn-primary";
+          tabFindId.className = "btn btn-sm btn-outline";
+          formFindPw.style.display = "";
+          formFindId.style.display = "none";
+        } else {
+          tabFindId.className = "btn btn-sm btn-primary";
+          tabFindPw.className = "btn btn-sm btn-outline";
+          formFindId.style.display = "";
+          formFindPw.style.display = "none";
+        }
+        findModal.classList.add("is-open");
+      }
+
+      document.getElementById("btnFindId").addEventListener("click", function () { openFindModal("id"); });
+      document.getElementById("btnFindPw").addEventListener("click", function () { openFindModal("pw"); });
+      tabFindId.addEventListener("click", function () { openFindModal("id"); });
+      tabFindPw.addEventListener("click", function () { openFindModal("pw"); });
+      document.getElementById("btnCloseFindAccountModal").addEventListener("click", function () {
+        findModal.classList.remove("is-open");
+      });
+      findModal.addEventListener("click", function (e) {
+        if (e.target === findModal) findModal.classList.remove("is-open");
       });
 
-      document.getElementById("btnFindPw").addEventListener("click", function () {
-        Store.showToast("등록된 이메일 또는 휴대폰으로 임시 비밀번호 재설정 안내가 발송됩니다.");
+      formFindId.addEventListener("submit", function (e) {
+        e.preventDefault();
+        const nm = document.getElementById("findIdName").value.trim();
+        const contactRaw = document.getElementById("findIdContact").value.trim();
+        const contactDigits = contactRaw.replace(/[^0-9]/g, "");
+        const latest = Store.loadState();
+        const member = (latest.members || []).find(function (m) {
+          const mDigits = String(m.phone || "").replace(/[^0-9]/g, "");
+          const matchContact = (contactDigits && mDigits === contactDigits) ||
+            (m.email && m.email.toLowerCase() === contactRaw.toLowerCase());
+          return m.name === nm && matchContact;
+        });
+
+        if (member) {
+          findResultEl.innerHTML = `
+            <div style="padding:12px 14px; background:var(--color-brand-50); border:1px solid var(--color-border-strong); border-radius:var(--radius-sm); font-size:0.86rem;">
+              확인된 회원 아이디: <strong style="color:var(--color-brand-900);">${Store.escapeHtml(member.loginId)}</strong>
+              <button type="button" class="btn btn-sm btn-outline" id="btnApplyFoundId" style="margin-top:8px; width:100%;">로그인 입력창에 바로 채우기</button>
+            </div>
+          `;
+          document.getElementById("btnApplyFoundId").addEventListener("click", function () {
+            document.getElementById("loginIdInput").value = member.loginId;
+            findModal.classList.remove("is-open");
+            switchMainTab("member");
+            Store.showToast("아이디가 로그인 입력창에 입력되었습니다.");
+          });
+        } else {
+          findResultEl.innerHTML = `
+            <div style="padding:12px 14px; background:var(--color-brand-50); border:1px solid var(--color-border); border-radius:var(--radius-sm); font-size:0.84rem; color:var(--color-danger);">
+              입력하신 성함과 연락처/이메일에 일치하는 회원 계정이 없습니다.
+            </div>
+          `;
+        }
+      });
+
+      formFindPw.addEventListener("submit", function (e) {
+        e.preventDefault();
+        const lid = document.getElementById("findPwLoginId").value.trim();
+        const phoneDigits = document.getElementById("findPwContact").value.replace(/[^0-9]/g, "");
+        const newPw = document.getElementById("findPwNew").value;
+        const latest = Store.loadState();
+        const member = (latest.members || []).find(function (m) {
+          return m.loginId.toLowerCase() === lid.toLowerCase() &&
+                 String(m.phone || "").replace(/[^0-9]/g, "") === phoneDigits;
+        });
+
+        if (!member) {
+          findResultEl.innerHTML = `
+            <div style="padding:12px 14px; background:var(--color-brand-50); border:1px solid var(--color-border); border-radius:var(--radius-sm); font-size:0.84rem; color:var(--color-danger);">
+              아이디와 가입 휴대폰 번호가 일치하는 회원 정보를 찾을 수 없습니다.
+            </div>
+          `;
+          return;
+        }
+
+        member.password = newPw;
+        Store.saveState(latest);
+        document.getElementById("loginIdInput").value = member.loginId;
+        document.getElementById("loginPwInput").value = newPw;
+        findModal.classList.remove("is-open");
+        switchMainTab("member");
+        Store.showToast("새 비밀번호로 변경되었습니다. 바로 로그인하실 수 있습니다.");
       });
     })();
   </script>

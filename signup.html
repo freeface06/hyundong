@@ -8,27 +8,18 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" />
-  <link rel="stylesheet" href="./css/tokens.css" />
-  <link rel="stylesheet" href="./css/store.css" />
-  <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
-  <link rel="alternate icon" href="./favicon.ico" />
+  <link rel="stylesheet" href="./css/tokens.css?v=20261113" />
+  <link rel="stylesheet" href="./css/store.css?v=20261113" />
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg?v=20261113" />
+  <link rel="alternate icon" href="./favicon.ico?v=20261113" />
 </head>
 <body>
 
-  <!-- 고객 시연 화면 전환 바 -->
-  <div class="demo-switcher-bar">
-    <div class="demo-switcher-inner">
-      <div class="demo-switcher-badge">
-        <span class="demo-dot"></span>
-        <span><strong>현동서재 화면 미리보기</strong> · 고객용 회원가입 페이지 (약관 관리 메뉴와 실시간 연동)</span>
-      </div>
-      <div class="demo-switcher-actions">
-        <a href="./index.html" class="demo-switch-link">쇼핑몰 홈</a>
-        <a href="./login.html" class="demo-switch-link">회원 로그인</a>
-        <a href="./signup.html" class="demo-switch-link is-active">회원가입</a>
-        <a href="./admin-login.html" class="demo-switch-link">관리자 로그인</a>
-        <a href="./admin.html" class="demo-switch-link">관리자 센터 →</a>
-      </div>
+  <!-- 상단 1줄 안내바 -->
+  <div class="store-util-bar" id="topRibbonBar">
+    <div class="store-container store-util-inner">
+      <div id="topRibbonText">[직영 혜택] 50,000원 이상 무료배송 · 평일 오후 3시 이전 당일발송</div>
+      <div class="store-util-links" id="pcAuthUtilLinks"></div>
     </div>
   </div>
 
@@ -36,10 +27,10 @@
   <header class="store-header auth-header">
     <div class="store-container auth-header-inner">
       <a href="./index.html" class="brand-logo">
-        <span class="brand-seal-mark">玄同</span>
+        <img src="./images/logo-mark.svg" alt="현동서재 로고" class="brand-logo-mark" width="38" height="38" />
         <div class="brand-logo-text">
-          <strong>현동서재 玄同書齋</strong>
-          <span class="auth-brand-sub">현동학당 · 도서출판 물고기 공식 서점</span>
+          <strong>현동서재 <em class="brand-hanja">玄同書齋</em></strong>
+          <span class="auth-brand-sub">한의학 · 본초 전문 출판 서점</span>
         </div>
       </a>
       <div class="auth-header-actions">
@@ -53,7 +44,7 @@
     <div class="store-container">
       <div class="auth-card auth-card-wide">
         <div class="auth-card-head">
-          <span class="brand-seal-mark" style="margin:0 auto;">玄同</span>
+          <img src="./images/logo-mark.svg" alt="현동서재 로고" class="auth-card-logo" width="52" height="52" />
           <h1>현동서재 회원가입</h1>
           <p>간단한 정보 입력만으로 가입이 완료되며, 출판부 직판 할인과 구매 적립금을 받으실 수 있습니다.</p>
         </div>
@@ -112,6 +103,7 @@
             <div class="form-field">
               <label for="suPwConfirm">비밀번호 확인 *</label>
               <input type="password" id="suPwConfirm" class="form-input" placeholder="비밀번호를 한 번 더 입력해 주세요" required minlength="8" />
+              <div class="form-help" id="pwMatchMsg"></div>
             </div>
           </div>
 
@@ -151,12 +143,20 @@
           <div class="form-grid-2">
             <div class="form-field">
               <label for="suZip">우편번호 (선택)</label>
-              <input type="text" id="suZip" class="form-input" placeholder="예: 02042" />
+              <div class="inline-input-group">
+                <input type="text" id="suZip" class="form-input" placeholder="예: 02042" />
+                <button type="button" class="btn btn-outline" id="btnSignupPostcode">우편번호 찾기</button>
+              </div>
             </div>
             <div class="form-field">
-              <label for="suAddr">기본 배송지 주소 (선택)</label>
-              <input type="text" id="suAddr" class="form-input" placeholder="도서 주문 시 자동으로 채워집니다" />
+              <label for="suAddr">기본 도로명 주소 (선택)</label>
+              <input type="text" id="suAddr" class="form-input" placeholder="도로명 주소 검색 또는 직접 입력" />
             </div>
+          </div>
+
+          <div class="form-field">
+            <label for="suAddr2">상세 주소 (선택)</label>
+            <input type="text" id="suAddr2" class="form-input" placeholder="동·호수, 한의원 층수, 연구실 호수 등" />
           </div>
 
           <div style="display:flex; gap:10px; margin-top:24px; flex-wrap:wrap;">
@@ -178,14 +178,17 @@
       </div>
       <div class="footer-grid">
         <div>
-          <strong style="font-family: var(--font-serif); font-size: 1.05rem; color: #ffffff;">현동서재 (玄同書齋)</strong>
-          <p style="margin: 8px 0 4px; font-size: 0.82rem; color: #b8b1a5;">
+          <div class="footer-brand-row">
+            <img src="./images/logo-mark-light.svg" alt="현동서재 로고" class="footer-brand-mark" width="32" height="32" />
+            <strong style="font-family: var(--font-serif); font-size: 1.05rem; color: #ffffff;">현동서재 (玄同書齋)</strong>
+          </div>
+          <p style="margin: 8px 0 4px; font-size: 0.82rem; color: #b8b1a5;" id="signupFooterAddrLine">
             현동학당 · 도서출판 물고기 | 고객센터 02-974-8545 | 서울특별시 중랑구 신내로 25가길 2, 현동빌딩 503호
           </p>
         </div>
         <div>
-          <p style="margin: 0; font-size: 0.82rem; color: #b8b1a5;">
-            상담시간: 평일 09:00 ~ 17:00 (점심시간 12:00 ~ 13:00, 주말·공휴일 휴무)
+          <p style="margin: 0; font-size: 0.82rem; color: #b8b1a5;" id="signupFooterHoursLine">
+            상담시간: 평일 09:30 ~ 17:30 (점심 12:30~13:30 / 주말·공휴일 휴무)
           </p>
         </div>
       </div>
@@ -196,11 +199,35 @@
     </div>
   </footer>
 
-  <script src="./js/mock-data.js"></script>
+  <script src="./js/mock-data.js?v=20261113"></script>
   <script>
     (function () {
       const Store = window.HyundongStore;
       const state = Store.loadState();
+
+      // 데모 초기화 버튼 및 푸터 설정 동기화
+      const demoActions = document.querySelector(".demo-switcher-actions");
+      if (demoActions && !document.getElementById("btnResetDemo")) {
+        const resetBtn = document.createElement("button");
+        resetBtn.type = "button";
+        resetBtn.className = "demo-switch-link";
+        resetBtn.id = "btnResetDemo";
+        resetBtn.textContent = "처음 상태로 초기화";
+        resetBtn.addEventListener("click", function () {
+          Store.resetState();
+          Store.showToast("초기 시연 상태로 복원되었습니다.");
+          setTimeout(function () { window.location.reload(); }, 250);
+        });
+        demoActions.appendChild(resetBtn);
+      }
+
+      if (state && state.siteConfig) {
+        const cfg = state.siteConfig;
+        const addrLine = document.getElementById("signupFooterAddrLine");
+        const hoursLine = document.getElementById("signupFooterHoursLine");
+        if (addrLine) addrLine.textContent = `${cfg.mallName} | 고객센터 ${cfg.csPhone} | ${cfg.address}`;
+        if (hoursLine) hoursLine.textContent = `상담시간: ${cfg.csHours} | 지정택배: 로젠택배(1588-9988)`;
+      }
 
       // 관리기 [회원 구분 · 등급] 공통코드 실시간 연동
       const suGradeSel = document.getElementById("suGrade");
@@ -238,43 +265,114 @@
         }
       });
 
+      let isIdChecked = false;
+      const suLoginIdInput = document.getElementById("suLoginId");
+      const idCheckMsgEl = document.getElementById("idCheckMsg");
+      suLoginIdInput.addEventListener("input", function () {
+        isIdChecked = false;
+        idCheckMsgEl.style.color = "";
+        idCheckMsgEl.textContent = "아이디 입력 후 [중복 확인] 버튼을 눌러주세요.";
+      });
+
       document.getElementById("btnCheckId").addEventListener("click", function () {
-        const val = document.getElementById("suLoginId").value.trim();
-        const msgEl = document.getElementById("idCheckMsg");
+        const val = suLoginIdInput.value.trim();
         if (val.length < 4) {
-          msgEl.style.color = "var(--color-danger)";
-          msgEl.textContent = "아이디를 4글자 이상 입력해 주세요.";
+          isIdChecked = false;
+          idCheckMsgEl.style.color = "var(--color-danger)";
+          idCheckMsgEl.textContent = "아이디를 4글자 이상 입력해 주세요.";
           return;
         }
-        const dup = state.members.some(function (m) {
+        const latest = Store.loadState();
+        const dup = (latest.members || []).some(function (m) {
           return m.loginId.toLowerCase() === val.toLowerCase();
         });
         if (dup) {
-          msgEl.style.color = "var(--color-danger)";
-          msgEl.textContent = "이미 사용 중인 아이디입니다. 다른 아이디를 입력해 주세요.";
+          isIdChecked = false;
+          idCheckMsgEl.style.color = "var(--color-danger)";
+          idCheckMsgEl.textContent = "이미 사용 중인 아이디입니다. 다른 아이디를 입력해 주세요.";
         } else {
-          msgEl.style.color = "var(--color-success)";
-          msgEl.textContent = "사용 가능한 아이디입니다.";
+          isIdChecked = true;
+          idCheckMsgEl.style.color = "var(--color-success)";
+          idCheckMsgEl.textContent = "사용 가능한 아이디입니다.";
         }
       });
 
+      // 실시간 비밀번호 일치 안내
+      const pwInput = document.getElementById("suPw");
+      const pwConfirmInput = document.getElementById("suPwConfirm");
+      const pwMatchMsg = document.getElementById("pwMatchMsg");
+      function updatePwMatchHint() {
+        if (!pwConfirmInput.value) {
+          pwMatchMsg.textContent = "";
+          return;
+        }
+        if (pwInput.value === pwConfirmInput.value) {
+          pwMatchMsg.style.color = "var(--color-success)";
+          pwMatchMsg.textContent = "비밀번호가 일치합니다.";
+        } else {
+          pwMatchMsg.style.color = "var(--color-danger)";
+          pwMatchMsg.textContent = "비밀번호가 일치하지 않습니다.";
+        }
+      }
+      pwInput.addEventListener("input", updatePwMatchHint);
+      pwConfirmInput.addEventListener("input", updatePwMatchHint);
+
+      // 우편번호 검색 모달 연동
+      const btnPostcode = document.getElementById("btnSignupPostcode");
+      if (btnPostcode && Store.openPostcodeModal) {
+        btnPostcode.addEventListener("click", function () {
+          Store.openPostcodeModal(function (picked) {
+            document.getElementById("suZip").value = picked.zipCode;
+            document.getElementById("suAddr").value = picked.roadAddress;
+            document.getElementById("suAddr2").focus();
+          });
+        });
+      }
+
       document.getElementById("signupPageForm").addEventListener("submit", function (e) {
         e.preventDefault();
-        const pw = document.getElementById("suPw").value;
-        const pw2 = document.getElementById("suPwConfirm").value;
+        const pw = pwInput.value;
+        const pw2 = pwConfirmInput.value;
         if (pw !== pw2) {
           Store.showToast("비밀번호와 비밀번호 확인이 일치하지 않습니다.");
           return;
         }
 
-        const loginId = document.getElementById("suLoginId").value.trim();
+        const latest = Store.loadState();
+        const loginId = suLoginIdInput.value.trim();
+        const dup = (latest.members || []).some(function (m) {
+          return m.loginId.toLowerCase() === loginId.toLowerCase();
+        });
+        if (dup) {
+          idCheckMsgEl.style.color = "var(--color-danger)";
+          idCheckMsgEl.textContent = "이미 사용 중인 아이디입니다. 다른 아이디를 입력해 주세요.";
+          Store.showToast("이미 사용 중인 아이디입니다.");
+          return;
+        }
+
         const name = document.getElementById("suName").value.trim();
-        const grade = document.getElementById("suGrade").value;
+        const gradeVal = document.getElementById("suGrade").value;
+        const gradeLabel = Store.getCodeLabel(latest, "MEMBER_GRADE", gradeVal, gradeVal);
         const phone = document.getElementById("suPhone").value.trim();
         const clinic = document.getElementById("suClinic").value.trim();
         const email = document.getElementById("suEmail").value.trim();
-        const zip = document.getElementById("suZip").value.trim() || "02042";
-        const addr = document.getElementById("suAddr").value.trim() || "기본 배송지 미입력";
+        const zip = document.getElementById("suZip").value.trim();
+        const addr1 = document.getElementById("suAddr").value.trim();
+        const addr2 = document.getElementById("suAddr2").value.trim();
+        const fullAddr = [addr1, addr2].filter(Boolean).join(", ") || "기본 배송지 미입력";
+        const todayStr = new Date().toISOString().slice(0, 10);
+
+        const defaultAddresses = addr1 ? [{
+          id: "ADDR-" + Date.now(),
+          label: clinic ? clinic : "기본 배송지",
+          recipientName: name,
+          recipientPhone: phone,
+          zipCode: zip || "02042",
+          address: addr1,
+          addressDetail: addr2,
+          deliveryMemo: "부재 시 문 앞에 놓아주세요",
+          isDefault: true
+        }] : [];
 
         const newMember = {
           id: "MB-" + Math.floor(1005 + Math.random() * 8990),
@@ -285,28 +383,35 @@
           phone: phone,
           phoneMasked: Store.maskPhone(phone),
           email: email,
-          zipCode: zip,
-          address: addr,
-          memberGrade: grade,
+          zipCode: zip || "02042",
+          address: fullAddr,
+          grade: gradeLabel,
+          memberGrade: gradeLabel,
           points: 2000,
           status: "정상",
-          joinedAt: "2026-11-12",
+          joinedAt: todayStr,
           orderCount: 0,
           totalSpent: 0,
+          addresses: defaultAddresses,
+          pointHistory: [
+            { id: "PT-JOIN-" + Date.now(), date: todayStr, reason: "신규 회원가입 축하 적립금", delta: 2000, balance: 2000 }
+          ],
           adminMemo: "신규 홈페이지 가입 회원 (가입 축하 적립금 2,000원 지급)"
         };
 
-        state.members.unshift(newMember);
-        state.currentUser = {
+        latest.members.unshift(newMember);
+        latest.currentUser = {
           loggedIn: true,
           loginId: newMember.loginId,
           name: newMember.name,
           nameMasked: newMember.nameMasked,
-          grade: newMember.memberGrade
+          grade: newMember.grade
         };
-        Store.saveState(state);
-        alert(name + "님, 현동서재 회원가입이 완료되었습니다! 가입 축하 적립금 2,000원이 지급되었습니다.");
-        window.location.href = "./index.html";
+        Store.saveState(latest);
+        Store.showToast(name + "님, 회원가입이 완료되었습니다! 가입 축하 적립금 2,000원이 지급되었습니다.");
+        setTimeout(function () {
+          window.location.href = "./index.html";
+        }, 450);
       });
     })();
   </script>

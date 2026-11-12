@@ -763,8 +763,8 @@
       id: "BN-02",
       position: "TOP_BAR",
       positionLabel: "상단 공지 띠배너",
-      eyebrow: "무료배송 혜택",
-      title: "도서출판 물고기 직영몰 · 50,000원 이상 구매 시 무료배송 (평일 오후 3시 이전 주문 당일 발송)",
+      eyebrow: "직영 혜택",
+      title: "50,000원 이상 무료배송 · 평일 오후 3시 이전 당일발송",
       subtitle: "",
       buttonText: "전체 도서 보기",
       targetBookId: "",
@@ -794,7 +794,7 @@
       title: "[안내] 평일 오후 3시 이전 결제/입금 완료 건 당일 택배 발송 안내",
       createdAt: "2026-11-01",
       views: 342,
-      content: "안녕하세요, 현동서재(도서출판 물고기)입니다.\n평일 오후 3시 이전에 결제 또는 무통장 입금이 확인된 주문 건은 출판부에서 직접 파손 방지 완충 포장 후 당일 CJ대한통운 및 우체국택배로 발송됩니다.\n50,000원 이상 주문 시 배송비(3,500원)는 무료입니다."
+      content: "안녕하세요, 현동서재(도서출판 물고기)입니다.\n평일 오후 3시 이전에 결제 또는 무통장 입금이 확인된 주문 건은 출판부에서 직접 파손 방지 완충 포장 후 당일 전담 로젠택배(1588-9988)로 발송됩니다.\n50,000원 이상 주문 시 배송비(3,500원)는 무료입니다."
     },
     {
       id: "NT-02",
@@ -908,7 +908,10 @@
     {
       id: "RV-101",
       bookId: "BK-001",
+      writerId: "dr_jeong82",
       memberMask: "정*훈 (한의사 회원)",
+      verifiedBuyer: true,
+      helpfulCount: 14,
       rating: 5,
       isBest: true,
       visible: true,
@@ -918,7 +921,10 @@
     {
       id: "RV-102",
       bookId: "BK-004",
+      writerId: "hyundong_stu",
       memberMask: "김*연 (한의대 회원)",
+      verifiedBuyer: true,
+      helpfulCount: 11,
       rating: 5,
       isBest: true,
       visible: true,
@@ -928,7 +934,10 @@
     {
       id: "RV-103",
       bookId: "BK-003",
+      writerId: "busan_clinic",
       memberMask: "박*수 (한의사 회원)",
+      verifiedBuyer: true,
+      helpfulCount: 8,
       rating: 5,
       isBest: false,
       visible: true,
@@ -938,7 +947,10 @@
     {
       id: "RV-104",
       bookId: "BK-005",
-      memberMask: "오*석 (한의사 회원)",
+      writerId: "dr_jeong82",
+      memberMask: "정*훈 (한의사 회원)",
+      verifiedBuyer: true,
+      helpfulCount: 6,
       rating: 5,
       isBest: false,
       visible: true,
@@ -1157,10 +1169,13 @@
       shippedAt: "2026-11-12 12:10",
       items: [
         { bookId: "BK-001", title: "현동직역 동의보감 (전4권 세트)", price: 200000, qty: 1, coverThumb: "https://www.hyundong.co.kr/data/book_img/thumb-f8acbeb82b22954e6897fd398e90d166_98x142.jpg" },
-        { bookId: "BK-005", title: "찬도방론맥결집성 (纂圖方論脈訣集成)", price: 38000, qty: 1, coverThumb: "https://www.hyundong.co.kr/data/book_img/thumb-2113bd4295512e1209216da69d29c3b7_98x142.jpg" }
+        { bookId: "BK-005", title: "찬도방론맥결집성 (纂圖方論脈訣集成)", price: 38000, qty: 1, coverThumb: "" }
       ],
       bookTotal: 238000,
       shippingFee: 0,
+      usedPoints: 0,
+      earnedPoints: 7140,
+      taxProof: "현금영수증 (지출증빙: 214-92-01842)",
       finalAmount: 238000
     },
     {
@@ -1299,6 +1314,9 @@
         { bookId: "BK-004", qty: 1, checked: true },
         { bookId: "BK-006", qty: 1, checked: true }
       ],
+      recentBookIds: ["BK-001", "BK-003", "BK-004"],
+      recentKeywords: ["동의보감", "처방집", "맥결집성"],
+      restockAlerts: [],
       wishlist: ["BK-001", "BK-003"],
       currentUser: {
         loggedIn: true,
@@ -1336,7 +1354,7 @@
       if (Array.isArray(next.items)) {
         next.items = next.items.map(function (it) {
           const itemCopy = Object.assign({}, it);
-          if (!itemCopy.coverThumb) {
+          if (itemCopy.coverThumb === undefined || itemCopy.coverThumb === null) {
             const assetKey = BOOK_COVER_ASSETS[itemCopy.bookId];
             if (assetKey) {
               itemCopy.coverThumb = "https://www.hyundong.co.kr/data/book_img/thumb-" + assetKey + "_98x142.jpg";
@@ -1374,6 +1392,28 @@
           ];
         }
       }
+      if (!Array.isArray(next.pointHistory)) {
+        next.pointHistory = [
+          {
+            id: "PT-" + (next.id || "1001") + "-1",
+            date: next.joinedAt || "2026-09-01",
+            delta: 2000,
+            balance: Number(next.points || 2000),
+            reason: "신규 회원 가입 축하 적립금",
+            orderNo: "-"
+          }
+        ];
+        if (Number(next.points || 0) > 2000) {
+          next.pointHistory.unshift({
+            id: "PT-" + (next.id || "1001") + "-2",
+            date: "2026-11-12",
+            delta: Number(next.points) - 2000,
+            balance: Number(next.points),
+            reason: "직판 도서 구매 적립 (3%)",
+            orderNo: next.loginId === "dr_jeong82" ? "ORD-20261112-0042" : "-"
+          });
+        }
+      }
       return next;
     });
   }
@@ -1395,6 +1435,18 @@
       merged.books = normalizeBooks(merged.books, merged.codeGroups);
       merged.orders = normalizeOrders(merged.orders);
       merged.members = normalizeMembers(merged.members);
+      if (Array.isArray(merged.banners)) {
+        merged.banners.forEach(function (bn) {
+          if (
+            bn.id === "BN-02" &&
+            bn.position === "TOP_BAR" &&
+            bn.title === "도서출판 물고기 직영몰 · 50,000원 이상 구매 시 무료배송 (평일 오후 3시 이전 주문 당일 발송)"
+          ) {
+            bn.eyebrow = "직영 혜택";
+            bn.title = "50,000원 이상 무료배송 · 평일 오후 3시 이전 당일발송";
+          }
+        });
+      }
       return merged;
     } catch (e) {
       return createDefaultState();
@@ -1584,7 +1636,7 @@
     const fallbackSrc = book.coverThumb || "";
     const hasPhotoClass = primarySrc ? " has-real-photo" : "";
     const realImgTag = primarySrc
-      ? `<img class="book-real-img" src="${escapeHtml(primarySrc)}" data-fallback="${escapeHtml(fallbackSrc)}" alt="${escapeHtml(book.title)} 표지" loading="lazy" />`
+      ? `<img class="book-real-img" src="${escapeHtml(primarySrc)}" data-fallback="${escapeHtml(fallbackSrc)}" alt="${escapeHtml(book.title)} 표지" />`
       : "";
 
     return `
@@ -1675,11 +1727,1047 @@
     }, 3000);
   }
 
+  const POPULAR_KEYWORDS = [
+    "동의보감",
+    "맥결집성",
+    "현동처방집",
+    "내경편 강의집",
+    "난경본의",
+    "하늘기운"
+  ];
+
+  const POSTCODE_DIRECTORY = [
+    { zipCode: "06631", roadAddr: "서울특별시 서초구 서초대로 314", jibunAddr: "서울특별시 서초구 서초동 1675-5", building: "서초메디컬빌딩" },
+    { zipCode: "06540", roadAddr: "서울특별시 서초구 반포대로 201", jibunAddr: "서울특별시 서초구 반포동 59-4", building: "반포센트럴타워" },
+    { zipCode: "06134", roadAddr: "서울특별시 강남구 테헤란로 124", jibunAddr: "서울특별시 강남구 역삼동 823-1", building: "강남메디컬타워" },
+    { zipCode: "02447", roadAddr: "서울특별시 동대문구 경희대로 26", jibunAddr: "서울특별시 동대문구 회기동 1", building: "경희대학교 한의과대학" },
+    { zipCode: "02847", roadAddr: "서울특별시 동대문구 약령중앙로 26", jibunAddr: "서울특별시 동대문구 제기동 1082", building: "서울한방진흥센터 (약령시)" },
+    { zipCode: "02054", roadAddr: "서울특별시 중랑구 신내로 25가길 2", jibunAddr: "서울특별시 중랑구 신내동 654", building: "현동빌딩 (현동학당)" },
+    { zipCode: "03080", roadAddr: "서울특별시 종로구 대학로 84", jibunAddr: "서울특별시 종로구 동숭동 1-45", building: "혜화아카데미빌딩" },
+    { zipCode: "13529", roadAddr: "경기도 성남시 분당구 판교역로 152", jibunAddr: "경기도 성남시 분당구 백현동 537", building: "알파돔타워" },
+    { zipCode: "14348", roadAddr: "경기도 광명시 일직로 43", jibunAddr: "경기도 광명시 일직동 511", building: "광명메디컬센터" },
+    { zipCode: "26339", roadAddr: "강원특별자치도 원주시 상지대길 83", jibunAddr: "강원특별자치도 원주시 우산동 660", building: "상지대학교 한의과대학" },
+    { zipCode: "35235", roadAddr: "대전광역시 서구 둔산로 100", jibunAddr: "대전광역시 서구 둔산동 1420", building: "둔산클리닉빌딩" },
+    { zipCode: "34520", roadAddr: "대전광역시 동구 대학로 62", jibunAddr: "대전광역시 동구 용운동 96-3", building: "대전대학교 한의과대학" },
+    { zipCode: "42102", roadAddr: "대구광역시 수성구 달구벌대로 2410", jibunAddr: "대구광역시 수성구 범어동 177-1", building: "범어메디컬스퀘어" },
+    { zipCode: "38458", roadAddr: "경상북도 경산시 한의대로 1", jibunAddr: "경상북도 경산시 유곡동 290", building: "대구한의대학교" },
+    { zipCode: "48059", roadAddr: "부산광역시 해운대구 센텀중앙로 90", jibunAddr: "부산광역시 해운대구 재송동 1209", building: "센텀메디컬빌딩" },
+    { zipCode: "47227", roadAddr: "부산광역시 부산진구 양정로 52", jibunAddr: "부산광역시 부산진구 양정동 455", building: "동의대학교 양정캠퍼스" },
+    { zipCode: "61452", roadAddr: "광주광역시 동구 필문대로 309", jibunAddr: "광주광역시 동구 서석동 375", building: "광주한의학관" },
+    { zipCode: "54538", roadAddr: "전북특별자치도 익산시 익산대로 460", jibunAddr: "전북특별자치도 익산시 신동 344-2", building: "원광대학교 한의과대학" },
+    { zipCode: "58245", roadAddr: "전라남도 나주시 한빛로 1", jibunAddr: "전라남도 나주시 대호동 252", building: "동신대학교 한의과대학" },
+    { zipCode: "63243", roadAddr: "제주특별자치도 제주시 연삼로 473", jibunAddr: "제주특별자치도 제주시 이도이동 1978", building: "제주메디컬빌딩" }
+  ];
+
+  function recordRecentBook(bookId) {
+    if (!bookId) return;
+    const state = loadState();
+    const list = Array.isArray(state.recentBookIds) ? state.recentBookIds.slice() : [];
+    const filtered = list.filter(function (id) { return id !== bookId; });
+    filtered.unshift(bookId);
+    state.recentBookIds = filtered.slice(0, 8);
+    saveState(state);
+  }
+
+  function getRecentBooks(customState) {
+    const state = customState || loadState();
+    const ids = Array.isArray(state.recentBookIds) ? state.recentBookIds : [];
+    const books = Array.isArray(state.books) ? state.books : [];
+    return ids
+      .map(function (id) { return books.find(function (b) { return b.id === id; }); })
+      .filter(Boolean);
+  }
+
+  function addRecentKeyword(keyword) {
+    const kw = String(keyword || "").trim();
+    if (!kw) return;
+    const state = loadState();
+    const list = Array.isArray(state.recentKeywords) ? state.recentKeywords.slice() : [];
+    const filtered = list.filter(function (item) { return item !== kw; });
+    filtered.unshift(kw);
+    state.recentKeywords = filtered.slice(0, 8);
+    saveState(state);
+  }
+
+  function removeRecentKeyword(keyword) {
+    const state = loadState();
+    state.recentKeywords = (state.recentKeywords || []).filter(function (k) { return k !== keyword; });
+    saveState(state);
+  }
+
+  function clearRecentKeywords() {
+    const state = loadState();
+    state.recentKeywords = [];
+    saveState(state);
+  }
+
+  function adjustMemberPoints(memberKey, delta, reason, orderNo) {
+    const state = loadState();
+    const member = (state.members || []).find(function (m) {
+      return m.id === memberKey || m.loginId === memberKey;
+    });
+    if (!member) return { success: false, balance: 0 };
+    const amount = Math.trunc(Number(delta) || 0);
+    if (amount === 0) return { success: true, balance: Number(member.points || 0) };
+    const nextBalance = Math.max(0, Number(member.points || 0) + amount);
+    member.points = nextBalance;
+    if (!Array.isArray(member.pointHistory)) member.pointHistory = [];
+    const nowStr = new Date().toISOString().slice(0, 10);
+    member.pointHistory.unshift({
+      id: "PT-" + Date.now().toString(36) + "-" + Math.floor(100 + Math.random() * 900),
+      date: nowStr,
+      delta: amount,
+      balance: nextBalance,
+      reason: String(reason || (amount > 0 ? "적립금 지급" : "적립금 사용")),
+      orderNo: orderNo || "-"
+    });
+    saveState(state);
+    return { success: true, balance: nextBalance };
+  }
+
+  function openPostcodeModal(onSelect) {
+    if (typeof document === "undefined") return;
+    let backdrop = document.getElementById("globalPostcodeModal");
+    if (!backdrop) {
+      backdrop = document.createElement("div");
+      backdrop.id = "globalPostcodeModal";
+      backdrop.className = "modal-backdrop";
+      backdrop.setAttribute("role", "dialog");
+      backdrop.setAttribute("aria-modal", "true");
+      backdrop.setAttribute("aria-labelledby", "globalPostcodeTitle");
+      backdrop.innerHTML = `
+        <div class="modal-panel" style="max-width:560px;">
+          <div class="modal-head">
+            <h2 class="modal-title" id="globalPostcodeTitle">우편번호 · 도로명 주소 검색</h2>
+            <button type="button" class="modal-close-btn" id="btnClosePostcodeModal" aria-label="닫기">&times;</button>
+          </div>
+          <div class="modal-body" style="padding-top:14px;">
+            <form id="globalPostcodeSearchForm" style="display:flex; gap:8px; margin-bottom:12px;">
+              <input type="search" class="form-input" id="globalPostcodeQuery" placeholder="도로명, 건물명, 지역명 입력 (예: 서초대로, 경희대, 해운대)" style="flex:1;" />
+              <button type="submit" class="btn btn-primary" style="flex-shrink:0;">검색</button>
+            </form>
+            <div style="font-size:0.8rem; color:var(--color-text-muted); margin-bottom:10px;">
+              검색 결과를 클릭하면 우편번호와 기본주소가 자동 입력됩니다. 목록에 없는 주소도 검색어로 바로 적용할 수 있습니다.
+            </div>
+            <div id="globalPostcodeResults" style="max-height:300px; overflow-y:auto; display:flex; flex-direction:column; gap:8px;"></div>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(backdrop);
+      backdrop.addEventListener("click", function (e) {
+        if (e.target === backdrop || e.target.closest("#btnClosePostcodeModal")) {
+          backdrop.classList.remove("is-open");
+        }
+      });
+    }
+
+    const queryInput = document.getElementById("globalPostcodeQuery");
+    const resultsEl = document.getElementById("globalPostcodeResults");
+    const formEl = document.getElementById("globalPostcodeSearchForm");
+
+    function renderPostcodeList(q) {
+      const clean = String(q || "").trim().toLowerCase();
+      const matched = POSTCODE_DIRECTORY.filter(function (row) {
+        if (!clean) return true;
+        return (
+          row.zipCode.indexOf(clean) !== -1 ||
+          row.roadAddr.toLowerCase().indexOf(clean) !== -1 ||
+          row.jibunAddr.toLowerCase().indexOf(clean) !== -1 ||
+          row.building.toLowerCase().indexOf(clean) !== -1
+        );
+      });
+
+      let html = matched.map(function (row, idx) {
+        return `
+          <button type="button" class="postcode-result-item" data-pc-idx="${idx}" data-zip="${escapeHtml(row.zipCode)}" data-road="${escapeHtml(row.roadAddr)}" data-bldg="${escapeHtml(row.building)}">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%;">
+              <span class="badge badge-brand" style="font-family:ui-monospace,monospace;">${escapeHtml(row.zipCode)}</span>
+              <span style="font-size:0.78rem; color:var(--color-brand-700); font-weight:600;">선택 →</span>
+            </div>
+            <div style="font-weight:700; color:var(--color-brand-900); font-size:0.9rem; margin-top:4px; text-align:left;">
+              ${escapeHtml(row.roadAddr)} ${row.building ? "(" + escapeHtml(row.building) + ")" : ""}
+            </div>
+            <div style="font-size:0.78rem; color:var(--color-text-muted); text-align:left;">[지번] ${escapeHtml(row.jibunAddr)}</div>
+          </button>
+        `;
+      }).join("");
+
+      if (clean && matched.length === 0) {
+        const customZip = String(10000 + (clean.length * 3713) % 80000).padStart(5, "0");
+        html = `
+          <button type="button" class="postcode-result-item" data-zip="${customZip}" data-road="${escapeHtml(String(q).trim())}" data-bldg="">
+            <div style="display:flex; align-items:center; justify-content:space-between; width:100%;">
+              <span class="badge badge-brand">${customZip}</span>
+              <span style="font-size:0.78rem; color:var(--color-brand-700); font-weight:600;">입력 주소로 바로 적용 →</span>
+            </div>
+            <div style="font-weight:700; color:var(--color-brand-900); font-size:0.9rem; margin-top:4px; text-align:left;">
+              ${escapeHtml(String(q).trim())}
+            </div>
+            <div style="font-size:0.78rem; color:var(--color-text-muted); text-align:left;">직접 입력한 도로명/지번 주소를 적용합니다.</div>
+          </button>
+        `;
+      }
+      resultsEl.innerHTML = html;
+    }
+
+    formEl.onsubmit = function (e) {
+      e.preventDefault();
+      renderPostcodeList(queryInput.value);
+    };
+    queryInput.oninput = function () {
+      renderPostcodeList(queryInput.value);
+    };
+    resultsEl.onclick = function (e) {
+      const item = e.target.closest(".postcode-result-item");
+      if (!item) return;
+      const zip = item.getAttribute("data-zip") || "";
+      const road = item.getAttribute("data-road") || "";
+      const bldg = item.getAttribute("data-bldg") || "";
+      const fullRoad = bldg ? (road + " (" + bldg + ")") : road;
+      backdrop.classList.remove("is-open");
+      if (typeof onSelect === "function") {
+        onSelect({ zipCode: zip, roadAddress: fullRoad, baseRoad: road, building: bldg });
+      }
+    };
+
+    queryInput.value = "";
+    renderPostcodeList("");
+    backdrop.classList.add("is-open");
+    setTimeout(function () { queryInput.focus(); }, 40);
+  }
+
+  function openOrderReceiptModal(orderNo) {
+    if (typeof document === "undefined") return;
+    const state = loadState();
+    const order = (state.orders || []).find(function (o) { return o.orderNo === orderNo; });
+    if (!order) {
+      showToast("주문 내역을 찾을 수 없습니다.");
+      return;
+    }
+    const cfg = state.siteConfig || INITIAL_SITE_CONFIG;
+    let backdrop = document.getElementById("globalReceiptModal");
+    if (!backdrop) {
+      backdrop = document.createElement("div");
+      backdrop.id = "globalReceiptModal";
+      backdrop.className = "modal-backdrop";
+      backdrop.setAttribute("role", "dialog");
+      backdrop.setAttribute("aria-modal", "true");
+      document.body.appendChild(backdrop);
+      backdrop.addEventListener("click", function (e) {
+        if (e.target === backdrop || e.target.closest("[data-close-receipt]")) {
+          backdrop.classList.remove("is-open");
+        }
+      });
+    }
+    const itemsRows = (order.items || []).map(function (it) {
+      return `
+        <tr>
+          <td style="padding:8px 10px; border-bottom:1px solid var(--color-border);">${escapeHtml(it.title)}</td>
+          <td style="padding:8px 10px; border-bottom:1px solid var(--color-border); text-align:center;">${Number(it.qty || 1)}권</td>
+          <td style="padding:8px 10px; border-bottom:1px solid var(--color-border); text-align:right;">${formatKRW(Number(it.price || 0) * Number(it.qty || 1))}</td>
+        </tr>
+      `;
+    }).join("");
+
+    backdrop.innerHTML = `
+      <div class="modal-panel" style="max-width:600px;">
+        <div class="modal-head">
+          <h2 class="modal-title">거래명세서 · 구매 영수증</h2>
+          <button type="button" class="modal-close-btn" data-close-receipt="true" aria-label="닫기">&times;</button>
+        </div>
+        <div class="modal-body" id="printableReceiptBody">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; padding-bottom:12px; border-bottom:2px solid var(--color-brand-800); margin-bottom:14px;">
+            <div>
+              <div style="font-size:0.78rem; color:var(--color-brand-700); font-weight:700;">공급자 · 직영 출판사</div>
+              <strong style="font-family:var(--font-serif); font-size:1.1rem; color:var(--color-brand-900);">도서출판 물고기 (현동서재)</strong>
+              <div style="font-size:0.8rem; color:var(--color-text-secondary); margin-top:2px;">대표 ${escapeHtml(cfg.ceoName)} | 사업자번호 204-91-84021 | Tel ${escapeHtml(cfg.csPhone)}</div>
+              <div style="font-size:0.78rem; color:var(--color-text-muted);">${escapeHtml(cfg.address)}</div>
+            </div>
+            <div style="text-align:right;">
+              <span class="badge ${getOrderStatusBadge(order.orderStatus)}">${escapeHtml(getOrderStatusLabel(order.orderStatus))}</span>
+              <div style="font-size:0.82rem; font-weight:700; margin-top:6px;">${escapeHtml(order.orderNo)}</div>
+              <div style="font-size:0.78rem; color:var(--color-text-muted);">${escapeHtml(order.orderedAt)}</div>
+            </div>
+          </div>
+
+          <table style="width:100%; border-collapse:collapse; font-size:0.86rem; margin-bottom:14px;">
+            <thead>
+              <tr style="background:var(--color-brand-50);">
+                <th style="padding:8px 10px; text-align:left; border-bottom:1px solid var(--color-border-strong);">도서명</th>
+                <th style="padding:8px 10px; text-align:center; width:68px; border-bottom:1px solid var(--color-border-strong);">수량</th>
+                <th style="padding:8px 10px; text-align:right; width:110px; border-bottom:1px solid var(--color-border-strong);">합계</th>
+              </tr>
+            </thead>
+            <tbody>${itemsRows}</tbody>
+          </table>
+
+          <div style="background:var(--color-brand-50); border:1px solid var(--color-border); border-radius:var(--radius-sm); padding:12px 14px; font-size:0.86rem; display:flex; flex-direction:column; gap:6px;">
+            <div style="display:flex; justify-content:space-between;"><span>도서 상품 합계</span><strong>${formatKRW(order.bookTotal)}</strong></div>
+            <div style="display:flex; justify-content:space-between;"><span>배송비 (로젠택배)</span><strong>${Number(order.shippingFee || 0) === 0 ? "무료" : formatKRW(order.shippingFee)}</strong></div>
+            ${Number(order.usedPoints || 0) > 0 ? `<div style="display:flex; justify-content:space-between; color:var(--color-seal);"><span>적립금 할인</span><strong>-${Number(order.usedPoints).toLocaleString()}P</strong></div>` : ""}
+            <div style="display:flex; justify-content:space-between; border-top:1px solid var(--color-border-strong); padding-top:8px; font-size:1rem;">
+              <strong>최종 결제 금액</strong>
+              <strong style="color:var(--color-seal);">${formatKRW(order.finalAmount)}</strong>
+            </div>
+            <div style="font-size:0.8rem; color:var(--color-text-secondary); margin-top:4px;">
+              결제수단: ${escapeHtml(order.paymentMethod || "-")}
+              ${order.taxProof ? ` | 증빙: ${escapeHtml(order.taxProof)}` : ""}
+            </div>
+            <div style="font-size:0.8rem; color:var(--color-text-secondary);">
+              수령인: ${escapeHtml(order.recipientName)} | 배송지: (${escapeHtml(order.zipCode)}) ${escapeHtml(order.address)}
+            </div>
+          </div>
+        </div>
+        <div class="modal-foot">
+          <button type="button" class="btn btn-outline" data-close-receipt="true">닫기</button>
+          <button type="button" class="btn btn-primary" id="btnPrintReceiptNow">인쇄 / PDF 저장</button>
+        </div>
+      </div>
+    `;
+    const printBtn = backdrop.querySelector("#btnPrintReceiptNow");
+    if (printBtn) {
+      printBtn.onclick = function () { window.print(); };
+    }
+    backdrop.classList.add("is-open");
+  }
+
+  function enableHorizontalDragScroll(scrollEl, railEl) {
+    if (!scrollEl || scrollEl.dataset.dragBound === "1") {
+      updateRailShadows(scrollEl, railEl);
+      return;
+    }
+    scrollEl.dataset.dragBound = "1";
+
+    let isDown = false;
+    let startX = 0;
+    let startScrollLeft = 0;
+    let dragged = false;
+
+    function syncShadows() {
+      updateRailShadows(scrollEl, railEl);
+    }
+
+    scrollEl.addEventListener("mousedown", function (e) {
+      if (e.button !== 0) return;
+      isDown = true;
+      dragged = false;
+      startX = e.pageX;
+      startScrollLeft = scrollEl.scrollLeft;
+      scrollEl.classList.add("is-dragging");
+    });
+
+    window.addEventListener("mousemove", function (e) {
+      if (!isDown) return;
+      const dx = e.pageX - startX;
+      if (Math.abs(dx) > 6) {
+        dragged = true;
+      }
+      if (dragged) {
+        scrollEl.scrollLeft = startScrollLeft - dx;
+        syncShadows();
+      }
+    });
+
+    window.addEventListener("mouseup", function () {
+      if (!isDown) return;
+      isDown = false;
+      scrollEl.classList.remove("is-dragging");
+      setTimeout(function () { dragged = false; }, 0);
+    });
+
+    scrollEl.addEventListener("click", function (e) {
+      if (dragged) {
+        e.preventDefault();
+        e.stopPropagation();
+        dragged = false;
+      }
+    }, true);
+
+    scrollEl.addEventListener("wheel", function (e) {
+      if (scrollEl.scrollWidth <= scrollEl.clientWidth + 2) return;
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX) && e.deltaY !== 0) {
+        const prev = scrollEl.scrollLeft;
+        scrollEl.scrollLeft += e.deltaY;
+        if (scrollEl.scrollLeft !== prev) {
+          e.preventDefault();
+          syncShadows();
+        }
+      }
+    }, { passive: false });
+
+    scrollEl.addEventListener("scroll", syncShadows, { passive: true });
+    window.addEventListener("resize", syncShadows);
+    syncShadows();
+  }
+
+  function updateRailShadows(scrollEl, railEl) {
+    if (!scrollEl || !railEl) return;
+    const maxScroll = scrollEl.scrollWidth - scrollEl.clientWidth;
+    railEl.classList.toggle("has-scroll-left", scrollEl.scrollLeft > 6);
+    railEl.classList.toggle("has-scroll-right", maxScroll - scrollEl.scrollLeft > 6);
+  }
+
+  function bindSearchSuggest(formEl, inputEl, targetSelectEl, onKeywordSelect) {
+    if (!formEl || !inputEl || formEl.dataset.suggestBound === "1") return;
+    formEl.dataset.suggestBound = "1";
+    formEl.style.position = "relative";
+
+    const pop = document.createElement("div");
+    pop.className = "search-suggest-popover";
+    pop.setAttribute("role", "listbox");
+    formEl.appendChild(pop);
+
+    function renderSuggest() {
+      const state = loadState();
+      const q = String(inputEl.value || "").trim();
+      const qLower = q.toLowerCase();
+
+      if (!q) {
+        const recents = Array.isArray(state.recentKeywords) ? state.recentKeywords : [];
+        pop.innerHTML = `
+          <div class="suggest-section">
+            <div class="suggest-head">
+              <span>최근 검색어</span>
+              ${recents.length ? `<button type="button" class="suggest-clear-btn" data-clear-recent-kw="true">전체삭제</button>` : ""}
+            </div>
+            ${recents.length ? `
+              <div class="suggest-chip-wrap">
+                ${recents.map(function (kw) {
+                  return `<span class="suggest-kw-pill"><button type="button" data-pick-kw="${escapeHtml(kw)}">${escapeHtml(kw)}</button><button type="button" class="suggest-kw-del" data-del-kw="${escapeHtml(kw)}" aria-label="${escapeHtml(kw)} 삭제">&times;</button></span>`;
+                }).join("")}
+              </div>
+            ` : `<div class="suggest-empty">최근 검색 내역이 없습니다.</div>`}
+          </div>
+          <div class="suggest-section" style="border-top:1px solid var(--color-border); padding-top:10px; margin-top:10px;">
+            <div class="suggest-head"><span>추천 학술 키워드</span></div>
+            <div class="suggest-chip-wrap">
+              ${POPULAR_KEYWORDS.map(function (kw, i) {
+                return `<button type="button" class="suggest-pop-chip" data-pick-kw="${escapeHtml(kw)}"><strong>${i + 1}</strong> ${escapeHtml(kw)}</button>`;
+              }).join("")}
+            </div>
+          </div>
+        `;
+      } else {
+        const books = (state.books || []).filter(function (b) {
+          if (b.saleStatus === "HIDDEN") return false;
+          const hay = [b.title, b.subtitle, b.author, b.translator, b.isbn13, b.categoryName].join(" ").toLowerCase();
+          return hay.indexOf(qLower) !== -1;
+        }).slice(0, 5);
+
+        pop.innerHTML = `
+          <div class="suggest-section">
+            <div class="suggest-head"><span>도서 바로가기 (${books.length}건)</span></div>
+            ${books.length ? `
+              <div class="suggest-book-list">
+                ${books.map(function (b) {
+                  return `
+                    <a href="./book-detail.html?id=${encodeURIComponent(b.id)}" class="suggest-book-row">
+                      <div class="suggest-book-info">
+                        <strong>${escapeHtml(b.title)}</strong>
+                        <span>${escapeHtml(b.author)} | ${formatKRW(b.salePrice)}</span>
+                      </div>
+                      <span class="badge badge-brand" style="flex-shrink:0;">상세 →</span>
+                    </a>
+                  `;
+                }).join("")}
+              </div>
+            ` : `<div class="suggest-empty">'${escapeHtml(q)}' 일치 도서가 없습니다. Enter를 눌러 통합검색하세요.</div>`}
+          </div>
+        `;
+      }
+    }
+
+    inputEl.addEventListener("focus", function () {
+      renderSuggest();
+      pop.classList.add("is-open");
+    });
+
+    inputEl.addEventListener("input", function () {
+      renderSuggest();
+      pop.classList.add("is-open");
+    });
+
+    inputEl.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") {
+        pop.classList.remove("is-open");
+      } else if (e.key === "Enter") {
+        pop.classList.remove("is-open");
+      }
+    });
+
+    pop.addEventListener("mousedown", function (e) {
+      // Prevent input blur before click handler runs
+      if (e.target.closest("button, a")) {
+        e.preventDefault();
+      }
+    });
+
+    pop.addEventListener("click", function (e) {
+      const clearBtn = e.target.closest("[data-clear-recent-kw]");
+      if (clearBtn) {
+        clearRecentKeywords();
+        renderSuggest();
+        return;
+      }
+      const delBtn = e.target.closest("[data-del-kw]");
+      if (delBtn) {
+        removeRecentKeyword(delBtn.getAttribute("data-del-kw"));
+        renderSuggest();
+        return;
+      }
+      const pickBtn = e.target.closest("[data-pick-kw]");
+      if (pickBtn) {
+        const kw = pickBtn.getAttribute("data-pick-kw") || "";
+        inputEl.value = kw;
+        addRecentKeyword(kw);
+        pop.classList.remove("is-open");
+        if (typeof onKeywordSelect === "function") {
+          onKeywordSelect(kw, targetSelectEl ? targetSelectEl.value : "ALL");
+        } else {
+          const targetVal = targetSelectEl ? targetSelectEl.value : "ALL";
+          window.location.href = "./index.html?view=catalog&keyword=" + encodeURIComponent(kw) + "&searchTarget=" + encodeURIComponent(targetVal);
+        }
+      }
+    });
+
+    document.addEventListener("click", function (e) {
+      if (!formEl.contains(e.target)) {
+        pop.classList.remove("is-open");
+      }
+    });
+  }
+
+  function mountQuickFloatingBar() {
+    if (typeof document === "undefined") return;
+    const isAdminOrAuth = Boolean(
+      document.querySelector(".admin-shell") ||
+      document.querySelector(".auth-page-wrap") ||
+      window.location.pathname.indexOf("admin") !== -1
+    );
+    if (isAdminOrAuth) return;
+
+    let quickEl = document.getElementById("storeQuickFloating");
+    if (!quickEl) {
+      quickEl = document.createElement("aside");
+      quickEl.id = "storeQuickFloating";
+      quickEl.className = "store-quick-floating";
+      quickEl.setAttribute("aria-label", "빠른 도구 모음");
+      document.body.appendChild(quickEl);
+    }
+
+    function renderQuick() {
+      const recents = getRecentBooks();
+      const isOpen = quickEl.classList.contains("is-drawer-open");
+      quickEl.innerHTML = `
+        <div class="quick-recent-popover ${isOpen ? "is-open" : ""}" id="quickRecentPopover">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; padding-bottom:6px; border-bottom:1px solid var(--color-border);">
+            <strong style="font-size:0.84rem; color:var(--color-brand-900);">최근 본 도서 (${recents.length})</strong>
+            <button type="button" class="suggest-clear-btn" data-close-quick-recent="true">닫기</button>
+          </div>
+          ${recents.length ? `
+            <div style="display:flex; flex-direction:column; gap:8px; max-height:240px; overflow-y:auto;">
+              ${recents.slice(0, 5).map(function (b) {
+                return `
+                  <a href="./book-detail.html?id=${encodeURIComponent(b.id)}" class="quick-recent-item">
+                    <span class="quick-recent-title">${escapeHtml(b.title)}</span>
+                    <span class="quick-recent-price">${formatKRW(b.salePrice)}</span>
+                  </a>
+                `;
+              }).join("")}
+            </div>
+          ` : `<div style="font-size:0.8rem; color:var(--color-text-muted); padding:10px 0;">최근 열람한 도서가 없습니다.</div>`}
+        </div>
+        <div class="quick-fab-stack">
+          <button type="button" class="quick-fab-btn" id="btnToggleQuickRecent" title="최근 본 도서">
+            <span>최근</span>
+            <strong class="quick-fab-count">${recents.length}</strong>
+          </button>
+          <button type="button" class="quick-fab-btn quick-fab-top" id="btnQuickScrollTop" aria-label="맨 위로 이동" title="맨 위로">
+            ↑ TOP
+          </button>
+        </div>
+      `;
+    }
+
+    if (quickEl.dataset.bound !== "1") {
+      quickEl.dataset.bound = "1";
+      quickEl.addEventListener("click", function (e) {
+        if (e.target.closest("#btnToggleQuickRecent")) {
+          quickEl.classList.toggle("is-drawer-open");
+          renderQuick();
+          return;
+        }
+        if (e.target.closest("[data-close-quick-recent]")) {
+          quickEl.classList.remove("is-drawer-open");
+          renderQuick();
+          return;
+        }
+        if (e.target.closest("#btnQuickScrollTop")) {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+      });
+      document.addEventListener("click", function (e) {
+        if (!quickEl.contains(e.target) && quickEl.classList.contains("is-drawer-open")) {
+          quickEl.classList.remove("is-drawer-open");
+          renderQuick();
+        }
+      });
+    }
+    renderQuick();
+  }
+
+  const HEADER_SVG_ICONS = {
+    menu: '<span class="menu-bars-icon" aria-hidden="true"></span>',
+    search: '<svg class="header-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.2 4.2"/></svg>',
+    cart: '<svg class="header-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7.5h12l-1 12H7L6 7.5z"/><path d="M9 7.5V6a3 3 0 0 1 6 0v1.5"/></svg>',
+    user: '<svg class="header-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5.5 19.5a6.5 6.5 0 0 1 13 0"/></svg>',
+    order: '<svg class="header-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg>'
+  };
+
+  // 전 스토어 페이지 공통 헤더·유틸바·1줄 슬라이드 GNB·모바일드로어·푸터 동기화
+  function syncStoreShell(options) {
+    if (typeof document === "undefined") return;
+    const opts = options || {};
+    const state = opts.state || loadState();
+    const isSPA = Boolean(opts.isSPA);
+    const pathname = (window.location.pathname || "").toLowerCase();
+    const isCsPage = /\/(notice|faq|inquiry|qna)\.html$/.test(pathname);
+    const cfg = state.siteConfig || INITIAL_SITE_CONFIG;
+
+    // 1. 레거시 상단 시연 바 제거 시에도 초기화 기능 바인딩 지원
+    const demoRight = document.querySelector(".demo-switcher-actions, .demo-switcher-links");
+    if (demoRight && !document.getElementById("btnResetDemo")) {
+      const resetBtn = document.createElement("button");
+      resetBtn.type = "button";
+      resetBtn.className = "demo-switch-link";
+      resetBtn.id = "btnResetDemo";
+      resetBtn.textContent = "초기화";
+      resetBtn.addEventListener("click", function () {
+        resetState();
+        showToast("모든 화면 데이터가 초기 상태로 복원되었습니다.");
+        setTimeout(function () { window.location.reload(); }, 250);
+      });
+      demoRight.appendChild(resetBtn);
+    }
+
+    // 2. 전 구간 1줄 상단 유틸리티 바 (TOP_BAR 배너 + 간결 계정 링크 + 고객센터 드롭다운)
+    const topBanner = (state.banners || []).find(function (b) { return b.position === "TOP_BAR" && b.active; });
+    const topRibbonEl = document.getElementById("topRibbonText");
+    if (topRibbonEl) {
+      topRibbonEl.textContent = topBanner
+        ? `${topBanner.eyebrow ? "[" + topBanner.eyebrow + "] " : ""}${topBanner.title}`
+        : `${Number(cfg.freeShippingThreshold || 50000).toLocaleString()}원 이상 무료배송 · 평일 오후 3시 이전 당일발송`;
+    }
+
+    const authLinksEl = document.getElementById("pcAuthUtilLinks");
+    if (authLinksEl) {
+      const curMember = state.currentUser && state.currentUser.loggedIn
+        ? (state.members || []).find(function (m) { return m.loginId === state.currentUser.loginId; })
+        : null;
+      const ptsText = curMember ? ` (${Number(curMember.points || 0).toLocaleString()}P)` : "";
+
+      const csDropdownHTML = `
+        <div class="util-cs-dropdown" id="utilCsDropdown">
+          <button type="button" class="store-util-btn util-cs-trigger ${isCsPage ? "is-active" : ""}" id="btnUtilCsTrigger" aria-expanded="false" aria-haspopup="true">
+            고객센터 ▾
+          </button>
+          <div class="util-cs-menu" id="utilCsMenu" role="menu">
+            <a href="./notice.html" role="menuitem">공지사항</a>
+            <a href="./faq.html" role="menuitem">자주 묻는 질문 (FAQ)</a>
+            <a href="./inquiry.html" role="menuitem">1:1 문의하기</a>
+            <a href="./qna.html" role="menuitem">독자 Q&amp;A</a>
+            <a href="./shipping-guide.html" role="menuitem">출고 · 배송 안내</a>
+          </div>
+        </div>
+      `;
+
+      if (state.currentUser && state.currentUser.loggedIn) {
+        const userBadgeHTML = isSPA
+          ? `<button type="button" class="store-util-btn util-user-badge" data-nav="mypage" title="마이페이지 이동"><strong>${escapeHtml(state.currentUser.name)}</strong>님<small>${escapeHtml(ptsText)}</small></button>`
+          : `<a href="./index.html?view=mypage" class="util-user-badge" title="마이페이지 이동"><strong>${escapeHtml(state.currentUser.name)}</strong>님<small>${escapeHtml(ptsText)}</small></a>`;
+
+        authLinksEl.innerHTML = `
+          ${userBadgeHTML}
+          <a href="./login.html" class="store-util-btn">계정전환</a>
+          <button type="button" class="store-util-btn" id="${isSPA ? "btnLogout" : "btnStandaloneLogout"}">로그아웃</button>
+          ${csDropdownHTML}
+          <a href="./admin.html" class="store-util-btn util-admin-link">관리자</a>
+        `;
+      } else {
+        authLinksEl.innerHTML = `
+          <a href="./login.html" class="store-util-btn">로그인</a>
+          <a href="./signup.html" class="store-util-btn">회원가입</a>
+          <a href="./login.html#guest" class="store-util-btn">비회원 주문조회</a>
+          ${csDropdownHTML}
+          <a href="./admin.html" class="store-util-btn util-admin-link">관리자</a>
+        `;
+      }
+
+      const csWrap = document.getElementById("utilCsDropdown");
+      const csBtn = document.getElementById("btnUtilCsTrigger");
+      if (csWrap && csBtn) {
+        csBtn.onclick = function (e) {
+          e.stopPropagation();
+          const open = csWrap.classList.toggle("is-open");
+          csBtn.setAttribute("aria-expanded", open ? "true" : "false");
+        };
+        if (!document.body.dataset.csDocBound) {
+          document.body.dataset.csDocBound = "1";
+          document.addEventListener("click", function (ev) {
+            const openDrop = document.querySelector(".util-cs-dropdown.is-open");
+            if (openDrop && !openDrop.contains(ev.target)) {
+              openDrop.classList.remove("is-open");
+              const trig = openDrop.querySelector(".util-cs-trigger");
+              if (trig) trig.setAttribute("aria-expanded", "false");
+            }
+          });
+        }
+      }
+
+      const standaloneLogout = document.getElementById("btnStandaloneLogout");
+      if (standaloneLogout) {
+        standaloneLogout.onclick = function () {
+          const latest = loadState();
+          latest.currentUser = { loggedIn: false, loginId: "", name: "", nameMasked: "", grade: "" };
+          saveState(latest);
+          showToast("로그아웃 되었습니다.");
+          syncStoreShell(opts);
+        };
+      }
+    }
+
+    // 3. 헤더 로고 심볼·버튼 정리 + GNB 고정 래퍼(.store-sticky-chrome) 정규화
+    const headerEl = document.querySelector("header.store-header");
+    if (headerEl) {
+      // 모든 헤더 내 구형 사각 인장(.brand-seal-mark)을 신규 한약·고서 심볼 로고로 일괄 교체
+      headerEl.querySelectorAll(".brand-logo").forEach(function (logoLink) {
+        const legacySeal = logoLink.querySelector(".brand-seal-mark");
+        if (legacySeal) {
+          const img = document.createElement("img");
+          img.src = "./images/logo-mark.svg";
+          img.alt = "현동서재 로고";
+          img.className = "brand-logo-mark";
+          img.width = 38;
+          img.height = 38;
+          legacySeal.replaceWith(img);
+        }
+      });
+
+      const btnMenuIconEl = document.getElementById("btnMobileMenu");
+      if (btnMenuIconEl) {
+        btnMenuIconEl.classList.add("header-icon-only");
+        btnMenuIconEl.innerHTML = HEADER_SVG_ICONS.menu;
+      }
+
+      let gnbEl = document.querySelector("nav.store-gnb");
+      if (gnbEl) {
+        let stickyWrap = headerEl.closest(".store-sticky-chrome");
+        if (!stickyWrap) {
+          stickyWrap = document.createElement("div");
+          stickyWrap.className = "store-sticky-chrome";
+          headerEl.parentNode.insertBefore(stickyWrap, headerEl);
+          stickyWrap.appendChild(headerEl);
+        }
+        if (gnbEl.parentNode !== stickyWrap) {
+          stickyWrap.appendChild(gnbEl);
+        }
+      }
+
+      // 헤더 우측 액션 아이콘 정리 (박스 테두리 제거 · 심플 SVG 아이콘화)
+      const actionsEl = headerEl.querySelector(".store-header-actions");
+      const cartQty = (state.cart || []).reduce(function (acc, item) { return acc + Number(item.qty || 0); }, 0);
+      if (actionsEl && !isSPA) {
+        actionsEl.innerHTML = `
+          <button type="button" class="header-icon-btn header-icon-only mobile-only-btn" id="btnMobileSearchToggle" aria-label="도서 검색 열기">${HEADER_SVG_ICONS.search}</button>
+          <a href="./index.html?view=mypage" class="header-icon-btn pc-wide-only-action" data-nav="addresses" aria-label="마이페이지">
+            ${HEADER_SVG_ICONS.user}<span class="header-action-label">마이페이지</span>
+          </a>
+          <a href="./index.html?view=orders" class="header-icon-btn pc-only-action" data-nav="orders" aria-label="주문·배송">
+            ${HEADER_SVG_ICONS.order}<span class="header-action-label">주문·배송</span>
+          </a>
+          <a href="./index.html?view=cart" class="header-icon-btn" data-nav="cart" aria-label="장바구니">
+            ${HEADER_SVG_ICONS.cart}<span class="header-action-label">장바구니</span><span class="count-pill" id="headerCartCount">${cartQty}</span>
+          </a>
+        `;
+      } else if (actionsEl && isSPA) {
+        if (!actionsEl.dataset.svgUpgraded) {
+          actionsEl.dataset.svgUpgraded = "1";
+          actionsEl.innerHTML = `
+            <button type="button" class="header-icon-btn header-icon-only mobile-only-btn" id="btnMobileSearchToggle" aria-label="도서 검색">${HEADER_SVG_ICONS.search}</button>
+            <button type="button" class="header-icon-btn pc-wide-only-action" data-nav="addresses" aria-label="마이페이지">
+              ${HEADER_SVG_ICONS.user}<span class="header-action-label">마이페이지</span>
+            </button>
+            <button type="button" class="header-icon-btn pc-only-action" data-nav="orders" aria-label="주문·배송">
+              ${HEADER_SVG_ICONS.order}<span class="header-action-label">주문·배송</span>
+            </button>
+            <button type="button" class="header-icon-btn" data-nav="cart" aria-label="장바구니">
+              ${HEADER_SVG_ICONS.cart}<span class="header-action-label">장바구니</span><span class="count-pill" id="headerCartCount">${cartQty}</span>
+            </button>
+          `;
+        } else {
+          const cartCountEl = document.getElementById("headerCartCount");
+          if (cartCountEl) {
+            cartCountEl.textContent = String(cartQty);
+          }
+        }
+      }
+
+      if (!document.getElementById("mobileSearchDrawer") && headerEl.querySelector(".store-header-main")) {
+        const drawerDiv = document.createElement("div");
+        drawerDiv.className = "mobile-search-drawer";
+        drawerDiv.id = "mobileSearchDrawer";
+        drawerDiv.innerHTML = `
+          <form class="store-search-box" id="mobileSearchForm" action="./index.html" method="GET">
+            <select class="store-search-select" id="mobileSearchTarget" name="searchTarget" aria-label="모바일 검색 기준">
+              <option value="ALL">통합</option>
+              <option value="TITLE">도서명</option>
+              <option value="AUTHOR">저자</option>
+            </select>
+            <input type="search" class="store-search-input" id="mobileSearchInput" name="keyword" placeholder="도서명, 저자, 처방명 검색" />
+            <button type="submit" class="store-search-submit">검색</button>
+          </form>
+        `;
+        headerEl.appendChild(drawerDiv);
+      }
+
+      const btnMobSearch = document.getElementById("btnMobileSearchToggle");
+      const mobSearchDrawer = document.getElementById("mobileSearchDrawer");
+      if (btnMobSearch && mobSearchDrawer && btnMobSearch.dataset.bound !== "1") {
+        btnMobSearch.dataset.bound = "1";
+        btnMobSearch.addEventListener("click", function () {
+          mobSearchDrawer.classList.toggle("is-open");
+          if (mobSearchDrawer.classList.contains("is-open")) {
+            const inp = mobSearchDrawer.querySelector("input");
+            if (inp) inp.focus();
+          }
+        });
+      }
+
+      // 서브페이지 모바일 햄버거 메뉴 드로어 자동 마운트 및 상태 동기화
+      const btnMobMenu = document.getElementById("btnMobileMenu");
+      if (btnMobMenu && !document.getElementById("mobileDrawer")) {
+        const backdrop = document.createElement("div");
+        backdrop.className = "mobile-nav-drawer-backdrop";
+        backdrop.id = "mobileDrawerBackdrop";
+        const drawer = document.createElement("aside");
+        drawer.className = "mobile-nav-drawer";
+        drawer.id = "mobileDrawer";
+        drawer.setAttribute("aria-label", "모바일 전체 메뉴");
+        const cats = getActiveCodes(state, "BOOK_CATEGORY");
+        drawer.innerHTML = `
+          <div class="mobile-drawer-head">
+            <div class="mobile-drawer-brand">
+              <img src="./images/logo-mark-light.svg" alt="현동서재 로고" class="brand-logo-mark" width="34" height="34" />
+              <div class="mobile-drawer-brand-text">
+                <strong style="font-family:var(--font-serif); font-size:1.02rem;">현동서재</strong>
+                <div style="font-size:0.76rem; opacity:0.86; margin-top:2px;" id="mobileUserStatusText">
+                  ${state.currentUser && state.currentUser.loggedIn ? escapeHtml(state.currentUser.name + "님 로그인 중") : "로그인 후 3% 구매 적립"}
+                </div>
+              </div>
+            </div>
+            <button type="button" class="btn btn-sm btn-outline" id="btnCloseMobileDrawer" style="background:rgba(255,255,255,0.12); color:#fff; border-color:rgba(255,255,255,0.25); flex-shrink:0;">닫기</button>
+          </div>
+          <div class="mobile-drawer-body">
+            <div style="display:flex; gap:8px; margin-bottom:14px;" id="mobileAuthActionRow">
+              ${state.currentUser && state.currentUser.loggedIn
+                ? `<a href="./index.html?view=mypage" class="btn btn-sm btn-primary" style="flex:1;">마이페이지</a><a href="./index.html?view=orders" class="btn btn-sm btn-outline" style="flex:1;">주문·배송</a>`
+                : `<a href="./login.html" class="btn btn-sm btn-primary" style="flex:1;">로그인</a><a href="./signup.html" class="btn btn-sm btn-outline" style="flex:1;">회원가입</a>`}
+            </div>
+            <a href="./index.html" class="mobile-drawer-cat-btn"><span>홈 화면</span><span>→</span></a>
+            <a href="./index.html?view=catalog" class="mobile-drawer-cat-btn"><span>전체 출간 도서</span><span>→</span></a>
+            ${cats.map(function (c) {
+              return `<a href="./index.html?view=catalog&cat=${encodeURIComponent(c.code)}" class="mobile-drawer-cat-btn"><span>${escapeHtml(c.name)}</span><span>→</span></a>`;
+            }).join("")}
+            <div style="border-top:1px solid var(--color-border); margin:14px 0 8px; padding-top:10px;">
+              <a href="./index.html?view=cart" class="mobile-drawer-cat-btn"><span>장바구니</span><span>→</span></a>
+              <a href="./notice.html" class="mobile-drawer-cat-btn"><span>공지사항</span><span>→</span></a>
+              <a href="./faq.html" class="mobile-drawer-cat-btn"><span>자주 묻는 질문 (FAQ)</span><span>→</span></a>
+              <a href="./inquiry.html" class="mobile-drawer-cat-btn"><span>1:1 문의하기</span><span>→</span></a>
+              <a href="./qna.html" class="mobile-drawer-cat-btn"><span>독자 Q&amp;A</span><span>→</span></a>
+              <a href="./shipping-guide.html" class="mobile-drawer-cat-btn"><span>출고 · 배송 안내</span><span>→</span></a>
+              <a href="./admin.html" class="mobile-drawer-cat-btn"><span>관리자 센터</span><span>→</span></a>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(backdrop);
+        document.body.appendChild(drawer);
+        const closeFn = function () {
+          drawer.classList.remove("is-open");
+          backdrop.classList.remove("is-open");
+        };
+        btnMobMenu.addEventListener("click", function () {
+          drawer.classList.add("is-open");
+          backdrop.classList.add("is-open");
+        });
+        backdrop.addEventListener("click", closeFn);
+        const closeBtn = document.getElementById("btnCloseMobileDrawer");
+        if (closeBtn) closeBtn.addEventListener("click", closeFn);
+      } else if (!isSPA && document.getElementById("mobileDrawer")) {
+        const existingDrawer = document.getElementById("mobileDrawer");
+        const existingBackdrop = document.getElementById("mobileDrawerBackdrop");
+        const mobStatusEl = document.getElementById("mobileUserStatusText");
+        if (mobStatusEl) {
+          mobStatusEl.textContent = state.currentUser && state.currentUser.loggedIn
+            ? state.currentUser.name + "님 로그인 중"
+            : "로그인 후 3% 구매 적립";
+        }
+        const mobAuthRow = document.getElementById("mobileAuthActionRow");
+        if (mobAuthRow) {
+          mobAuthRow.innerHTML = state.currentUser && state.currentUser.loggedIn
+            ? `<a href="./index.html?view=mypage" class="btn btn-sm btn-primary" style="flex:1;">마이페이지</a><a href="./index.html?view=orders" class="btn btn-sm btn-outline" style="flex:1;">주문·배송</a>`
+            : `<a href="./login.html" class="btn btn-sm btn-primary" style="flex:1;">로그인</a><a href="./signup.html" class="btn btn-sm btn-outline" style="flex:1;">회원가입</a>`;
+        }
+        const mobCatBox = document.getElementById("mobileDrawerCategories");
+        if (mobCatBox) {
+          const cats = getActiveCodes(state, "BOOK_CATEGORY");
+          mobCatBox.innerHTML = `
+            <a href="./index.html" class="mobile-drawer-cat-btn"><span>홈 화면</span><span>→</span></a>
+            <a href="./index.html?view=catalog" class="mobile-drawer-cat-btn"><span>전체 출간 도서</span><span>→</span></a>
+            ${cats.map(function (c) {
+              return `<a href="./index.html?view=catalog&cat=${encodeURIComponent(c.code)}" class="mobile-drawer-cat-btn"><span>${escapeHtml(c.name)}</span><span>→</span></a>`;
+            }).join("")}
+          `;
+        }
+        if (btnMobMenu && existingDrawer && existingBackdrop && btnMobMenu.dataset.bound !== "1") {
+          btnMobMenu.dataset.bound = "1";
+          const closeFn = function () {
+            existingDrawer.classList.remove("is-open");
+            existingBackdrop.classList.remove("is-open");
+          };
+          btnMobMenu.addEventListener("click", function () {
+            existingDrawer.classList.add("is-open");
+            existingBackdrop.classList.add("is-open");
+          });
+          existingBackdrop.addEventListener("click", closeFn);
+          const closeBtn = document.getElementById("btnCloseMobileDrawer");
+          if (closeBtn) closeBtn.addEventListener("click", closeFn);
+        }
+      }
+
+      // 검색 자동완성 & 최근/인기 검색어 바인딩
+      const pcForm = document.getElementById("pcSearchForm") || headerEl.querySelector(".store-search-box.pc-only-search");
+      const pcInput = document.getElementById("pcSearchInput") || (pcForm && pcForm.querySelector(".store-search-input, input[type='search']"));
+      const pcSelect = document.getElementById("pcSearchTarget") || (pcForm && pcForm.querySelector(".store-search-select, select"));
+      if (pcForm && pcInput) {
+        bindSearchSuggest(pcForm, pcInput, pcSelect, opts.onSearchKeyword);
+        if (!isSPA && pcForm.dataset.submitBound !== "1") {
+          pcForm.dataset.submitBound = "1";
+          pcForm.addEventListener("submit", function (e) {
+            e.preventDefault();
+            const kw = pcInput.value.trim();
+            if (kw) addRecentKeyword(kw);
+            const tgt = pcSelect ? pcSelect.value : "ALL";
+            window.location.href = "./index.html?view=catalog&keyword=" + encodeURIComponent(kw) + "&searchTarget=" + encodeURIComponent(tgt);
+          });
+        }
+      }
+
+      const mobForm = document.getElementById("mobileSearchForm") || (mobSearchDrawer && mobSearchDrawer.querySelector("form"));
+      const mobInput = document.getElementById("mobileSearchInput") || (mobForm && mobForm.querySelector(".store-search-input, input[type='search']"));
+      const mobSelect = document.getElementById("mobileSearchTarget") || (mobForm && mobForm.querySelector(".store-search-select, select"));
+      if (mobForm && mobInput && !isSPA && mobForm.dataset.submitBound !== "1") {
+        mobForm.dataset.submitBound = "1";
+        mobForm.addEventListener("submit", function (e) {
+          e.preventDefault();
+          const kw = mobInput.value.trim();
+          if (kw) addRecentKeyword(kw);
+          const tgt = mobSelect ? mobSelect.value : "ALL";
+          window.location.href = "./index.html?view=catalog&keyword=" + encodeURIComponent(kw) + "&searchTarget=" + encodeURIComponent(tgt);
+        });
+      }
+    }
+
+    // 4. 1줄 가로 슬라이드 GNB (도서 탐색 전용 IA + 스크롤바 숨김 + 마우스 드래그 지원)
+    const gnbListEl = document.getElementById("pcGnbList") || document.querySelector(".store-gnb-list");
+    if (gnbListEl) {
+      if (!gnbListEl.id) gnbListEl.id = "pcGnbList";
+      const railContainer = gnbListEl.parentElement;
+      if (railContainer) railContainer.classList.add("store-gnb-rail");
+      const gnbCats = getActiveCodes(state, "BOOK_CATEGORY");
+
+      if (!isSPA) {
+        const activeBookCat = opts.activeCategoryId || "";
+        gnbListEl.innerHTML = `
+          <li><a href="./index.html" class="store-gnb-btn ${opts.activeGnb === "home" ? "is-active" : ""}">홈</a></li>
+          <li><a href="./index.html?view=catalog" class="store-gnb-btn ${opts.activeGnb === "catalog" && !activeBookCat ? "is-active" : ""}">전체 도서</a></li>
+          ${gnbCats.map(function (c) {
+            const isAct = activeBookCat === c.code;
+            return `<li><a href="./index.html?view=catalog&cat=${encodeURIComponent(c.code)}" class="store-gnb-btn ${isAct ? "is-active" : ""}">${escapeHtml(c.name)}</a></li>`;
+          }).join("")}
+          <li><a href="./index.html?view=catalog&sort=BESTSELLER" class="store-gnb-btn">베스트셀러</a></li>
+          <li><a href="./index.html?view=catalog&sort=NEWEST" class="store-gnb-btn">신간 도서</a></li>
+          <li><a href="./index.html?view=catalog&sets=1" class="store-gnb-btn">전집 · 세트</a></li>
+        `;
+      }
+
+      enableHorizontalDragScroll(gnbListEl, railContainer);
+      const activeBtn = gnbListEl.querySelector(".store-gnb-btn.is-active");
+      if (activeBtn && gnbListEl.scrollWidth > gnbListEl.clientWidth) {
+        const targetLeft = Math.max(0, activeBtn.offsetLeft - Math.round((gnbListEl.clientWidth - activeBtn.offsetWidth) / 2));
+        gnbListEl.scrollLeft = targetLeft;
+        updateRailShadows(gnbListEl, railContainer);
+      }
+    }
+
+    // 5. 푸터 로고 심볼 & 배송비·연락처·데이터 초기화 반영
+    const footerBrandCol = document.querySelector(".store-footer .footer-grid > div:first-child");
+    if (footerBrandCol && !footerBrandCol.querySelector(".footer-brand-mark") && !isSPA) {
+      const firstStrong = footerBrandCol.querySelector("strong");
+      if (firstStrong && !firstStrong.closest(".footer-brand-row")) {
+        const row = document.createElement("div");
+        row.className = "footer-brand-row";
+        const markImg = document.createElement("img");
+        markImg.src = "./images/logo-mark-light.svg";
+        markImg.alt = "현동서재 로고";
+        markImg.className = "footer-brand-mark";
+        markImg.width = 32;
+        markImg.height = 32;
+        firstStrong.parentNode.insertBefore(row, firstStrong);
+        row.appendChild(markImg);
+        row.appendChild(firstStrong);
+      }
+    }
+
+    const footerCsStrong = document.querySelector(".store-footer .footer-grid > div:nth-child(2) strong");
+    if (footerCsStrong && cfg.csPhone) {
+      footerCsStrong.textContent = cfg.csPhone;
+    }
+
+    const footerCopyBar = document.querySelector(".store-footer .footer-copyright-bar");
+    if (footerCopyBar && !isSPA && !footerCopyBar.querySelector("[data-footer-reset]")) {
+      const utilSpan = document.createElement("span");
+      utilSpan.style.display = "inline-flex";
+      utilSpan.style.alignItems = "center";
+      utilSpan.style.gap = "10px";
+      utilSpan.innerHTML = `
+        <a href="./admin.html" style="color:#cbc5b8; text-decoration:none;">관리자 센터</a>
+        <span style="opacity:0.35;">|</span>
+        <button type="button" data-footer-reset="1" style="background:none; border:none; padding:0; color:#a8a196; font-size:0.78rem; cursor:pointer;">초기 데이터 복원</button>
+      `;
+      footerCopyBar.appendChild(utilSpan);
+      const resetFooterBtn = utilSpan.querySelector("[data-footer-reset]");
+      if (resetFooterBtn) {
+        resetFooterBtn.onclick = function () {
+          resetState();
+          showToast("초기 데이터 상태로 복원되었습니다.");
+          setTimeout(function () { window.location.reload(); }, 250);
+        };
+      }
+    }
+
+    // 6. 우측 하단 최근 본 도서 + TOP 플로팅 위젯
+    mountQuickFloatingBar();
+  }
+
   function syncFooterCopyrightYears() {
     const yr = String(new Date().getFullYear());
     document.querySelectorAll(".js-current-year").forEach(function (el) {
       el.textContent = yr;
     });
+    // 서브페이지(book-detail 외 정적 페이지)에서도 자동으로 공통 헤더·GNB·푸터 동기화 실행
+    if (document.querySelector("header.store-header") && !document.getElementById("storeMainContent")) {
+      syncStoreShell({ isSPA: false });
+    }
   }
 
   if (document.readyState === "loading") {
@@ -1719,7 +2807,21 @@
     renderBookThumbHTML: renderBookThumbHTML,
     sanitizeRichHtml: sanitizeRichHtml,
     escapeHtml: escapeHtml,
-    showToast: showToast
+    showToast: showToast,
+    POPULAR_KEYWORDS: POPULAR_KEYWORDS,
+    POSTCODE_DIRECTORY: POSTCODE_DIRECTORY,
+    recordRecentBook: recordRecentBook,
+    getRecentBooks: getRecentBooks,
+    addRecentKeyword: addRecentKeyword,
+    removeRecentKeyword: removeRecentKeyword,
+    clearRecentKeywords: clearRecentKeywords,
+    adjustMemberPoints: adjustMemberPoints,
+    openPostcodeModal: openPostcodeModal,
+    openOrderReceiptModal: openOrderReceiptModal,
+    enableHorizontalDragScroll: enableHorizontalDragScroll,
+    updateRailShadows: updateRailShadows,
+    syncStoreShell: syncStoreShell,
+    mountQuickFloatingBar: mountQuickFloatingBar
   };
 
   if (typeof window !== "undefined") {

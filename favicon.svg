@@ -1,27 +1,31 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="현동서재 한약·한의학 도서 아이콘">
   <defs>
-    <linearGradient id="taupeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#918a7d"/>
-      <stop offset="100%" stop-color="#787165"/>
+    <linearGradient id="favBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3d3730" />
+      <stop offset="100%" stop-color="#2c2925" />
     </linearGradient>
-    <linearGradient id="sealGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#9b3e35"/>
-      <stop offset="100%" stop-color="#7a2a22"/>
-    </linearGradient>
-    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
-      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#2c2925" flood-opacity="0.25"/>
-    </filter>
   </defs>
-  <!-- Background Taupe Base -->
-  <rect width="128" height="128" rx="28" fill="url(#taupeGrad)"/>
-  <rect x="6" y="6" width="116" height="116" rx="22" fill="none" stroke="#b0a89a" stroke-width="2" stroke-opacity="0.4"/>
-  <!-- Traditional Korean Vermilion Seal Stamp -->
-  <rect x="18" y="18" width="92" height="92" rx="14" fill="url(#sealGrad)" filter="url(#shadow)"/>
-  <rect x="22" y="22" width="84" height="84" rx="10" fill="none" stroke="#f2efe9" stroke-width="2.5" stroke-opacity="0.85"/>
-  <rect x="26" y="26" width="76" height="76" rx="7" fill="none" stroke="#f2efe9" stroke-width="1.2" stroke-opacity="0.5"/>
-  <!-- Seal Script Characters "玄同" -->
-  <g fill="#fbf9f5" font-family="'Noto Serif KR', 'Batang', serif" font-weight="900" text-anchor="middle">
-    <text x="64" y="61" font-size="34" letter-spacing="1">玄</text>
-    <text x="64" y="96" font-size="32" letter-spacing="1">同</text>
-  </g>
+  <!-- 둥근 인장 배지 배경 (중첩 사각 테두리 제거) -->
+  <rect x="2" y="2" width="60" height="60" rx="15" fill="url(#favBg)" />
+
+  <!-- 본초(한약초) 3엽 새싹 모티프 -->
+  <path d="M32 33 V15" stroke="#918a7d" stroke-width="2.4" stroke-linecap="round" />
+  <!-- 좌측 약초 잎 -->
+  <path d="M32 28 C23.5 27.2, 18.5 22, 19.2 15.2 C25.8 15.5, 30.8 20.5, 32 28 Z" fill="#918a7d" />
+  <!-- 우측 약초 잎 -->
+  <path d="M32 28 C40.5 27.2, 45.5 22, 44.8 15.2 C38.2 15.5, 33.2 20.5, 32 28 Z" fill="#cbc5b8" />
+  <!-- 중앙 본초 잎 -->
+  <path d="M32 23.5 C27.8 18.8, 28.2 12.6, 32 8.8 C35.8 12.6, 36.2 18.8, 32 23.5 Z" fill="#f8f7f4" />
+  <!-- 주사(朱砂) 약재 열매 포인트 -->
+  <circle cx="32" cy="7.2" r="2.1" fill="#9b3e35" />
+
+  <!-- 펼쳐진 한의서(고서) 하단 받침 표지 (#918a7d 메인 브랜드 컬러) -->
+  <path d="M11 45.5 C19.5 43, 26.8 45.2, 32 49.2 C37.2 45.2, 44.5 43, 53 45.5 L53 49.8 C44.5 47.4, 37.2 49.5, 32 53.5 C26.8 49.5, 19.5 47.4, 11 49.8 Z" fill="#918a7d" />
+
+  <!-- 펼쳐진 한의서 좌·우 한지 페이지 -->
+  <path d="M12.5 29.5 C20.8 27.4, 27.6 29.8, 32 34.2 L32 47.6 C27.6 43.5, 20.8 41.2, 12.5 43.2 Z" fill="#f8f7f4" />
+  <path d="M51.5 29.5 C43.2 27.4, 36.4 29.8, 32 34.2 L32 47.6 C36.4 43.5, 43.2 41.2, 51.5 43.2 Z" fill="#eae5db" />
+
+  <!-- 책등 중앙 구분선 -->
+  <path d="M32 33.8 V48" stroke="#787165" stroke-width="1.5" stroke-linecap="round" />
 </svg>

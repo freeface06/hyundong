@@ -18,6 +18,8 @@
     bookCat: "ALL",
     bookType: "ALL",
     orderFilter: "ALL",
+    orderKeyword: "",
+    orderClaimOnly: urlParams.get("claim") === "1",
     memberKeyword: "",
     qnaFilter: "ALL", // ALL | WAITING | ANSWERED
     boardTab: "notice", // notice | faq
@@ -79,6 +81,204 @@
       desc: "회원가입 이용약관, 개인정보 안내문, 무통장 입금계좌, 무료배송 기준 금액을 수정합니다."
     }
   };
+
+  function maskAdminRecipient(rawName) {
+    if (!rawName) return "-";
+    const str = String(rawName).trim();
+    const parenIdx = str.indexOf("(");
+    if (parenIdx > 0) {
+      const base = str.slice(0, parenIdx).trim();
+      const suffix = str.slice(parenIdx).trim();
+      return Store.maskKoreanName(base) + " " + suffix;
+    }
+    return Store.maskKoreanName(str);
+  }
+
+  function maskAdminEmail(rawEmail) {
+    if (!rawEmail) return "-";
+    const parts = String(rawEmail).trim().split("@");
+    if (parts.length !== 2) return rawEmail;
+    const local = parts[0];
+    const maskedLocal = local.length <= 2 ? local.charAt(0) + "***" : local.slice(0, 2) + "***";
+    return maskedLocal + "@" + parts[1];
+  }
+
+  function maskAdminAddress(rawAddr) {
+    if (!rawAddr) return "-";
+    const str = String(rawAddr).trim();
+    const commaIdx = str.indexOf(",");
+    if (commaIdx > 0) {
+      return str.slice(0, commaIdx) + ", ***";
+    }
+    const tokens = str.split(/\s+/);
+    if (tokens.length > 3) {
+      return tokens.slice(0, 3).join(" ") + " ***";
+    }
+    return str;
+  }
+
+  function formatAdminNow() {
+    const now = new Date();
+    const pad2 = function (n) { return String(n).padStart(2, "0"); };
+    return now.getFullYear() + "-" + pad2(now.getMonth() + 1) + "-" + pad2(now.getDate()) + " " + pad2(now.getHours()) + ":" + pad2(now.getMinutes());
+  }
+
+  function digitsOnly(val) {
+    return String(val == null ? "" : val).replace(/\D/g, "");
+  }
+
+  function getClaimMeta(claim) {
+    if (!claim || typeof claim !== "object") return null;
+    const rawType = String(claim.type || "EXCHANGE").trim().toUpperCase();
+    const isReturn = rawType === "RETURN" || rawType === "반품";
+    const typeCode = isReturn ? "RETURN" : "EXCHANGE";
+    const typeLabel = isReturn ? "반품" : "교환";
+    const rawStatus = String(claim.status || "REQUESTED").trim().toUpperCase();
+    const isApproved = rawStatus === "APPROVED" || rawStatus === "승인" || rawStatus === "RESOLVED" || rawStatus === "COMPLETED";
+    const statusCode = isApproved ? "APPROVED" : "REQUESTED";
+    const badgeLabel = isReturn
+      ? (isApproved ? "반품승인" : "반품요청")
+      : (isApproved ? "교환승인" : "교환요청");
+    const badgeClass = isApproved ? "badge-success" : (isReturn ? "badge-danger" : "badge-seal");
+    const actionLabel = isReturn ? "반품 승인(재고복원) 처리" : "교환 승인 처리";
+    return {
+      typeCode: typeCode,
+      typeLabel: typeLabel,
+      isReturn: isReturn,
+      isApproved: isApproved,
+      statusCode: statusCode,
+      badgeLabel: badgeLabel,
+      badgeClass: badgeClass,
+      actionLabel: actionLabel,
+      reason: String(claim.reason || (isReturn ? "반품 신청" : "교환 신청")).trim(),
+      detail: String(claim.detail || claim.memo || claim.content || "").trim(),
+      requestedAt: String(claim.requestedAt || claim.createdAt || "").trim(),
+      resolvedAt: String(claim.resolvedAt || claim.approvedAt || "").trim()
+    };
+  }
+
+  function getBookRestockAlertStats(bookId) {
+    if (!Array.isArray(state.restockAlerts)) return { waiting: 0, notified: 0 };
+    let waiting = 0;
+    let notified = 0;
+    state.restockAlerts.forEach(function (r) {
+      if (r && r.bookId === bookId) {
+        if (r.notified) notified += 1;
+        else waiting += 1;
+      }
+    });
+    return { waiting: waiting, notified: notified };
+  }
+
+  function notifyPendingRestockAlertsForBook(bk) {
+    if (!bk || Number(bk.stockQuantity) < 1 || bk.saleStatus === "OUT_OF_STOCK") return 0;
+    if (!Array.isArray(state.restockAlerts)) return 0;
+    const matched = state.restockAlerts.filter(function (r) {
+      return r && r.bookId === bk.id && !r.notified;
+    });
+    if (matched.length > 0) {
+      const ts = formatAdminNow();
+      matched.forEach(function (r) {
+        r.notified = true;
+        r.notifiedAt = ts;
+      });
+    }
+    return matched.length;
+  }
+
+  function reconcileAllRestockAlerts() {
+    if (!Array.isArray(state.restockAlerts) || !Array.isArray(state.books)) return 0;
+    let totalNotified = 0;
+    state.books.forEach(function (bk) {
+      totalNotified += notifyPendingRestockAlertsForBook(bk);
+    });
+    if (totalNotified > 0) {
+      Store.saveState(state);
+    }
+    return totalNotified;
+  }
+
+  function matchesOrderKeyword(o, rawKeyword) {
+    const kw = String(rawKeyword || "").trim().toLowerCase();
+    if (!kw) return true;
+    const kwDigits = digitsOnly(kw);
+    const itemTitles = (o.items || []).map(function (it) { return it.title || ""; }).join(" ");
+    const claimMeta = getClaimMeta(o.claim);
+    const maskedRecip = maskAdminRecipient(o.recipientName);
+    const maskedBuyer = o.buyerName ? Store.maskKoreanName(o.buyerName) : "";
+    const maskedPhone = Store.maskPhone(o.recipientPhone);
+    const normTracking = Store.normalizeTrackingNumber
+      ? Store.normalizeTrackingNumber(o.trackingNumber || "")
+      : digitsOnly(o.trackingNumber || "");
+    const rawPhoneDigits = digitsOnly(o.recipientPhone || "");
+    const blob = [
+      o.orderNo || "",
+      o.recipientName || "",
+      o.buyerName || "",
+      maskedRecip,
+      maskedBuyer,
+      o.recipientPhone || "",
+      maskedPhone,
+      rawPhoneDigits,
+      o.trackingNumber || "",
+      normTracking,
+      itemTitles,
+      claimMeta ? (claimMeta.badgeLabel + " " + claimMeta.typeLabel + " " + claimMeta.reason + " " + claimMeta.detail) : ""
+    ].join(" ").toLowerCase();
+    if (blob.includes(kw)) return true;
+    if (kwDigits.length >= 4 && (rawPhoneDigits.includes(kwDigits) || normTracking.includes(kwDigits) || digitsOnly(o.orderNo).includes(kwDigits))) {
+      return true;
+    }
+    return false;
+  }
+
+  function approveOrderClaim(orderNo) {
+    const ord = state.orders.find(function (o) { return o.orderNo === orderNo; });
+    if (!ord || !ord.claim) return;
+    const meta = getClaimMeta(ord.claim);
+    if (!meta) return;
+    if (meta.isApproved) {
+      Store.showToast("이미 승인 처리가 완료된 클레임입니다.");
+      return;
+    }
+    ord.claim.type = meta.typeCode;
+    ord.claim.status = "APPROVED";
+    ord.claim.resolvedAt = formatAdminNow();
+
+    let restoredTotalQty = 0;
+    let restockNotifiedCount = 0;
+    if (meta.isReturn && !ord.claim.stockRestored) {
+      (ord.items || []).forEach(function (it) {
+        const qty = Math.max(1, Number(it.qty || it.quantity || 1));
+        const bk = state.books.find(function (b) {
+          return (it.bookId && b.id === it.bookId) || (it.id && b.id === it.id) || (it.title && b.title === it.title);
+        });
+        if (bk) {
+          bk.stockQuantity = Math.max(0, Number(bk.stockQuantity) || 0) + qty;
+          if (bk.stockQuantity >= 1 && bk.saleStatus === "OUT_OF_STOCK") {
+            bk.saleStatus = "ON_SALE";
+            bk.shippingEta = "오늘 발송 예정";
+          }
+          restoredTotalQty += qty;
+          restockNotifiedCount += notifyPendingRestockAlertsForBook(bk);
+        }
+      });
+      ord.claim.stockRestored = true;
+    }
+
+    Store.saveState(state);
+    const wbModal = document.getElementById("waybillModal");
+    if (wbModal && wbModal.classList.contains("is-open") && ui.activeWaybillOrderNo === orderNo) {
+      wbModal.classList.remove("is-open");
+    }
+    render();
+    if (meta.isReturn) {
+      const alertSuffix = restockNotifiedCount > 0 ? ` (재입고 알림 ${restockNotifiedCount}건 자동 발송)` : "";
+      Store.showToast(`[${ord.orderNo}] 반품 승인이 완료되어 도서 재고 ${restoredTotalQty}권이 복원되었습니다.${alertSuffix}`);
+    } else {
+      Store.showToast(`[${ord.orderNo}] 교환 승인이 완료되었습니다. 고객 주문내역에 즉시 반영됩니다.`);
+    }
+  }
 
   function syncSidebarChrome() {
     document.getElementById("navBookCount").textContent = state.books.length;
@@ -355,11 +555,10 @@
     const series = ui.chartPeriod === "monthly6" ? state.analytics.monthly6 : state.analytics.daily7;
     const isMonthly = ui.chartPeriod === "monthly6";
 
-    // 주문 단계별 집계 (결제완료 -> 포장준비 -> 송장등록·발송완료 3단계)
+    // 주문 단계별 집계 (입금완료/발송대기 -> 송장등록/발송완료 2단계 체계)
     const stageStats = [
-      { code: "PAID", label: "결제완료 (송장 입력 대기)", color: "#9c6626", count: state.orders.filter(function (o) { return o.orderStatus === "PAID"; }).length },
-      { code: "PREPARING_SHIPMENT", label: "도서 검수 · 포장 준비중", color: "#918a7d", count: state.orders.filter(function (o) { return o.orderStatus === "PREPARING_SHIPMENT"; }).length },
-      { code: "SHIPPED", label: "송장 등록 · 택배 발송 완료", color: "#3d6b50", count: state.orders.filter(function (o) { return o.orderStatus === "SHIPPED"; }).length }
+      { code: "PAID", label: "입금완료 · 발송대기 (송장 입력 대기)", color: "#9c6626", count: pendingShipOrders.length },
+      { code: "SHIPPED", label: "송장 등록 · 발송완료 (로젠택배)", color: "#3d6b50", count: state.orders.filter(function (o) { return o.orderStatus === "SHIPPED"; }).length }
     ];
     const maxStageCount = Math.max(1, Math.max.apply(null, stageStats.map(function (s) { return s.count; })));
 
@@ -412,12 +611,12 @@
 
         <div class="kpi-card" style="border-top-color: var(--color-info);">
           <div class="kpi-head">
-            <span class="kpi-label">가입 회원 / 재고 부족 도서</span>
-            <span class="badge badge-brand">이번 달 +24명</span>
+            <span class="kpi-label">가입 회원 · 재고 점검</span>
+            <span class="badge badge-brand">부족 ${lowStockBooks.length}종</span>
           </div>
-          <div class="kpi-value"><span data-countup="${state.members.length}" data-suffix="명">${state.members.length}명</span> <span style="font-size:0.95rem; font-weight:600; color:var(--color-text-muted);">/ 부족 ${lowStockBooks.length}종</span></div>
+          <div class="kpi-value" data-countup="${state.members.length}" data-suffix="명">${state.members.length}명</div>
           <div class="kpi-foot">
-            <span>재고 10권 이하 도서 점검</span>
+            <span>재고 10권 이하 ${lowStockBooks.length}종</span>
             <button type="button" class="kpi-link-btn" data-admin-sec="books">재고 보기 →</button>
           </div>
         </div>
@@ -528,7 +727,7 @@
             return `
               <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; padding:10px 0; border-bottom:1px solid var(--color-border); font-size:0.86rem;">
                 <div>
-                  <strong>${Store.escapeHtml(o.orderNo)}</strong> · ${Store.escapeHtml(o.recipientName)}
+                  <strong>${Store.escapeHtml(o.orderNo)}</strong> · ${Store.escapeHtml(maskAdminRecipient(o.recipientName))}
                   <div style="color:var(--color-text-muted); font-size:0.8rem;">${Store.escapeHtml(o.items[0].title)}${o.items.length > 1 ? ` 외 ${o.items.length - 1}종` : ""} (${Store.formatKRW(o.finalAmount)})</div>
                 </div>
                 <button type="button" class="btn btn-sm btn-primary" data-open-waybill="${o.orderNo}">송장번호 등록</button>
@@ -573,8 +772,13 @@
       if (ui.bookCat !== "ALL" && b.categoryId !== ui.bookCat) return false;
       if (ui.bookType !== "ALL" && b.bookTypeCode !== ui.bookType) return false;
       if (!kw) return true;
-      return (b.title + " " + b.isbn13 + " " + b.author + " " + (b.bookTypeName || "")).toLowerCase().includes(kw);
+      const aStats = getBookRestockAlertStats(b.id);
+      const extraKw = (b.stockQuantity === 0 ? "품절 일시품절 " : "") + (aStats.waiting > 0 ? "재입고 알림 대기" : "");
+      return (b.id + " " + b.title + " " + b.isbn13 + " " + b.author + " " + (b.bookTypeName || "") + " " + extraKw).toLowerCase().includes(kw);
     });
+    const totalWaitingRestock = Array.isArray(state.restockAlerts)
+      ? state.restockAlerts.filter(function (r) { return r && !r.notified; }).length
+      : 0;
 
     mainEl.innerHTML = `
       ${renderSectionGuideHTML(`
@@ -602,7 +806,7 @@
             }).join("")}
           </select>
           <span style="font-size:0.82rem; color:var(--color-text-muted);">
-            총 <strong>${list.length}종</strong> 조회됨 · 도서 분야 및 단권/세트 선택 항목은 [분류 · 선택항목 코드관리]에서 자유롭게 추가·변경할 수 있습니다.
+            총 <strong>${list.length}종</strong> 조회됨${totalWaitingRestock > 0 ? ` · <strong style="color:var(--color-seal);">재입고 알림 대기 ${totalWaitingRestock}건</strong>` : ""} · 도서 분야 및 단권/세트 선택 항목은 [분류 · 선택항목 코드관리]에서 자유롭게 추가·변경할 수 있습니다.
           </span>
         </div>
       </div>
@@ -623,6 +827,7 @@
           <tbody>
             ${list.map(function (b) {
               const typeBadgeCls = b.isSet ? "badge-seal" : "badge-brand";
+              const alertStats = getBookRestockAlertStats(b.id);
               return `
                 <tr>
                   <td>
@@ -649,9 +854,14 @@
                     <strong>${Store.formatKRW(b.salePrice)}</strong> <span class="discount-pct">(${b.discountRate}%↓)</span>
                   </td>
                   <td>
-                    <span class="badge ${b.stockQuantity === 0 ? "badge-danger" : (b.stockQuantity <= 10 ? "badge-warning" : "badge-success")}">
-                      ${b.stockQuantity === 0 ? "품절 (0권)" : b.stockQuantity + "권"}
-                    </span>
+                    <div class="admin-stock-cell">
+                      <span class="badge ${b.stockQuantity === 0 ? "badge-danger" : (b.stockQuantity <= 10 ? "badge-warning" : "badge-success")}">
+                        ${b.stockQuantity === 0 ? "품절 (0권)" : b.stockQuantity + "권"}
+                      </span>
+                      ${alertStats.waiting > 0
+                        ? `<span class="badge badge-seal admin-restock-badge" data-restock-alert-badge="${Store.escapeHtml(b.id)}" data-waiting-count="${alertStats.waiting}">재입고 알림 대기 ${alertStats.waiting}건</span>`
+                        : (alertStats.notified > 0 ? `<span class="admin-restock-done-note" data-restock-notified="${Store.escapeHtml(b.id)}">재입고 알림 ${alertStats.notified}건 발송완료</span>` : "")}
+                    </div>
                   </td>
                   <td>
                     <button type="button" class="btn btn-sm ${b.mdPick ? "btn-primary" : "btn-outline"}" data-toggle-mdpick="${b.id}">
@@ -659,12 +869,16 @@
                     </button>
                   </td>
                   <td>
-                    <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                    <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
                       <a href="./admin-book-new.html?id=${encodeURIComponent(b.id)}" class="btn btn-sm btn-soft">내용 수정</a>
                       <button type="button" class="btn btn-sm btn-outline" data-stock-add="10" data-book-id="${b.id}">+10권 입고</button>
                       <button type="button" class="btn btn-sm btn-outline" data-toggle-soldout="${b.id}">
                         ${b.saleStatus === "OUT_OF_STOCK" ? "판매 재개" : "품절 처리"}
                       </button>
+                      <span class="admin-inline-stock-ctrl">
+                        <input type="number" min="0" max="9999" class="admin-stock-mini-input" data-stock-input="${Store.escapeHtml(b.id)}" value="${b.stockQuantity}" aria-label="${Store.escapeHtml(b.title)} 재고 수량 입력" />
+                        <button type="button" class="btn btn-sm btn-outline" data-stock-set="${Store.escapeHtml(b.id)}">재고반영</button>
+                      </span>
                     </div>
                   </td>
                 </tr>
@@ -676,6 +890,7 @@
 
       <div class="admin-mobile-cards">
         ${list.map(function (b) {
+          const alertStats = getBookRestockAlertStats(b.id);
           return `
             <article class="admin-action-card">
               <div class="admin-card-head">
@@ -683,7 +898,12 @@
                   <span class="badge badge-brand">${Store.escapeHtml(b.categoryName)}</span>
                   <span class="badge ${b.isSet ? "badge-seal" : "badge-brand"}">${Store.escapeHtml(b.bookTypeName || (b.isSet ? "전집 · 세트 상품" : "단권 도서"))}</span>
                 </div>
-                <span class="badge ${b.stockQuantity === 0 ? "badge-danger" : "badge-success"}">재고 ${b.stockQuantity}권</span>
+                <div class="admin-order-status-stack">
+                  <span class="badge ${b.stockQuantity === 0 ? "badge-danger" : "badge-success"}">재고 ${b.stockQuantity}권</span>
+                  ${alertStats.waiting > 0
+                    ? `<span class="badge badge-seal admin-restock-badge" data-restock-alert-badge="${Store.escapeHtml(b.id)}" data-waiting-count="${alertStats.waiting}">알림 대기 ${alertStats.waiting}건</span>`
+                    : (alertStats.notified > 0 ? `<span class="admin-restock-done-note" data-restock-notified="${Store.escapeHtml(b.id)}">알림 ${alertStats.notified}건 발송완료</span>` : "")}
+                </div>
               </div>
               <div class="admin-book-code-cell">
                 ${Store.renderBookThumbHTML(b)}
@@ -705,6 +925,10 @@
                 <button type="button" class="btn btn-sm btn-outline" data-toggle-soldout="${b.id}">
                   ${b.saleStatus === "OUT_OF_STOCK" ? "판매 재개" : "품절 처리"}
                 </button>
+                <span class="admin-inline-stock-ctrl">
+                  <input type="number" min="0" max="9999" class="admin-stock-mini-input" data-stock-input="${Store.escapeHtml(b.id)}" value="${b.stockQuantity}" aria-label="${Store.escapeHtml(b.title)} 재고 수량 입력" />
+                  <button type="button" class="btn btn-sm btn-outline" data-stock-set="${Store.escapeHtml(b.id)}">재고반영</button>
+                </span>
               </div>
             </article>
           `;
@@ -718,28 +942,47 @@
      ======================================================================== */
   function renderOrdersSection() {
     const orders = state.orders.filter(function (o) {
-      if (ui.orderFilter === "ALL") return true;
-      return o.orderStatus === ui.orderFilter;
+      if (ui.orderClaimOnly && !o.claim) return false;
+      if (ui.orderFilter === "PAID") {
+        if (o.orderStatus !== "PAID" && o.orderStatus !== "PREPARING_SHIPMENT") return false;
+      } else if (ui.orderFilter !== "ALL") {
+        if (o.orderStatus !== ui.orderFilter) return false;
+      }
+      return matchesOrderKeyword(o, ui.orderKeyword);
     });
 
-    const countBy = function (st) {
-      return state.orders.filter(function (o) { return o.orderStatus === st; }).length;
-    };
-    const canceledCount = countBy("CANCELED");
+    const paidCount = state.orders.filter(function (o) {
+      return o.orderStatus === "PAID" || o.orderStatus === "PREPARING_SHIPMENT";
+    }).length;
+    const shippedCount = state.orders.filter(function (o) {
+      return o.orderStatus === "SHIPPED";
+    }).length;
+    const canceledCount = state.orders.filter(function (o) {
+      return o.orderStatus === "CANCELED";
+    }).length;
+    const claimOrders = state.orders.filter(function (o) {
+      return Boolean(o.claim);
+    });
+    const pendingClaimCount = claimOrders.filter(function (o) {
+      const m = getClaimMeta(o.claim);
+      return m && !m.isApproved;
+    }).length;
     const activeCarriers = Store.getActiveCarriers(state);
 
     mainEl.innerHTML = `
       ${renderSectionGuideHTML(`
+        <button type="button" class="btn btn-sm btn-primary" id="btnOpenBulkWaybillModal">운송장 일괄 등록 (${paidCount}건)</button>
+        <button type="button" class="btn btn-sm btn-outline" id="btnExportPendingCsv">발송대기 CSV 다운로드</button>
         <button type="button" class="btn btn-sm btn-soft" data-jump-codes="CARRIER_CODE">택배사 · 조회주소 코드관리</button>
         <a href="./index.html?view=orders" class="btn btn-sm btn-outline">고객 배송조회 안내 화면 보기 ↗</a>
       `)}
 
       <div class="panel-card" style="margin-bottom:16px; padding:14px 18px; background:var(--color-brand-50);">
         <div style="font-size:0.86rem; font-weight:700; color:var(--color-brand-900); margin-bottom:4px;">
-          운송장 번호 입력 및 고객 직접 조회 안내 방식
+          운송장 번호 입력 및 고객 직접 조회 안내 방식 (2단계 출고 프로세스 · 개인정보 기본 마스킹)
         </div>
         <div style="font-size:0.82rem; color:var(--color-text-secondary); line-height:1.55;">
-          출판부에서는 <strong>택배사 선택 및 송장번호 등록(발송 완료)</strong> 단계까지만 입력합니다. 이후 배송 위치 추적은 고객 화면에 자동 안내되는 각 택배사 공식 조회 페이지 주소에서 고객이 직접 조회합니다.
+          출판부에서는 <strong>입금완료/발송대기 → 로젠택배 송장번호 등록(발송완료)</strong> 2단계로만 간편하게 운영합니다. 목록 화면에서는 수령인 성함·연락처·상세주소가 자동 마스킹되며, 송장 입력 모달에서 출고용 전체 주소와 교환·반품 접수 내역을 확인합니다.
         </div>
         <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:10px;">
           ${activeCarriers.map(function (c) {
@@ -750,11 +993,16 @@
 
       <div class="admin-filter-box">
         <div class="admin-filter-primary">
+          <input type="search" id="admOrderSearchInput" class="form-input" placeholder="주문번호, 수령인명, 연락처(뒷자리), 주문 도서명, 운송장 번호 검색..." value="${Store.escapeHtml(ui.orderKeyword)}" />
+          <button type="button" class="btn btn-primary" id="btnApplyOrderFilter">주문 검색</button>
+          ${(ui.orderKeyword || ui.orderFilter !== "ALL" || ui.orderClaimOnly) ? `<button type="button" class="btn btn-outline" id="btnResetOrderFilter">초기화</button>` : ""}
+        </div>
+        <div class="admin-order-filter-chips">
           <button type="button" class="chip-btn ${ui.orderFilter === "ALL" ? "is-active" : ""}" data-ord-filter="ALL">전체 주문 (${state.orders.length})</button>
-          <button type="button" class="chip-btn ${ui.orderFilter === "PAID" ? "is-active" : ""}" data-ord-filter="PAID">결제완료 · 송장대기 (${countBy("PAID")})</button>
-          <button type="button" class="chip-btn ${ui.orderFilter === "PREPARING_SHIPMENT" ? "is-active" : ""}" data-ord-filter="PREPARING_SHIPMENT">포장 준비중 (${countBy("PREPARING_SHIPMENT")})</button>
-          <button type="button" class="chip-btn ${ui.orderFilter === "SHIPPED" ? "is-active" : ""}" data-ord-filter="SHIPPED">송장 등록 · 발송완료 (${countBy("SHIPPED")})</button>
+          <button type="button" class="chip-btn ${ui.orderFilter === "PAID" ? "is-active" : ""}" data-ord-filter="PAID">입금완료 · 발송대기 (${paidCount})</button>
+          <button type="button" class="chip-btn ${ui.orderFilter === "SHIPPED" ? "is-active" : ""}" data-ord-filter="SHIPPED">송장 등록 · 발송완료 (${shippedCount})</button>
           ${canceledCount > 0 ? `<button type="button" class="chip-btn ${ui.orderFilter === "CANCELED" ? "is-active" : ""}" data-ord-filter="CANCELED">주문 취소 (${canceledCount})</button>` : ""}
+          <button type="button" id="adminOrderClaimOnly" class="chip-btn admin-claim-chip ${ui.orderClaimOnly ? "is-active" : ""}" aria-pressed="${ui.orderClaimOnly ? "true" : "false"}">${ui.orderClaimOnly ? "✓ " : ""}클레임 접수 건만 보기 (${claimOrders.length}${pendingClaimCount > 0 ? " · 요청 " + pendingClaimCount : ""})</button>
         </div>
       </div>
 
@@ -771,27 +1019,44 @@
             </tr>
           </thead>
           <tbody>
-            ${orders.map(function (o) {
+            ${orders.length === 0 ? `
+              <tr>
+                <td colspan="6" style="text-align:center; padding:32px 16px; color:var(--color-text-muted);">조건에 일치하는 주문 내역이 없습니다.</td>
+              </tr>
+            ` : orders.map(function (o) {
+              const claimMeta = getClaimMeta(o.claim);
               return `
                 <tr>
                   <td><strong>${Store.escapeHtml(o.orderNo)}</strong><div style="font-size:0.77rem; color:var(--color-text-muted);">${o.orderedAt}</div></td>
                   <td>
-                    <strong>${Store.escapeHtml(o.recipientName)}</strong>
-                    <div style="font-size:0.78rem; color:var(--color-text-muted);">${Store.escapeHtml(o.recipientPhone)}</div>
+                    <strong>${Store.escapeHtml(maskAdminRecipient(o.recipientName))}</strong>
+                    <div style="font-size:0.78rem; color:var(--color-text-muted);">${Store.escapeHtml(Store.maskPhone(o.recipientPhone))}</div>
                   </td>
                   <td>
                     ${o.items.map(function (it) { return `<div>· ${Store.escapeHtml(it.title)} × ${it.qty}권</div>`; }).join("")}
-                    <div style="font-size:0.76rem; color:var(--color-text-muted); margin-top:3px;">배송지: ${Store.escapeHtml(o.address)}</div>
+                    <div style="font-size:0.76rem; color:var(--color-text-muted); margin-top:3px;">배송지: ${Store.escapeHtml(maskAdminAddress(o.address))}</div>
                   </td>
                   <td>
                     <strong>${Store.formatKRW(o.finalAmount)}</strong>
                     <div style="font-size:0.76rem; color:var(--color-text-muted);">${Store.escapeHtml(o.paymentMethod.slice(0, 16))}</div>
                   </td>
                   <td>
-                    <span class="badge ${Store.getOrderStatusBadge(o.orderStatus)}">${Store.getOrderStatusLabel(o.orderStatus)}</span>
+                    <div class="admin-order-status-stack">
+                      <span class="badge ${Store.getOrderStatusBadge(o.orderStatus)}">${Store.getOrderStatusLabel(o.orderStatus)}</span>
+                      ${claimMeta ? `<span class="badge ${claimMeta.badgeClass} admin-claim-badge" data-claim-badge="${Store.escapeHtml(o.orderNo)}" data-claim-status="${claimMeta.statusCode}">${Store.escapeHtml(claimMeta.badgeLabel)}</span>` : ""}
+                    </div>
                     ${o.trackingNumber
                       ? `<div style="font-size:0.8rem; margin-top:4px; font-weight:700;">${Store.escapeHtml(o.carrierName)} ${Store.escapeHtml(o.trackingNumber)}</div>`
                       : `<div style="font-size:0.76rem; color:var(--color-text-muted); margin-top:4px;">송장번호 미등록</div>`}
+                    ${claimMeta ? `
+                      <div class="admin-claim-summary">
+                        <div><strong>[${Store.escapeHtml(claimMeta.typeLabel)} 사유]</strong> ${Store.escapeHtml(claimMeta.reason)}</div>
+                        ${claimMeta.detail ? `<div class="admin-claim-detail-line">${Store.escapeHtml(claimMeta.detail)}</div>` : ""}
+                        ${claimMeta.isApproved && claimMeta.resolvedAt
+                          ? `<div class="admin-claim-meta-line">승인일시: ${Store.escapeHtml(claimMeta.resolvedAt)}</div>`
+                          : (claimMeta.requestedAt ? `<div class="admin-claim-meta-line">접수일시: ${Store.escapeHtml(claimMeta.requestedAt)}</div>` : "")}
+                      </div>
+                    ` : ""}
                   </td>
                   <td>${renderOrderActionButtons(o)}</td>
                 </tr>
@@ -802,19 +1067,26 @@
       </div>
 
       <div class="admin-mobile-cards">
-        ${orders.map(function (o) {
+        ${orders.length === 0 ? `
+          <div class="panel-card" style="text-align:center; padding:28px 16px; color:var(--color-text-muted);">조건에 일치하는 주문 내역이 없습니다.</div>
+        ` : orders.map(function (o) {
+          const claimMeta = getClaimMeta(o.claim);
           return `
             <article class="admin-action-card">
               <div class="admin-card-head">
                 <strong>${Store.escapeHtml(o.orderNo)}</strong>
-                <span class="badge ${Store.getOrderStatusBadge(o.orderStatus)}">${Store.getOrderStatusLabel(o.orderStatus)}</span>
+                <div class="admin-order-status-stack">
+                  <span class="badge ${Store.getOrderStatusBadge(o.orderStatus)}">${Store.getOrderStatusLabel(o.orderStatus)}</span>
+                  ${claimMeta ? `<span class="badge ${claimMeta.badgeClass} admin-claim-badge" data-claim-badge="${Store.escapeHtml(o.orderNo)}" data-claim-status="${claimMeta.statusCode}">${Store.escapeHtml(claimMeta.badgeLabel)}</span>` : ""}
+                </div>
               </div>
               <dl class="admin-card-kv">
-                <dt>받는 분</dt><dd>${Store.escapeHtml(o.recipientName)} (${Store.escapeHtml(o.recipientPhone)})</dd>
-                <dt>배송 주소</dt><dd>${Store.escapeHtml(o.address)}</dd>
+                <dt>받는 분</dt><dd>${Store.escapeHtml(maskAdminRecipient(o.recipientName))} (${Store.escapeHtml(Store.maskPhone(o.recipientPhone))})</dd>
+                <dt>배송 주소</dt><dd>${Store.escapeHtml(maskAdminAddress(o.address))}</dd>
                 <dt>주문 도서</dt><dd>${o.items.map(function (it) { return `${Store.escapeHtml(it.title)} × ${it.qty}권`; }).join(", ")}</dd>
                 <dt>결제 금액</dt><dd><strong>${Store.formatKRW(o.finalAmount)}</strong></dd>
                 <dt>택배 송장</dt><dd>${o.trackingNumber ? `${Store.escapeHtml(o.carrierName)} ${Store.escapeHtml(o.trackingNumber)}` : "아직 등록되지 않음"}</dd>
+                ${claimMeta ? `<dt>클레임</dt><dd><span class="badge ${claimMeta.badgeClass}">${Store.escapeHtml(claimMeta.badgeLabel)}</span> ${Store.escapeHtml(claimMeta.reason)}${claimMeta.detail ? ` — ${Store.escapeHtml(claimMeta.detail)}` : ""}</dd>` : ""}
               </dl>
               <div class="admin-card-actions">
                 ${renderOrderActionButtons(o)}
@@ -830,33 +1102,55 @@
     if (o.orderStatus === "CANCELED") {
       return `<span class="badge badge-danger">주문 취소됨</span>`;
     }
+    const claimMeta = getClaimMeta(o.claim);
+    const claimActionHTML = claimMeta
+      ? (!claimMeta.isApproved
+          ? `<button type="button" class="btn btn-sm btn-primary" data-approve-claim="${Store.escapeHtml(o.orderNo)}">${Store.escapeHtml(claimMeta.actionLabel)}</button>`
+          : `<span class="badge badge-success">${Store.escapeHtml(claimMeta.badgeLabel)} 완료</span>`)
+      : "";
     if (!o.trackingNumber) {
-      if (o.orderStatus === "PAID") {
-        return `
-          <div style="display:flex; gap:6px; flex-wrap:wrap;">
-            <button type="button" class="btn btn-sm btn-primary" data-open-waybill="${o.orderNo}">송장번호 입력</button>
-          </div>
-        `;
-      }
-      return `<button type="button" class="btn btn-sm btn-primary" data-open-waybill="${o.orderNo}">송장번호 입력 · 발송</button>`;
+      return `
+        <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+          ${claimActionHTML}
+          <button type="button" class="btn btn-sm btn-primary" data-open-waybill="${o.orderNo}">송장번호 입력</button>
+        </div>
+      `;
     }
     const carrier = Store.getCarrierInfo(o.carrierCode || o.carrierName, state);
     return `
-      <div style="display:flex; gap:6px; flex-wrap:wrap;">
-        <button type="button" class="btn btn-sm btn-outline" data-open-waybill="${o.orderNo}">송장번호 수정</button>
+      <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+        ${claimActionHTML}
+        <button type="button" class="btn btn-sm btn-outline" data-open-waybill="${o.orderNo}">${claimMeta ? "상세 · 송장수정" : "송장번호 수정"}</button>
         <a href="${Store.escapeHtml(carrier.trackingUrl)}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline">택배사 조회 ↗</a>
       </div>
     `;
   }
 
   /* ========================================================================
-     4. MEMBERS SECTION (회원 목록 · 적립금 관리 — 어려운 전문용어 완전 제거)
+     4. MEMBERS SECTION (회원 목록 · 적립금 관리 — 개인정보 기본 마스킹 적용)
      ======================================================================== */
   function renderMembersSection() {
     const kw = ui.memberKeyword.trim().toLowerCase();
+    const kwDigits = digitsOnly(kw);
     const list = state.members.filter(function (m) {
       if (!kw) return true;
-      return (m.name + " " + m.loginId + " " + m.phone + " " + m.memberGrade + " " + (m.clinicName || "")).toLowerCase().includes(kw);
+      const maskedName = m.nameMasked || Store.maskKoreanName(m.name);
+      const maskedPhone = m.phoneMasked || Store.maskPhone(m.phone);
+      const rawPhoneDigits = digitsOnly(m.phone);
+      const blob = [
+        m.id || "",
+        m.name || "",
+        maskedName,
+        m.loginId || "",
+        m.phone || "",
+        maskedPhone,
+        rawPhoneDigits,
+        m.memberGrade || m.grade || "",
+        m.clinicName || ""
+      ].join(" ").toLowerCase();
+      if (blob.includes(kw)) return true;
+      if (kwDigits.length >= 4 && rawPhoneDigits.includes(kwDigits)) return true;
+      return false;
     });
 
     mainEl.innerHTML = `
@@ -874,7 +1168,7 @@
           <thead>
             <tr>
               <th>회원번호 / 아이디</th>
-              <th>이름 / 소속</th>
+              <th>이름 / 소속 (기본 마스킹)</th>
               <th>휴대폰 / 이메일</th>
               <th>회원 등급</th>
               <th>보유 적립금</th>
@@ -884,22 +1178,26 @@
           </thead>
           <tbody>
             ${list.map(function (m) {
+              const maskedName = m.nameMasked || Store.maskKoreanName(m.name);
+              const maskedPhone = m.phoneMasked || Store.maskPhone(m.phone);
+              const maskedMail = maskAdminEmail(m.email);
+              const gradeLabel = m.memberGrade || m.grade || "일반 회원";
               return `
                 <tr>
                   <td><strong>${m.id}</strong><div style="font-size:0.78rem; color:var(--color-text-muted);">${Store.escapeHtml(m.loginId)}</div></td>
                   <td>
-                    <strong>${Store.escapeHtml(m.name)}</strong>
+                    <strong>${Store.escapeHtml(maskedName)}</strong>
                     ${m.clinicName ? `<div style="font-size:0.77rem; color:var(--color-text-secondary);">${Store.escapeHtml(m.clinicName)}</div>` : ""}
                   </td>
                   <td>
-                    ${Store.escapeHtml(m.phone)}
-                    <div style="font-size:0.77rem; color:var(--color-text-muted);">${Store.escapeHtml(m.email)}</div>
+                    ${Store.escapeHtml(maskedPhone)}
+                    <div style="font-size:0.77rem; color:var(--color-text-muted);">${Store.escapeHtml(maskedMail)}</div>
                   </td>
-                  <td><span class="badge badge-brand">${Store.escapeHtml(m.memberGrade)}</span></td>
+                  <td><span class="badge badge-brand">${Store.escapeHtml(gradeLabel)}</span></td>
                   <td><strong>${Store.formatKRW(m.points || 0)}</strong></td>
                   <td>
                     ${m.joinedAt}
-                    <div style="font-size:0.77rem; color:var(--color-text-secondary);">${m.orderCount}회 (${Store.formatKRW(m.totalSpent || 0)})</div>
+                    <div style="font-size:0.77rem; color:var(--color-text-secondary);">${m.orderCount || 0}회 (${Store.formatKRW(m.totalSpent || 0)})</div>
                   </td>
                   <td>
                     <button type="button" class="btn btn-sm btn-outline" data-open-member="${m.id}">정보 · 적립금 관리</button>
@@ -913,17 +1211,21 @@
 
       <div class="admin-mobile-cards">
         ${list.map(function (m) {
+          const maskedName = m.nameMasked || Store.maskKoreanName(m.name);
+          const maskedPhone = m.phoneMasked || Store.maskPhone(m.phone);
+          const maskedMail = maskAdminEmail(m.email);
+          const gradeLabel = m.memberGrade || m.grade || "일반 회원";
           return `
             <article class="admin-action-card">
               <div class="admin-card-head">
-                <strong>${Store.escapeHtml(m.name)} (${Store.escapeHtml(m.loginId)})</strong>
-                <span class="badge badge-brand">${Store.escapeHtml(m.memberGrade)}</span>
+                <strong>${Store.escapeHtml(maskedName)} (${Store.escapeHtml(m.loginId)})</strong>
+                <span class="badge badge-brand">${Store.escapeHtml(gradeLabel)}</span>
               </div>
               <dl class="admin-card-kv">
-                <dt>연락처</dt><dd>${Store.escapeHtml(m.phone)}</dd>
-                <dt>이메일</dt><dd>${Store.escapeHtml(m.email)}</dd>
+                <dt>연락처</dt><dd>${Store.escapeHtml(maskedPhone)}</dd>
+                <dt>이메일</dt><dd>${Store.escapeHtml(maskedMail)}</dd>
                 <dt>보유적립금</dt><dd><strong>${Store.formatKRW(m.points || 0)}</strong></dd>
-                <dt>누적주문</dt><dd>${m.orderCount}회 (${Store.formatKRW(m.totalSpent || 0)})</dd>
+                <dt>누적주문</dt><dd>${m.orderCount || 0}회 (${Store.formatKRW(m.totalSpent || 0)})</dd>
               </dl>
               <div class="admin-card-actions">
                 <button type="button" class="btn btn-sm btn-primary" data-open-member="${m.id}">회원 상세 · 적립금 관리</button>
@@ -1574,26 +1876,54 @@
     ui.activeWaybillOrderNo = orderNo;
 
     const activeCarriers = Store.getActiveCarriers(state);
-    const currentCarrier = Store.getCarrierInfo(ord.carrierCode || ord.carrierName || (activeCarriers[0] && activeCarriers[0].code) || "CJ", state);
+    const primaryActiveCode = (activeCarriers[0] && activeCarriers[0].code) || "LOGEN";
+    const isEditing = Boolean(ord.trackingNumber);
+    const preferredCode = (isEditing && ord.carrierCode && activeCarriers.some(function (c) { return c.code === ord.carrierCode; }))
+      ? ord.carrierCode
+      : primaryActiveCode;
+    const currentCarrier = Store.getCarrierInfo(preferredCode, state);
     const carrierPool = activeCarriers.some(function (c) { return c.code === currentCarrier.code; })
       ? activeCarriers
       : activeCarriers.concat([currentCarrier]);
 
-    const isEditing = Boolean(ord.trackingNumber);
     const defaultTrackingNo = isEditing
       ? ord.trackingNumber
-      : (currentCarrier.samplePrefix || "6482") + "-" + Math.floor(1000 + Math.random() * 9000) + "-" + Math.floor(1000 + Math.random() * 9000);
+      : (currentCarrier.samplePrefix || "9812") + "-" + Math.floor(1000 + Math.random() * 9000) + "-" + Math.floor(1000 + Math.random() * 9000);
 
-    document.getElementById("waybillModalTitle").textContent = isEditing
-      ? "택배 송장번호 수정"
-      : "택배 송장번호 등록 · 발송 완료 처리";
+    const claimMeta = getClaimMeta(ord.claim);
+
+    document.getElementById("waybillModalTitle").textContent = claimMeta
+      ? "주문 상세 · 교환/반품 클레임 확인 및 송장 관리"
+      : (isEditing ? "택배 송장번호 수정" : "택배 송장번호 등록 · 발송 완료 처리");
 
     document.getElementById("waybillModalBody").innerHTML = `
-      <div style="background:var(--color-brand-50); padding:12px 14px; border-radius:var(--radius-sm); margin-bottom:16px; font-size:0.86rem;">
-        <div><strong>주문번호:</strong> ${Store.escapeHtml(ord.orderNo)}</div>
+      <div style="background:var(--color-brand-50); padding:12px 14px; border-radius:var(--radius-sm); margin-bottom:14px; font-size:0.86rem;">
+        <div><strong>주문번호:</strong> ${Store.escapeHtml(ord.orderNo)} <span style="color:var(--color-text-muted); font-size:0.78rem;">(${Store.escapeHtml(ord.orderedAt || "")})</span></div>
         <div style="margin-top:4px;"><strong>받는 분:</strong> ${Store.escapeHtml(ord.recipientName)} (${Store.escapeHtml(ord.recipientPhone)})</div>
-        <div style="margin-top:4px;"><strong>배송지:</strong> ${Store.escapeHtml(ord.address)}</div>
+        <div style="margin-top:4px;"><strong>배송지:</strong> ${ord.zipCode ? "(" + Store.escapeHtml(ord.zipCode) + ") " : ""}${Store.escapeHtml(ord.address)}</div>
+        ${ord.deliveryMemo ? `<div style="margin-top:4px;"><strong>배송메모:</strong> ${Store.escapeHtml(ord.deliveryMemo)}</div>` : ""}
+        <div style="margin-top:4px;"><strong>주문도서:</strong> ${(ord.items || []).map(function (it) { return `${Store.escapeHtml(it.title)} × ${it.qty}권`; }).join(", ")}</div>
       </div>
+      ${claimMeta ? `
+        <div class="admin-claim-modal-box">
+          <div class="admin-claim-modal-head">
+            <strong>고객 교환·반품 신청 내역</strong>
+            <span class="badge ${claimMeta.badgeClass}">${Store.escapeHtml(claimMeta.badgeLabel)}</span>
+          </div>
+          <div style="font-size:0.84rem; line-height:1.55; color:var(--color-text-primary);">
+            <div><strong>신청 구분:</strong> ${Store.escapeHtml(claimMeta.typeLabel)} 신청</div>
+            <div><strong>신청 사유:</strong> ${Store.escapeHtml(claimMeta.reason)}</div>
+            ${claimMeta.detail ? `<div><strong>상세 내용:</strong> ${Store.escapeHtml(claimMeta.detail)}</div>` : ""}
+            ${claimMeta.requestedAt ? `<div style="font-size:0.78rem; color:var(--color-text-muted); margin-top:2px;">접수일시: ${Store.escapeHtml(claimMeta.requestedAt)}</div>` : ""}
+            ${claimMeta.isApproved && claimMeta.resolvedAt ? `<div style="font-size:0.78rem; color:var(--color-success); font-weight:700; margin-top:2px;">승인처리 완료: ${Store.escapeHtml(claimMeta.resolvedAt)}</div>` : ""}
+          </div>
+          ${!claimMeta.isApproved ? `
+            <div style="margin-top:10px; display:flex; justify-content:flex-end;">
+              <button type="button" class="btn btn-sm btn-primary" data-approve-claim="${Store.escapeHtml(ord.orderNo)}">${Store.escapeHtml(claimMeta.actionLabel)}</button>
+            </div>
+          ` : ""}
+        </div>
+      ` : ""}
       <div class="form-field">
         <div class="field-label-with-link">
           <label for="wbCarrier">발송 택배사 선택 *</label>
@@ -1608,7 +1938,7 @@
       </div>
       <div class="form-field">
         <label for="wbTrackingNo">운송장 번호 입력 *</label>
-        <input type="text" id="wbTrackingNo" class="form-input" value="${Store.escapeHtml(defaultTrackingNo)}" data-is-editing="${isEditing ? "1" : "0"}" placeholder="예: 6482-9104-3382" required />
+        <input type="text" id="wbTrackingNo" class="form-input" value="${Store.escapeHtml(defaultTrackingNo)}" data-is-editing="${isEditing ? "1" : "0"}" placeholder="예: 9812-4821-3901" required />
         <div class="form-help">송장번호를 저장하면 주문 상태가 <strong>[송장 등록 · 발송완료]</strong>로 변경되며, 그 이후 배송 추적은 고객이 직접 조회합니다.</div>
       </div>
       <div style="background:var(--color-brand-50); border:1px solid var(--color-border); border-radius:var(--radius-sm); padding:10px 12px; font-size:0.8rem; color:var(--color-text-secondary); word-break:break-all;">
@@ -1617,6 +1947,96 @@
       </div>
     `;
     document.getElementById("waybillModal").classList.add("is-open");
+  }
+
+  function exportPendingOrdersCsv() {
+    const targets = state.orders.filter(function (o) {
+      return o.orderStatus === "PAID" || o.orderStatus === "PREPARING_SHIPMENT";
+    });
+    const rows = targets.length > 0 ? targets : state.orders;
+    if (rows.length === 0) {
+      Store.showToast("다운로드할 주문 내역이 없습니다.");
+      return;
+    }
+    const escCsv = function (val) {
+      const s = String(val == null ? "" : val).replace(/"/g, '""');
+      return `"${s}"`;
+    };
+    const header = ["주문번호", "주문일시", "주문상태", "수령인", "연락처", "우편번호", "배송주소", "주문도서", "결제금액", "배송메모", "운송장번호"];
+    const lines = [header.map(escCsv).join(",")];
+    rows.forEach(function (o) {
+      const booksSummary = (o.items || []).map(function (it) { return `${it.title} x${it.qty}`; }).join(" / ");
+      lines.push([
+        o.orderNo,
+        o.orderedAt,
+        Store.getOrderStatusLabel(o.orderStatus),
+        o.recipientName,
+        o.recipientPhone,
+        o.zipCode || "",
+        o.address,
+        booksSummary,
+        o.finalAmount,
+        o.deliveryMemo || "",
+        o.trackingNumber || ""
+      ].map(escCsv).join(","));
+    });
+
+    const csvContent = "\uFEFF" + lines.join("\r\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `hyundong-orders-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 500);
+    Store.showToast(targets.length > 0
+      ? `발송대기 주문 ${targets.length}건 출고용 CSV 파일이 다운로드되었습니다.`
+      : `전체 주문 ${rows.length}건 CSV 파일이 다운로드되었습니다.`);
+  }
+
+  function openBulkWaybillModal() {
+    const modal = document.getElementById("bulkWaybillModal");
+    const body = document.getElementById("bulkWaybillModalBody");
+    if (!modal || !body) return;
+
+    const pending = state.orders.filter(function (o) {
+      return !o.trackingNumber && (o.orderStatus === "PAID" || o.orderStatus === "PREPARING_SHIPMENT");
+    });
+    const activeCarriers = Store.getActiveCarriers(state);
+    const carrier = activeCarriers[0] || Store.getCarrierInfo("LOGEN", state);
+
+    if (pending.length === 0) {
+      body.innerHTML = `
+        <div style="padding:24px 12px; text-align:center; color:var(--color-text-secondary); font-size:0.9rem;">
+          현재 송장 미등록 발송대기 주문이 없습니다. 모든 주문의 송장 등록이 완료된 상태입니다.
+        </div>
+      `;
+    } else {
+      body.innerHTML = `
+        <div style="background:var(--color-brand-50); padding:10px 14px; border-radius:var(--radius-sm); margin-bottom:14px; font-size:0.83rem; color:var(--color-text-secondary);">
+          선택된 택배사: <strong style="color:var(--color-brand-900);">${Store.escapeHtml(carrier.name)} (${Store.escapeHtml(carrier.csPhone)})</strong> · 발송대기 <strong>${pending.length}건</strong>의 운송장 번호를 한 번에 등록합니다.
+        </div>
+        <div style="display:flex; flex-direction:column; gap:10px; max-height:360px; overflow-y:auto; padding-right:4px;">
+          ${pending.map(function (o, idx) {
+            const sampleWb = (carrier.samplePrefix || "9812") + "-" + String(4100 + idx * 37).slice(0, 4) + "-" + String(1000 + Math.floor(Math.random() * 8999));
+            const itemTitle = (o.items && o.items[0]) ? (o.items[0].title + (o.items.length > 1 ? ` 외 ${o.items.length - 1}건` : "")) : "주문 도서";
+            return `
+              <div style="border:1px solid var(--color-border); border-radius:var(--radius-sm); padding:10px 12px; background:var(--color-surface);">
+                <label class="check-label" style="margin-bottom:6px; font-size:0.84rem;">
+                  <input type="checkbox" data-bulk-wb-check="${Store.escapeHtml(o.orderNo)}" checked />
+                  <span><strong>${Store.escapeHtml(o.orderNo)}</strong> · ${Store.escapeHtml(o.recipientName)} (${Store.escapeHtml(o.recipientPhone)})</span>
+                </label>
+                <div style="font-size:0.78rem; color:var(--color-text-muted); margin-bottom:6px;">${Store.escapeHtml(itemTitle)} | ${Store.escapeHtml(o.address)}</div>
+                <input type="text" class="form-input" data-bulk-wb-input="${Store.escapeHtml(o.orderNo)}" value="${Store.escapeHtml(sampleWb)}" placeholder="운송장 번호 입력 (예: 9812-4821-3901)" style="height:36px; font-size:0.84rem;" />
+              </div>
+            `;
+          }).join("")}
+        </div>
+      `;
+    }
+    modal.classList.add("is-open");
   }
 
   function openMemberDetailModal(memberId) {
@@ -1951,11 +2371,14 @@
   document.getElementById("adminDrawerBackdrop").addEventListener("click", closeAdminDrawer);
   document.getElementById("btnMobMoreMenu").addEventListener("click", openAdminDrawer);
 
-  document.getElementById("btnAdminResetDemo").addEventListener("click", function () {
-    state = Store.resetState();
-    render();
-    Store.showToast("모든 시연 데이터가 처음 상태로 초기화되었습니다.");
-  });
+  const adminResetBtn = document.getElementById("btnAdminResetDemo");
+  if (adminResetBtn) {
+    adminResetBtn.addEventListener("click", function () {
+      state = Store.resetState();
+      render();
+      Store.showToast("모든 시연 데이터가 처음 상태로 초기화되었습니다.");
+    });
+  }
 
   document.addEventListener("click", function (e) {
     const secBtn = e.target.closest("[data-admin-sec]");
@@ -2123,6 +2546,47 @@
       return;
     }
 
+    if (e.target.id === "btnApplyOrderFilter") {
+      const inp = document.getElementById("admOrderSearchInput");
+      ui.orderKeyword = inp ? inp.value : "";
+      render();
+      return;
+    }
+
+    if (e.target.id === "btnResetOrderFilter") {
+      ui.orderKeyword = "";
+      ui.orderFilter = "ALL";
+      ui.orderClaimOnly = false;
+      render();
+      return;
+    }
+
+    const claimToggleBtn = e.target.closest("#adminOrderClaimOnly");
+    if (claimToggleBtn) {
+      ui.orderClaimOnly = !ui.orderClaimOnly;
+      if (ui.orderClaimOnly && ui.orderFilter === "PAID") {
+        ui.orderFilter = "ALL";
+      }
+      render();
+      return;
+    }
+
+    const approveClaimBtn = e.target.closest("[data-approve-claim]");
+    if (approveClaimBtn) {
+      approveOrderClaim(approveClaimBtn.getAttribute("data-approve-claim"));
+      return;
+    }
+
+    if (e.target.id === "btnExportPendingCsv") {
+      exportPendingOrdersCsv();
+      return;
+    }
+
+    if (e.target.id === "btnOpenBulkWaybillModal") {
+      openBulkWaybillModal();
+      return;
+    }
+
     if (e.target.id === "btnApplyMemberFilter") {
       ui.memberKeyword = document.getElementById("admMemberSearchInput").value;
       render();
@@ -2134,13 +2598,48 @@
       const bId = stockBtn.getAttribute("data-book-id");
       const bk = state.books.find(function (x) { return x.id === bId; });
       if (bk) {
-        bk.stockQuantity += Number(stockBtn.getAttribute("data-stock-add"));
-        if (bk.stockQuantity > 0) {
+        bk.stockQuantity = Math.max(0, Number(bk.stockQuantity) || 0) + Number(stockBtn.getAttribute("data-stock-add"));
+        let restockNote = "";
+        if (bk.stockQuantity >= 1) {
           bk.saleStatus = "ON_SALE";
           bk.shippingEta = "오늘 발송 예정";
+          const notifiedCnt = notifyPendingRestockAlertsForBook(bk);
+          if (notifiedCnt > 0) {
+            restockNote = ` (재입고 알림 신청 ${notifiedCnt}건 발송 처리)`;
+          }
         }
         Store.saveState(state);
-        Store.showToast(`『${bk.title}』 재고가 10권 추가 입고되었습니다.`);
+        Store.showToast(`『${bk.title}』 재고가 10권 추가 입고되었습니다.${restockNote}`);
+        render();
+      }
+      return;
+    }
+
+    const stockSetBtn = e.target.closest("[data-stock-set]");
+    if (stockSetBtn) {
+      const bId = stockSetBtn.getAttribute("data-stock-set");
+      const bk = state.books.find(function (x) { return x.id === bId; });
+      if (bk) {
+        const container = stockSetBtn.closest("td") || stockSetBtn.closest(".admin-action-card") || document;
+        const inp = container.querySelector(`[data-stock-input="${bId}"]`);
+        const nextQty = Math.max(0, Math.floor(Number(inp ? inp.value : bk.stockQuantity) || 0));
+        bk.stockQuantity = nextQty;
+        let restockNote = "";
+        if (nextQty >= 1) {
+          bk.saleStatus = "ON_SALE";
+          bk.shippingEta = "오늘 발송 예정";
+          const notifiedCnt = notifyPendingRestockAlertsForBook(bk);
+          if (notifiedCnt > 0) {
+            restockNote = ` (재입고 알림 신청 ${notifiedCnt}건 발송 처리)`;
+          }
+        } else {
+          bk.saleStatus = "OUT_OF_STOCK";
+          bk.shippingEta = "일시품절";
+        }
+        Store.saveState(state);
+        Store.showToast(nextQty >= 1
+          ? `『${bk.title}』 재고가 ${nextQty}권으로 반영되었습니다.${restockNote}`
+          : `『${bk.title}』 재고가 0권(일시품절)으로 변경되었습니다.`);
         render();
       }
       return;
@@ -2168,7 +2667,9 @@
           bk.saleStatus = "ON_SALE";
           bk.stockQuantity = Math.max(10, bk.stockQuantity);
           bk.shippingEta = "오늘 발송 예정";
-          Store.showToast("판매가 재개되었습니다.");
+          const notifiedCnt = notifyPendingRestockAlertsForBook(bk);
+          const restockNote = notifiedCnt > 0 ? ` (재입고 알림 신청 ${notifiedCnt}건 발송 처리)` : "";
+          Store.showToast(`판매가 재개되었습니다.${restockNote}`);
         } else {
           bk.saleStatus = "OUT_OF_STOCK";
           bk.stockQuantity = 0;
@@ -2328,6 +2829,29 @@
     }
   });
 
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "Enter") return;
+    if (e.target.id === "admBookSearchInput") {
+      e.preventDefault();
+      ui.bookKeyword = e.target.value;
+      render();
+    } else if (e.target.id === "admOrderSearchInput") {
+      e.preventDefault();
+      ui.orderKeyword = e.target.value;
+      render();
+    } else if (e.target.id === "admMemberSearchInput") {
+      e.preventDefault();
+      ui.memberKeyword = e.target.value;
+      render();
+    } else if (e.target.hasAttribute && e.target.hasAttribute("data-stock-input")) {
+      e.preventDefault();
+      const bId = e.target.getAttribute("data-stock-input");
+      const container = e.target.closest("td") || e.target.closest(".admin-action-card") || document;
+      const setBtn = container.querySelector(`[data-stock-set="${bId}"]`);
+      if (setBtn) setBtn.click();
+    }
+  });
+
   document.addEventListener("change", function (e) {
     if (e.target.id === "admBookCatSelect") {
       ui.bookCat = e.target.value;
@@ -2349,7 +2873,7 @@
       }
       const noInput = document.getElementById("wbTrackingNo");
       if (noInput && noInput.getAttribute("data-is-editing") !== "1") {
-        noInput.value = (info.samplePrefix || "6482") + "-" + Math.floor(1000 + Math.random() * 9000) + "-" + Math.floor(1000 + Math.random() * 9000);
+        noInput.value = (info.samplePrefix || "9812") + "-" + Math.floor(1000 + Math.random() * 9000) + "-" + Math.floor(1000 + Math.random() * 9000);
       }
     }
   });
@@ -2376,12 +2900,60 @@
       document.getElementById("waybillModal").classList.remove("is-open");
       render();
       Store.showToast(`${carrierParts[1]} 운송장(${trackingNo})이 등록되었습니다! 고객 화면에 택배사 조회 주소가 함께 안내됩니다.`);
+    } else if (e.target.id === "bulkWaybillForm") {
+      e.preventDefault();
+      const activeCarriers = Store.getActiveCarriers(state);
+      const carrier = activeCarriers[0] || Store.getCarrierInfo("LOGEN", state);
+      const checks = document.querySelectorAll("[data-bulk-wb-check]");
+      if (checks.length === 0) {
+        document.getElementById("bulkWaybillModal").classList.remove("is-open");
+        return;
+      }
+      let updatedCount = 0;
+      checks.forEach(function (chk) {
+        if (!chk.checked) return;
+        const orderNo = chk.getAttribute("data-bulk-wb-check");
+        const inp = document.querySelector(`[data-bulk-wb-input="${orderNo}"]`);
+        const wbVal = inp ? inp.value.trim() : "";
+        if (!wbVal) return;
+        const ord = state.orders.find(function (o) { return o.orderNo === orderNo; });
+        if (ord) {
+          ord.carrierCode = carrier.code;
+          ord.carrierName = carrier.name;
+          ord.trackingNumber = wbVal;
+          ord.orderStatus = "SHIPPED";
+          ord.shipmentStatus = "WAYBILL_ISSUED";
+          if (!ord.shippedAt) ord.shippedAt = "2026-11-12 방금 전";
+          updatedCount += 1;
+        }
+      });
+      if (updatedCount === 0) {
+        Store.showToast("등록할 주문을 선택하고 운송장 번호를 입력해 주세요.");
+        return;
+      }
+      Store.saveState(state);
+      document.getElementById("bulkWaybillModal").classList.remove("is-open");
+      render();
+      Store.showToast(`${carrier.name} 운송장 ${updatedCount}건이 일괄 등록되어 발송완료 처리되었습니다!`);
     } else if (e.target.id === "memberEditForm") {
       e.preventDefault();
       const m = state.members.find(function (x) { return x.id === ui.activeMemberId; });
       if (!m) return;
-      m.memberGrade = document.getElementById("mdGrade").value;
-      m.points = Number(document.getElementById("mdPoints").value) || 0;
+      const newGrade = document.getElementById("mdGrade").value;
+      const newPoints = Math.max(0, Number(document.getElementById("mdPoints").value) || 0);
+      const oldPoints = Number(m.points) || 0;
+      m.memberGrade = newGrade;
+      m.grade = newGrade;
+      if (newPoints !== oldPoints && typeof Store.adjustMemberPoints === "function") {
+        Store.adjustMemberPoints(state, m.id, newPoints - oldPoints, "관리자 센터 적립금 조정");
+      } else {
+        m.points = newPoints;
+      }
+      if (state.currentMember && state.currentMember.id === m.id) {
+        state.currentMember.memberGrade = newGrade;
+        state.currentMember.grade = newGrade;
+        state.currentMember.points = m.points;
+      }
       m.adminMemo = document.getElementById("mdMemo").value.trim();
       Store.saveState(state);
       document.getElementById("memberDetailModal").classList.remove("is-open");
@@ -2580,13 +3152,25 @@
     }
   });
 
+  window.addEventListener("storage", function (e) {
+    if (!e || e.key === null || String(e.key).indexOf("HYUNDONG") >= 0) {
+      state = Store.loadState();
+      reconcileAllRestockAlerts();
+      render();
+    }
+  });
+
+  const startupNotified = reconcileAllRestockAlerts();
   render();
 
   try {
     const flash = window.sessionStorage.getItem("HYUNDONG_ADMIN_FLASH");
     if (flash) {
       window.sessionStorage.removeItem("HYUNDONG_ADMIN_FLASH");
-      Store.showToast(flash);
+      const suffix = startupNotified > 0 ? ` (재입고 알림 신청 ${startupNotified}건 발송 처리)` : "";
+      Store.showToast(flash + suffix);
+    } else if (startupNotified > 0) {
+      Store.showToast(`입고 완료된 도서의 재입고 알림 대기 ${startupNotified}건이 자동 발송 처리되었습니다.`);
     }
   } catch (e) {
     // ignore sessionStorage error
