@@ -41,43 +41,47 @@
 
   const SECTION_META = {
     dashboard: {
-      title: "매출 · 운영 대시보드",
+      title: "대시보드",
       desc: "쇼핑몰의 기간별 매출 그래프, 분야별 판매 비중, 오늘 발송할 주문과 답변이 필요한 문의를 한눈에 확인합니다."
     },
     books: {
-      title: "도서 상품 · 재고 관리",
+      title: "도서 · 재고 관리",
       desc: "판매 중인 도서의 가격·재고 수량·추천 도서 여부를 변경하거나 새로운 출간 도서를 등록합니다."
     },
     orders: {
-      title: "주문 · 택배 발송 관리",
+      title: "주문 · 발송 관리",
       desc: "고객 주문을 확인하고 택배사와 운송장 번호까지만 등록하면, 고객의 주문·배송 화면에 송장번호와 택배사 공식 조회 페이지 주소가 즉시 안내됩니다."
     },
     members: {
-      title: "회원 목록 · 적립금 관리",
-      desc: "가입한 회원의 연락처, 배송지, 회원 등급과 보유 적립금을 확인하고 관리합니다."
+      title: "회원 관리",
+      desc: "회원 행을 클릭하면 상세 연락처·배송지 확인, 등급·적립금 조정 및 비밀번호 초기화를 처리할 수 있습니다."
     },
     qna: {
-      title: "1:1 문의 (Q&A) 답변",
+      title: "문의 답변",
       desc: "고객이 남긴 도서·배송·단체구매 질문을 확인하고 답변을 등록합니다."
     },
     boards: {
-      title: "공지사항 · 자주 묻는 질문",
+      title: "공지 · FAQ 관리",
       desc: "쇼핑몰 고객센터에 표시되는 공지사항과 자주 묻는 질문(FAQ)을 등록하고 노출 여부를 관리합니다."
     },
     reviews: {
-      title: "독자 구매후기 관리",
+      title: "구매후기 관리",
       desc: "구매 고객이 작성한 도서 후기를 확인하고 베스트 후기 지정이나 숨김 처리를 합니다."
     },
     codes: {
-      title: "분류 · 선택항목 코드관리",
+      title: "분류 코드 관리",
       desc: "도서 등록 화면의 [도서 분야], [단권 / 세트 구분], [판매 상태]와 회원 구분, 문의 분류, 택배사 선택 항목을 코드로 통합 관리합니다."
     },
+    hero: {
+      title: "대문 관리",
+      desc: "쇼핑몰 첫 화면 대문 문구와 가로형(16:9) 큐레이션 이미지 · 하단 탭 순서를 관리합니다."
+    },
     banners: {
-      title: "메인 배너 · 띠배너 관리",
+      title: "배너 관리",
       desc: "쇼핑몰 첫 화면 상단 배너, 공지 띠배너, 중간 이벤트 배너의 문구와 노출 여부를 관리합니다."
     },
     settings: {
-      title: "약관 · 입금계좌 · 배송비 설정",
+      title: "기본 설정",
       desc: "회원가입 이용약관, 개인정보 안내문, 무통장 입금계좌, 무료배송 기준 금액을 수정합니다."
     }
   };
@@ -385,6 +389,8 @@
       renderReviewsSection();
     } else if (ui.section === "codes") {
       renderCodesSection();
+    } else if (ui.section === "hero") {
+      renderHeroManagementSection();
     } else if (ui.section === "banners") {
       renderBannersSection();
     } else if (ui.section === "settings") {
@@ -513,31 +519,50 @@
       return seg;
     }).join("");
 
+    const topCat = catStats[0] || { name: "-", copies: 0 };
+    const topCatPct = Math.round((topCat.copies / totalCopies) * 100);
+    const setCopies = state.books
+      .filter(function (b) { return b.isSet; })
+      .reduce(function (s, b) { return s + (b.salesCount || 0); }, 0);
+    const setSharePct = Math.round((setCopies / totalCopies) * 100);
+
     return `
-      <div class="donut-layout">
-        <div class="donut-svg-box">
-          <svg viewBox="0 0 160 160" width="100%" height="auto" role="img" aria-label="분야별 판매 비중 도넛 차트">
-            <circle cx="80" cy="80" r="${r}" fill="transparent" stroke="#efede8" stroke-width="22" />
-            ${segments}
-            <text x="80" y="75" text-anchor="middle" font-size="11" fill="#857e72" font-weight="600">누적 판매</text>
-            <text x="80" y="95" text-anchor="middle" font-size="15" fill="#2c2925" font-weight="800" data-countup="${totalCopies}" data-suffix="권">${totalCopies.toLocaleString()}권</text>
-          </svg>
+      <div class="donut-card-body">
+        <div class="donut-layout">
+          <div class="donut-svg-box">
+            <svg viewBox="0 0 160 160" width="100%" height="auto" role="img" aria-label="분야별 판매 비중 도넛 차트">
+              <circle cx="80" cy="80" r="${r}" fill="transparent" stroke="#efede8" stroke-width="22" />
+              ${segments}
+              <text x="80" y="75" text-anchor="middle" font-size="11" fill="#857e72" font-weight="600">누적 판매</text>
+              <text x="80" y="95" text-anchor="middle" font-size="15" fill="#2c2925" font-weight="800" data-countup="${totalCopies}" data-suffix="권">${totalCopies.toLocaleString()}권</text>
+            </svg>
+          </div>
+          <div class="cat-share-list">
+            ${catStats.map(function (item, idx) {
+              const pct = Math.round((item.copies / totalCopies) * 100);
+              return `
+                <div class="cat-share-row">
+                  <div class="cat-share-top">
+                    <span><span class="legend-dot" style="background:${item.color};"></span><strong>${Store.escapeHtml(item.name)}</strong></span>
+                    <span><strong>${pct}%</strong> (${item.copies.toLocaleString()}권)</span>
+                  </div>
+                  <div class="cat-share-bar">
+                    <div class="cat-share-fill" style="width:${pct}%; background:${item.color}; --hbar-delay:${160 + idx * 65}ms;"></div>
+                  </div>
+                </div>
+              `;
+            }).join("")}
+          </div>
         </div>
-        <div class="cat-share-list">
-          ${catStats.map(function (item, idx) {
-            const pct = Math.round((item.copies / totalCopies) * 100);
-            return `
-              <div class="cat-share-row">
-                <div class="cat-share-top">
-                  <span><span class="legend-dot" style="background:${item.color};"></span><strong>${Store.escapeHtml(item.name)}</strong></span>
-                  <span><strong>${pct}%</strong> (${item.copies.toLocaleString()}권)</span>
-                </div>
-                <div class="cat-share-bar">
-                  <div class="cat-share-fill" style="width:${pct}%; background:${item.color}; --hbar-delay:${160 + idx * 65}ms;"></div>
-                </div>
-              </div>
-            `;
-          }).join("")}
+        <div class="donut-summary-foot">
+          <div class="donut-summary-pill">
+            <span>최다 판매 분야</span>
+            <strong>${Store.escapeHtml(topCat.name)} (${topCatPct}%)</strong>
+          </div>
+          <div class="donut-summary-pill">
+            <span>전집 · 세트 판매 비중</span>
+            <strong>${setSharePct}% (${setCopies.toLocaleString()}권)</strong>
+          </div>
         </div>
       </div>
     `;
@@ -549,16 +574,21 @@
     const pendingShipOrders = state.orders.filter(function (o) {
       return o.orderStatus === "PAID" || o.orderStatus === "PREPARING_SHIPMENT";
     });
+    const shippedOrders = state.orders.filter(function (o) { return o.orderStatus === "SHIPPED"; });
+    const claimOrders = state.orders.filter(function (o) { return Boolean(o.claim && o.claim.type); });
     const waitingQnas = state.qnas.filter(function (q) { return q.status === "WAITING"; });
     const lowStockBooks = state.books.filter(function (b) { return b.stockQuantity <= 10; });
 
     const series = ui.chartPeriod === "monthly6" ? state.analytics.monthly6 : state.analytics.daily7;
     const isMonthly = ui.chartPeriod === "monthly6";
 
-    // 주문 단계별 집계 (입금완료/발송대기 -> 송장등록/발송완료 2단계 체계)
+    // 주문·출고·운영 5대 단계별 집계 (우측 TOP 5 도서 막대와 자연스러운 1:1 균형)
     const stageStats = [
-      { code: "PAID", label: "입금완료 · 발송대기 (송장 입력 대기)", color: "#9c6626", count: pendingShipOrders.length },
-      { code: "SHIPPED", label: "송장 등록 · 발송완료 (로젠택배)", color: "#3d6b50", count: state.orders.filter(function (o) { return o.orderStatus === "SHIPPED"; }).length }
+      { attr: 'data-jump-order-filter="PAID"', label: "입금완료 · 발송대기 (송장 입력 대기)", color: "#9c6626", count: pendingShipOrders.length, unit: "건" },
+      { attr: 'data-jump-order-filter="SHIPPED"', label: "송장 등록 · 발송완료 (로젠택배)", color: "#3d6b50", count: shippedOrders.length, unit: "건" },
+      { attr: 'data-jump-claim-orders="1"', label: "교환 · 반품 클레임 접수/처리", color: "#8c3a32", count: claimOrders.length, unit: "건" },
+      { attr: 'data-admin-sec="qna"', label: "미답변 1:1 고객 문의 대기", color: "#47647a", count: waitingQnas.length, unit: "건" },
+      { attr: 'data-admin-sec="books"', label: "재고 10권 이하 도서 · 재입고 점검", color: "#5f594f", count: lowStockBooks.length, unit: "종" }
     ];
     const maxStageCount = Math.max(1, Math.max.apply(null, stageStats.map(function (s) { return s.count; })));
 
@@ -669,10 +699,10 @@
             ${stageStats.map(function (st, idx) {
               const pct = Math.max(8, Math.round((st.count / maxStageCount) * 100));
               return `
-                <div class="hbar-item" data-jump-order-filter="${st.code}">
+                <div class="hbar-item" ${st.attr}>
                   <div class="hbar-head">
                     <strong>${st.label}</strong>
-                    <span class="badge badge-brand">${st.count}건</span>
+                    <span class="badge badge-brand">${st.count}${st.unit || "건"}</span>
                   </div>
                   <div class="hbar-track">
                     <div class="hbar-fill" style="width:${st.count === 0 ? 0 : pct}%; background:${st.color}; --hbar-delay:${180 + idx * 65}ms;"></div>
@@ -695,7 +725,7 @@
             ${topBooks.map(function (bk, i) {
               const pct = Math.round((bk.salesCount / maxBookSales) * 100);
               return `
-                <div>
+                <div class="hbar-item" data-admin-sec="books">
                   <div class="hbar-head">
                     <span style="font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
                       <strong style="color:var(--color-seal); margin-right:4px;">${i + 1}위</strong> ${Store.escapeHtml(bk.title)}
@@ -716,45 +746,49 @@
 
       <!-- 오늘 바로 처리할 업무 (발송 대기 & 미답변 문의) -->
       <div class="admin-2col-grid" style="margin-bottom:0;">
-        <section class="panel-card" style="margin-bottom:0;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <section class="panel-card dash-todo-card" style="margin-bottom:0;">
+          <div class="dash-todo-head">
             <h3 style="margin:0; font-size:1rem;">바로 발송 처리할 주문 (${pendingShipOrders.length}건)</h3>
             <button type="button" class="btn btn-sm btn-outline" data-admin-sec="orders">주문 메뉴로 →</button>
           </div>
-          ${pendingShipOrders.length === 0 ? `
-            <p style="margin:0; color:var(--color-text-muted); font-size:0.88rem;">현재 발송 대기 중인 주문이 없습니다.</p>
-          ` : pendingShipOrders.map(function (o) {
-            return `
-              <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; padding:10px 0; border-bottom:1px solid var(--color-border); font-size:0.86rem;">
-                <div>
-                  <strong>${Store.escapeHtml(o.orderNo)}</strong> · ${Store.escapeHtml(maskAdminRecipient(o.recipientName))}
-                  <div style="color:var(--color-text-muted); font-size:0.8rem;">${Store.escapeHtml(o.items[0].title)}${o.items.length > 1 ? ` 외 ${o.items.length - 1}종` : ""} (${Store.formatKRW(o.finalAmount)})</div>
+          <div class="dash-todo-list">
+            ${pendingShipOrders.length === 0 ? `
+              <p style="margin:0; color:var(--color-text-muted); font-size:0.88rem;">현재 발송 대기 중인 주문이 없습니다.</p>
+            ` : pendingShipOrders.map(function (o) {
+              return `
+                <div class="dash-todo-row">
+                  <div style="min-width:0; flex:1;">
+                    <strong>${Store.escapeHtml(o.orderNo)}</strong> · ${Store.escapeHtml(maskAdminRecipient(o.recipientName))}
+                    <div style="color:var(--color-text-muted); font-size:0.8rem;">${Store.escapeHtml(o.items[0].title)}${o.items.length > 1 ? ` 외 ${o.items.length - 1}종` : ""} (${Store.formatKRW(o.finalAmount)})</div>
+                  </div>
+                  <button type="button" class="btn btn-sm btn-primary" data-open-waybill="${o.orderNo}">송장번호 등록</button>
                 </div>
-                <button type="button" class="btn btn-sm btn-primary" data-open-waybill="${o.orderNo}">송장번호 등록</button>
-              </div>
-            `;
-          }).join("")}
+              `;
+            }).join("")}
+          </div>
         </section>
 
-        <section class="panel-card" style="margin-bottom:0;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <section class="panel-card dash-todo-card" style="margin-bottom:0;">
+          <div class="dash-todo-head">
             <h3 style="margin:0; font-size:1rem;">답변을 기다리는 1:1 문의 (${waitingQnas.length}건)</h3>
             <button type="button" class="btn btn-sm btn-outline" data-admin-sec="qna">문의 메뉴로 →</button>
           </div>
-          ${waitingQnas.length === 0 ? `
-            <p style="margin:0; color:var(--color-text-muted); font-size:0.88rem;">모든 고객 문의에 답변이 완료되었습니다.</p>
-          ` : waitingQnas.map(function (qa) {
-            return `
-              <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; padding:10px 0; border-bottom:1px solid var(--color-border); font-size:0.86rem;">
-                <div style="min-width:0; flex:1;">
-                  <span class="badge badge-brand" style="margin-right:4px;">${Store.escapeHtml(qa.category)}</span>
-                  <strong>${Store.escapeHtml(qa.title)}</strong>
-                  <div style="color:var(--color-text-muted); font-size:0.8rem;">작성자: ${Store.escapeHtml(qa.writerName)} · ${qa.createdAt}</div>
+          <div class="dash-todo-list">
+            ${waitingQnas.length === 0 ? `
+              <p style="margin:0; color:var(--color-text-muted); font-size:0.88rem;">모든 고객 문의에 답변이 완료되었습니다.</p>
+            ` : waitingQnas.map(function (qa) {
+              return `
+                <div class="dash-todo-row">
+                  <div style="min-width:0; flex:1;">
+                    <span class="badge badge-brand" style="margin-right:4px;">${Store.escapeHtml(qa.category)}</span>
+                    <strong>${Store.escapeHtml(qa.title)}</strong>
+                    <div style="color:var(--color-text-muted); font-size:0.8rem;">작성자: ${Store.escapeHtml(qa.writerName)} · ${qa.createdAt}</div>
+                  </div>
+                  <button type="button" class="btn btn-sm btn-primary" data-open-qna-reply="${qa.id}">답변하기</button>
                 </div>
-                <button type="button" class="btn btn-sm btn-primary" data-open-qna-reply="${qa.id}">답변하기</button>
-              </div>
-            `;
-          }).join("")}
+              `;
+            }).join("")}
+          </div>
         </section>
       </div>
     `;
@@ -967,7 +1001,6 @@
       const m = getClaimMeta(o.claim);
       return m && !m.isApproved;
     }).length;
-    const activeCarriers = Store.getActiveCarriers(state);
 
     mainEl.innerHTML = `
       ${renderSectionGuideHTML(`
@@ -976,20 +1009,6 @@
         <button type="button" class="btn btn-sm btn-soft" data-jump-codes="CARRIER_CODE">택배사 · 조회주소 코드관리</button>
         <a href="./index.html?view=orders" class="btn btn-sm btn-outline">고객 배송조회 안내 화면 보기 ↗</a>
       `)}
-
-      <div class="panel-card" style="margin-bottom:16px; padding:14px 18px; background:var(--color-brand-50);">
-        <div style="font-size:0.86rem; font-weight:700; color:var(--color-brand-900); margin-bottom:4px;">
-          운송장 번호 입력 및 고객 직접 조회 안내 방식 (2단계 출고 프로세스 · 개인정보 기본 마스킹)
-        </div>
-        <div style="font-size:0.82rem; color:var(--color-text-secondary); line-height:1.55;">
-          출판부에서는 <strong>입금완료/발송대기 → 로젠택배 송장번호 등록(발송완료)</strong> 2단계로만 간편하게 운영합니다. 목록 화면에서는 수령인 성함·연락처·상세주소가 자동 마스킹되며, 송장 입력 모달에서 출고용 전체 주소와 교환·반품 접수 내역을 확인합니다.
-        </div>
-        <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:10px;">
-          ${activeCarriers.map(function (c) {
-            return `<a href="${Store.escapeHtml(c.trackingUrl)}" target="_blank" rel="noopener noreferrer" class="badge badge-brand" style="text-decoration:none;">${Store.escapeHtml(c.name)} 조회페이지 ↗</a>`;
-          }).join("")}
-        </div>
-      </div>
 
       <div class="admin-filter-box">
         <div class="admin-filter-primary">
@@ -1164,7 +1183,7 @@
       </div>
 
       <div class="admin-table-wrap">
-        <table class="admin-table">
+        <table class="admin-table admin-members-table">
           <thead>
             <tr>
               <th>회원번호 / 아이디</th>
@@ -1173,7 +1192,6 @@
               <th>회원 등급</th>
               <th>보유 적립금</th>
               <th>가입일 / 누적구매</th>
-              <th>상세 · 적립금 관리</th>
             </tr>
           </thead>
           <tbody>
@@ -1183,7 +1201,7 @@
               const maskedMail = maskAdminEmail(m.email);
               const gradeLabel = m.memberGrade || m.grade || "일반 회원";
               return `
-                <tr>
+                <tr class="admin-member-row" data-open-member="${m.id}" tabindex="0" role="button" aria-label="${Store.escapeHtml(maskedName)} 회원 상세 정보 및 관리 열기">
                   <td><strong>${m.id}</strong><div style="font-size:0.78rem; color:var(--color-text-muted);">${Store.escapeHtml(m.loginId)}</div></td>
                   <td>
                     <strong>${Store.escapeHtml(maskedName)}</strong>
@@ -1199,9 +1217,6 @@
                     ${m.joinedAt}
                     <div style="font-size:0.77rem; color:var(--color-text-secondary);">${m.orderCount || 0}회 (${Store.formatKRW(m.totalSpent || 0)})</div>
                   </td>
-                  <td>
-                    <button type="button" class="btn btn-sm btn-outline" data-open-member="${m.id}">정보 · 적립금 관리</button>
-                  </td>
                 </tr>
               `;
             }).join("")}
@@ -1216,10 +1231,13 @@
           const maskedMail = maskAdminEmail(m.email);
           const gradeLabel = m.memberGrade || m.grade || "일반 회원";
           return `
-            <article class="admin-action-card">
+            <article class="admin-action-card admin-member-card" data-open-member="${m.id}" tabindex="0" role="button" aria-label="${Store.escapeHtml(maskedName)} 회원 상세 정보 및 관리 열기">
               <div class="admin-card-head">
                 <strong>${Store.escapeHtml(maskedName)} (${Store.escapeHtml(m.loginId)})</strong>
-                <span class="badge badge-brand">${Store.escapeHtml(gradeLabel)}</span>
+                <span style="display:inline-flex; align-items:center; gap:6px;">
+                  <span class="badge badge-brand">${Store.escapeHtml(gradeLabel)}</span>
+                  <span aria-hidden="true" style="color:var(--color-text-muted); font-weight:700;">›</span>
+                </span>
               </div>
               <dl class="admin-card-kv">
                 <dt>연락처</dt><dd>${Store.escapeHtml(maskedPhone)}</dd>
@@ -1227,9 +1245,6 @@
                 <dt>보유적립금</dt><dd><strong>${Store.formatKRW(m.points || 0)}</strong></dd>
                 <dt>누적주문</dt><dd>${m.orderCount || 0}회 (${Store.formatKRW(m.totalSpent || 0)})</dd>
               </dl>
-              <div class="admin-card-actions">
-                <button type="button" class="btn btn-sm btn-primary" data-open-member="${m.id}">회원 상세 · 적립금 관리</button>
-              </div>
             </article>
           `;
         }).join("")}
@@ -1318,17 +1333,16 @@
             return `
               <article class="panel-card" style="margin-bottom:0;">
                 <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:8px;">
-                  <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                  <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; min-width:0; flex:1 1 220px;">
                     ${nt.pinned ? `<span class="badge badge-seal">상단 고정</span>` : ""}
                     <span class="badge badge-brand">${Store.escapeHtml(nt.category)}</span>
-                    <strong style="font-size:0.98rem;">${Store.escapeHtml(nt.title)}</strong>
+                    <strong style="font-size:0.98rem; word-break:break-word;">${Store.escapeHtml(nt.title)}</strong>
                   </div>
-                  <div style="display:flex; align-items:center; gap:10px; margin-left:auto;">
+                  <div style="display:flex; align-items:center; gap:10px; margin-left:auto; flex-shrink:0;">
                     <button type="button" class="btn btn-sm btn-outline" data-edit-notice="${nt.id}">수정</button>
                     <button type="button" class="btn btn-sm btn-danger-outline" data-delete-notice="${nt.id}">삭제</button>
-                    <span class="switch-wrap" data-toggle-notice-vis="${nt.id}">
+                    <span class="switch-wrap switch-only" data-toggle-notice-vis="${nt.id}" role="switch" aria-checked="${nt.visible ? "true" : "false"}" aria-label="공지 노출 스위치">
                       <span class="switch-pill ${nt.visible ? "is-on" : ""}"></span>
-                      <span>${nt.visible ? "노출 중" : "숨김"}</span>
                     </span>
                   </div>
                 </div>
@@ -1343,16 +1357,15 @@
             return `
               <article class="panel-card" style="margin-bottom:0;">
                 <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:8px;">
-                  <div>
+                  <div style="min-width:0; flex:1 1 220px;">
                     <span class="badge badge-brand">${Store.escapeHtml(fq.category)}</span>
-                    <strong style="margin-left:6px; font-size:0.96rem;">Q. ${Store.escapeHtml(fq.question)}</strong>
+                    <strong style="margin-left:6px; font-size:0.96rem; word-break:break-word;">Q. ${Store.escapeHtml(fq.question)}</strong>
                   </div>
-                  <div style="display:flex; align-items:center; gap:10px; margin-left:auto;">
+                  <div style="display:flex; align-items:center; gap:10px; margin-left:auto; flex-shrink:0;">
                     <button type="button" class="btn btn-sm btn-outline" data-edit-faq="${fq.id}">수정</button>
                     <button type="button" class="btn btn-sm btn-danger-outline" data-delete-faq="${fq.id}">삭제</button>
-                    <span class="switch-wrap" data-toggle-faq-vis="${fq.id}">
+                    <span class="switch-wrap switch-only" data-toggle-faq-vis="${fq.id}" role="switch" aria-checked="${fq.visible ? "true" : "false"}" aria-label="FAQ 노출 스위치">
                       <span class="switch-pill ${fq.visible ? "is-on" : ""}"></span>
-                      <span>${fq.visible ? "노출 중" : "숨김"}</span>
                     </span>
                   </div>
                 </div>
@@ -1454,6 +1467,9 @@
       return (Number(a.sortOrder) || 0) - (Number(b.sortOrder) || 0);
     });
     const activeCount = sortedItems.filter(function (it) { return it.active !== false; }).length;
+    const totalAllActiveCodes = groups.reduce(function (sum, g) {
+      return sum + g.items.filter(function (x) { return x.active !== false; }).length;
+    }, 0);
 
     mainEl.innerHTML = `
       ${renderSectionGuideHTML(`
@@ -1482,10 +1498,14 @@
               `;
             }).join("")}
           </div>
+          <div class="code-group-panel-foot">
+            <strong>실시간 선택창 동기화 (${totalAllActiveCodes}개 활성)</strong>
+            <p>노출 스위치 및 순서(▲▼) 변경 즉시 도서 등록 화면과 쇼핑몰 분류 필터에 반영됩니다.</p>
+          </div>
         </aside>
 
         <!-- 우측(PC) / 하단(모바일): 선택 그룹의 상세 코드 목록 및 관리 -->
-        <section>
+        <section class="code-detail-section">
           <div class="code-detail-head">
             <div style="min-width:0; flex:1;">
               <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:5px;">
@@ -1514,8 +1534,8 @@
                   <th>관리 코드</th>
                   <th>화면 표시 이름</th>
                   <th>설명 · 연결 현황</th>
-                  <th>선택창 노출</th>
                   <th>수정 · 삭제</th>
+                  <th style="text-align:right;">노출</th>
                 </tr>
               </thead>
               <tbody>
@@ -1551,22 +1571,25 @@
                         </div>
                       </td>
                       <td>
-                        <span class="switch-wrap" data-toggle-code-active="${Store.escapeHtml(it.code)}">
-                          <span class="switch-pill ${it.active !== false ? "is-on" : ""}"></span>
-                          <span>${it.active !== false ? "사용중" : "숨김"}</span>
-                        </span>
-                      </td>
-                      <td>
                         <div style="display:flex; gap:6px; flex-wrap:wrap;">
                           <button type="button" class="btn btn-sm btn-soft" data-edit-code="${Store.escapeHtml(it.code)}">수정</button>
                           <button type="button" class="btn btn-sm btn-danger-outline" data-delete-code="${Store.escapeHtml(it.code)}">삭제</button>
                         </div>
+                      </td>
+                      <td style="text-align:right;">
+                        <span class="switch-wrap switch-only" data-toggle-code-active="${Store.escapeHtml(it.code)}" role="switch" aria-checked="${it.active !== false ? "true" : "false"}" aria-label="${Store.escapeHtml(it.name)} 노출 스위치">
+                          <span class="switch-pill ${it.active !== false ? "is-on" : ""}"></span>
+                        </span>
                       </td>
                     </tr>
                   `;
                 }).join("")}
               </tbody>
             </table>
+            <div class="code-table-foot">
+              <span>관리 안내: 도서·주문에 연결된 코드는 삭제 대신 우측 스위치로 <strong>노출 끄기</strong>를 권장합니다.</span>
+              <span>전체 <strong>${sortedItems.length}개</strong> 중 <strong>${activeCount}개</strong> 활성</span>
+            </div>
           </div>
 
           <!-- 모바일 운영 액션 카드 (< 1024px) -->
@@ -1583,9 +1606,8 @@
                       <span class="code-key-pill">${Store.escapeHtml(it.code)}</span>
                       ${it.hanja ? `<span class="badge badge-seal">${Store.escapeHtml(it.hanja)}</span>` : ""}
                     </div>
-                    <span class="switch-wrap" data-toggle-code-active="${Store.escapeHtml(it.code)}">
+                    <span class="switch-wrap switch-only" data-toggle-code-active="${Store.escapeHtml(it.code)}" role="switch" aria-checked="${it.active !== false ? "true" : "false"}" aria-label="${Store.escapeHtml(it.name)} 노출 스위치">
                       <span class="switch-pill ${it.active !== false ? "is-on" : ""}"></span>
-                      <span>${it.active !== false ? "사용중" : "숨김"}</span>
                     </span>
                   </div>
                   <strong style="font-size:1rem; color:var(--color-brand-900);">${Store.escapeHtml(it.name)}</strong>
@@ -1612,6 +1634,94 @@
   }
 
   /* ========================================================================
+     8-2. HERO CURATION MANAGEMENT SECTION (대문 문구 · 가로형 큐레이션 · 하단 탭 관리)
+     ======================================================================== */
+  function renderHeroManagementSection() {
+    const heroCfg = state.heroConfig || { enabled: true, autoPlay: true };
+    const curations = (Array.isArray(state.heroCurations) ? state.heroCurations : [])
+      .slice()
+      .sort(function (a, b) { return Number(a.sortOrder || 0) - Number(b.sortOrder || 0); });
+    const activeCnt = curations.filter(function (c) { return c.active !== false; }).length;
+
+    mainEl.innerHTML = `
+      ${renderSectionGuideHTML(`
+        <a href="./index.html" class="btn btn-sm btn-outline">쇼핑몰 대문 확인하기 ↗</a>
+        <a href="./admin-curation-edit.html" class="btn btn-sm btn-primary" id="btnAddHeroCuration">+ 새 큐레이션 추가</a>
+      `)}
+
+      <section class="panel-card" style="margin-bottom:18px;">
+        <div style="display:flex; flex-direction:column; gap:14px;">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:14px;">
+            <div style="min-width:0;">
+              <strong style="display:block; font-size:0.95rem; color:var(--color-brand-900);">메인 대문 큐레이션 쇼케이스 노출</strong>
+              <span style="font-size:0.82rem; color:var(--color-text-secondary);">현재 활성 큐레이션 <strong>${activeCnt}건</strong> / 전체 ${curations.length}건</span>
+            </div>
+            <span class="switch-wrap switch-only" style="margin-left:auto; flex-shrink:0;" data-toggle-hero-cfg="enabled" role="switch" aria-checked="${heroCfg.enabled !== false ? "true" : "false"}" aria-label="메인 대문 노출 스위치">
+              <span class="switch-pill ${heroCfg.enabled !== false ? "is-on" : ""}"></span>
+            </span>
+          </div>
+
+          <div style="border-top:1px solid var(--color-border); padding-top:14px; display:flex; align-items:center; justify-content:space-between; gap:14px;">
+            <div style="min-width:0;">
+              <strong style="display:block; font-size:0.95rem; color:var(--color-brand-900);">큐레이션 탭 자동 순환</strong>
+              <span style="font-size:0.82rem; color:var(--color-text-secondary);">쇼핑몰 첫 화면에서 5초 간격으로 다음 큐레이션 슬라이드를 자동 전환합니다.</span>
+            </div>
+            <span class="switch-wrap switch-only" style="margin-left:auto; flex-shrink:0;" data-toggle-hero-cfg="autoPlay" role="switch" aria-checked="${heroCfg.autoPlay !== false ? "true" : "false"}" aria-label="큐레이션 자동 순환 스위치">
+              <span class="switch-pill ${heroCfg.autoPlay !== false ? "is-on" : ""}"></span>
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <div id="heroCurationAdminList" style="display:flex; flex-direction:column; gap:16px;">
+        ${curations.map(function (cur, idx) {
+          const targetBook = cur.targetType !== "URL" && cur.targetBookId
+            ? state.books.find(function (b) { return b.id === cur.targetBookId; })
+            : null;
+          const targetLabel = cur.targetType === "URL"
+            ? ("직접 링크: " + (cur.linkUrl || "./index.html?view=catalog"))
+            : (targetBook ? ("연결 도서: " + targetBook.title) : "연결 도서: 전체 도서 목록");
+          const titleHtml = String(cur.title || "")
+            .split(/\r?\n/)
+            .map(function (line) { return Store.escapeHtml(line.trim()); })
+            .filter(Boolean)
+            .join("<br/>");
+          return `
+            <article class="panel-card curation-admin-card" data-curation-card="${Store.escapeHtml(cur.id)}" style="margin-bottom:0;">
+              <div class="curation-admin-head">
+                <div class="curation-admin-meta">
+                  <span class="badge badge-brand">순서 0${idx + 1}</span>
+                  <span class="badge badge-seal">하단 탭: ${Store.escapeHtml(cur.tabTitle || ("큐레이션 " + (idx + 1)))}</span>
+                  <span class="curation-admin-target">${Store.escapeHtml(targetLabel)}</span>
+                </div>
+                <div class="curation-admin-actions">
+                  <button type="button" class="btn btn-sm btn-outline" data-move-curation="${Store.escapeHtml(cur.id)}" data-move-dir="-1" ${idx === 0 ? "disabled" : ""} aria-label="위로 순서 이동">▲</button>
+                  <button type="button" class="btn btn-sm btn-outline" data-move-curation="${Store.escapeHtml(cur.id)}" data-move-dir="1" ${idx === curations.length - 1 ? "disabled" : ""} aria-label="아래로 순서 이동">▼</button>
+                  <a href="./admin-curation-edit.html?id=${encodeURIComponent(cur.id)}" class="btn btn-sm btn-outline" data-edit-curation="${Store.escapeHtml(cur.id)}">문구 · 이미지 수정</a>
+                  <button type="button" class="btn btn-sm btn-outline" data-delete-curation="${Store.escapeHtml(cur.id)}" ${curations.length <= 1 ? "disabled" : ""}>삭제</button>
+                  <span class="switch-wrap switch-only" data-toggle-curation="${Store.escapeHtml(cur.id)}" role="switch" aria-checked="${cur.active !== false ? "true" : "false"}" aria-label="${Store.escapeHtml(cur.tabTitle || cur.title)} 노출 스위치">
+                    <span class="switch-pill ${cur.active !== false ? "is-on" : ""}"></span>
+                  </span>
+                </div>
+              </div>
+
+              <div class="curation-admin-stage-preview" style="background:${Store.escapeHtml(cur.bgColor || "#1b1917")};">
+                <div class="curation-admin-stage-copy">
+                  <h3>${titleHtml}</h3>
+                  ${cur.subtitle ? `<p>${Store.escapeHtml(cur.subtitle)}</p>` : ""}
+                </div>
+                <div class="curation-admin-stage-img">
+                  <img src="${Store.escapeHtml(cur.imageUrl || "./images/curation-01.webp")}" alt="${Store.escapeHtml(cur.tabTitle || cur.title)}" onerror="this.onerror=null;this.src='./images/curation-01.webp';" />
+                </div>
+              </div>
+            </article>
+          `;
+        }).join("")}
+      </div>
+    `;
+  }
+
+  /* ========================================================================
      9. BANNERS SECTION (메인 배너 · 띠배너 관리 — 쇼핑몰 실시간 연동)
      ======================================================================== */
   function renderBannersSection() {
@@ -1629,11 +1739,10 @@
                   <span class="badge badge-brand">${Store.escapeHtml(bn.positionLabel)}</span>
                   <span style="font-size:0.82rem; color:var(--color-text-muted);">노출 기간: ${Store.escapeHtml(bn.period)}</span>
                 </div>
-                <div style="display:flex; align-items:center; gap:12px; margin-left:auto;">
-                  <button type="button" class="btn btn-sm btn-outline" data-edit-banner="${bn.id}">배너 수정</button>
-                  <span class="switch-wrap" data-toggle-banner="${bn.id}">
+                <div style="display:flex; align-items:center; gap:10px; margin-left:auto; flex-shrink:0;">
+                  <a href="./admin-banner-edit.html?id=${encodeURIComponent(bn.id)}" class="btn btn-sm btn-outline" data-edit-banner="${bn.id}">배너 수정</a>
+                  <span class="switch-wrap switch-only" data-toggle-banner="${bn.id}" role="switch" aria-checked="${bn.active ? "true" : "false"}" aria-label="${Store.escapeHtml(bn.positionLabel)} 노출 스위치">
                     <span class="switch-pill ${bn.active ? "is-on" : ""}"></span>
-                    <span>${bn.active ? "쇼핑몰 노출 켜짐" : "노출 꺼짐"}</span>
                   </span>
                 </div>
               </div>
@@ -1735,29 +1844,294 @@
             <div>
               <h3 style="margin:0; font-size:1.05rem;">${Store.escapeHtml(activeTerm.title)}</h3>
               <div style="font-size:0.8rem; color:var(--color-text-muted); margin-top:2px;">
-                이곳에서 내용을 수정하고 저장하면 회원가입 페이지와 쇼핑몰 하단 약관 창에 즉시 적용됩니다.
+                웹 에디터로 조항 제목·강조·표·안내 박스를 편집하고 저장하면 회원가입 및 약관 안내 페이지에 즉시 반영됩니다.
               </div>
             </div>
             <span class="badge badge-brand">최근 수정일: ${activeTerm.updatedAt}</span>
           </div>
 
           <div class="form-field">
-            <label for="termTitleInput">문서 제목</label>
+            <label for="termTitleInput">문서 제목 *</label>
             <input type="text" id="termTitleInput" class="form-input" value="${Store.escapeHtml(activeTerm.title)}" required />
           </div>
 
-          <div class="form-field">
-            <label for="termContentInput">약관 · 안내 본문 내용</label>
-            <textarea id="termContentInput" class="form-input" rows="11" required>${Store.escapeHtml(activeTerm.content)}</textarea>
+          <div class="form-field" style="margin-bottom:0;">
+            <label>약관 · 안내 본문 내용 (웹 에디터)</label>
+            <div class="wysiwyg-shell">
+              <div class="wysiwyg-head-bar">
+                <div class="wysiwyg-mode-tabs" role="tablist">
+                  <button type="button" class="wysiwyg-mode-tab is-active" data-term-editor-mode="edit">에디터 작성</button>
+                  <button type="button" class="wysiwyg-mode-tab" data-term-editor-mode="preview">약관 화면 미리보기</button>
+                </div>
+                <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                  <input type="file" id="termInlineImgInput" accept="image/*" hidden />
+                  <button type="button" class="wysiwyg-btn" id="btnTermInsertInlineImg">+ 본문 이미지 넣기</button>
+                  <button type="button" class="wysiwyg-btn" id="btnTermInsertQuoteBox">+ 조항 강조 박스 넣기</button>
+                  <button type="button" class="wysiwyg-btn" id="btnTermInsertInfoTable">+ 항목 요약표 넣기</button>
+                </div>
+              </div>
+
+              <div class="wysiwyg-toolbar" id="termEditorToolbar" aria-label="약관 웹 에디터 서식 도구 모음">
+                <div class="wysiwyg-group">
+                  <select id="termEdBlockFormat" class="wysiwyg-select" title="문단 서식">
+                    <option value="P">본문 단락</option>
+                    <option value="H2">큰 조항 제목</option>
+                    <option value="H3">중간 소제목</option>
+                    <option value="BLOCKQUOTE">강조 안내 박스</option>
+                  </select>
+                  <select id="termEdFontSize" class="wysiwyg-select" title="글자 크기">
+                    <option value="3">보통 크기</option>
+                    <option value="2">작게</option>
+                    <option value="4">크게</option>
+                    <option value="5">아주 크게</option>
+                  </select>
+                </div>
+
+                <div class="wysiwyg-group">
+                  <button type="button" class="wysiwyg-btn" data-term-ed-cmd="bold" title="굵게"><strong>B</strong></button>
+                  <button type="button" class="wysiwyg-btn" data-term-ed-cmd="italic" title="기울임"><em>I</em></button>
+                  <button type="button" class="wysiwyg-btn" data-term-ed-cmd="underline" title="밑줄"><u>U</u></button>
+                  <button type="button" class="wysiwyg-btn" data-term-ed-cmd="strikeThrough" title="취소선"><s>S</s></button>
+                </div>
+
+                <div class="wysiwyg-group" title="글자 색상 선택">
+                  <span style="font-size:0.75rem; color:var(--color-text-muted); margin-right:2px;">글자색</span>
+                  <button type="button" class="wysiwyg-swatch" data-term-ed-color="#2c2925" style="background:#2c2925;" title="기본 먹색"></button>
+                  <button type="button" class="wysiwyg-swatch" data-term-ed-color="#5f594f" style="background:#5f594f;" title="브랜드 브라운"></button>
+                  <button type="button" class="wysiwyg-swatch" data-term-ed-color="#8c3a32" style="background:#8c3a32;" title="주홍 강조색"></button>
+                  <button type="button" class="wysiwyg-swatch" data-term-ed-color="#3d6352" style="background:#3d6352;" title="청록 강조색"></button>
+                </div>
+
+                <div class="wysiwyg-group">
+                  <button type="button" class="wysiwyg-btn" data-term-ed-hilite="#f2efe9" style="background:#f2efe9;" title="한지 배경 강조">배경 강조</button>
+                  <button type="button" class="wysiwyg-btn" data-term-ed-cmd="removeFormat" title="서식 초기화">서식 지우기</button>
+                </div>
+
+                <div class="wysiwyg-group">
+                  <button type="button" class="wysiwyg-btn" data-term-ed-cmd="justifyLeft" title="왼쪽 정렬">좌측정렬</button>
+                  <button type="button" class="wysiwyg-btn" data-term-ed-cmd="justifyCenter" title="가운데 정렬">중앙정렬</button>
+                  <button type="button" class="wysiwyg-btn" data-term-ed-cmd="insertUnorderedList" title="글머리 목록">• 목록</button>
+                  <button type="button" class="wysiwyg-btn" data-term-ed-cmd="insertOrderedList" title="번호 목록">1. 목록</button>
+                  <button type="button" class="wysiwyg-btn" data-term-ed-cmd="insertHorizontalRule" title="구분선 넣기">― 구분선</button>
+                </div>
+              </div>
+
+              <div
+                id="termWebEditor"
+                class="wysiwyg-canvas rich-book-content"
+                contenteditable="true"
+                role="textbox"
+                aria-multiline="true"
+                aria-label="약관 및 안내 본문 웹 에디터"
+                data-placeholder="약관 조항, 수집 항목 표, 배송·교환 안내 등을 자유롭게 작성해 주세요..."
+              ></div>
+
+              <div id="termEditorPreviewPane" class="wysiwyg-preview-pane">
+                <div class="wysiwyg-preview-paper">
+                  <div style="font-size:0.78rem; font-weight:700; color:var(--color-brand-600); margin-bottom:10px;">
+                    쇼핑몰 약관 · 안내 페이지 노출 화면 미리보기
+                  </div>
+                  <div id="termEditorPreviewBody" class="rich-book-content"></div>
+                </div>
+              </div>
+
+              <div class="wysiwyg-statusbar">
+                <span>팁: 상단 버튼으로 중요 고지 박스나 항목 요약표를 바로 삽입할 수 있습니다.</span>
+                <strong id="termEditorCharCount">입력 글자 수: 0자</strong>
+              </div>
+            </div>
           </div>
 
           <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-top:16px;">
-            <a href="./signup.html" class="btn btn-sm btn-outline">회원가입 페이지에서 약관 확인하기 ↗</a>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <a href="${ui.settingsTab === "privacyPolicy" ? "./privacy.html" : (ui.settingsTab === "shippingPolicy" ? "./shipping-guide.html" : "./terms.html")}" class="btn btn-sm btn-outline">약관 페이지 확인하기 ↗</a>
+              <a href="./signup.html" class="btn btn-sm btn-outline">회원가입 약관 확인하기 ↗</a>
+            </div>
             <button type="submit" class="btn btn-primary">약관 내용 저장하기</button>
           </div>
         </form>
       `}
     `;
+
+    if (ui.settingsTab !== "basic" && activeTerm) {
+      bindTermWebEditor(activeTerm);
+    }
+  }
+
+  function bindTermWebEditor(activeTerm) {
+    const editorEl = document.getElementById("termWebEditor");
+    const toolbarEl = document.getElementById("termEditorToolbar");
+    const previewPaneEl = document.getElementById("termEditorPreviewPane");
+    const previewBodyEl = document.getElementById("termEditorPreviewBody");
+    const charCountEl = document.getElementById("termEditorCharCount");
+    if (!editorEl || !toolbarEl) return;
+
+    let savedRange = null;
+    editorEl.innerHTML = Store.formatTermRichHtml(activeTerm);
+
+    function saveSel() {
+      const sel = window.getSelection();
+      if (sel && sel.rangeCount > 0) {
+        const r = sel.getRangeAt(0);
+        if (editorEl.contains(r.commonAncestorContainer)) {
+          savedRange = r.cloneRange();
+        }
+      }
+    }
+
+    function restoreSel() {
+      editorEl.focus();
+      if (savedRange) {
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(savedRange);
+      }
+    }
+
+    function updateCharCount() {
+      const text = (editorEl.innerText || "").replace(/\s+/g, " ").trim();
+      if (charCountEl) {
+        charCountEl.textContent = `입력 글자 수: ${text.length.toLocaleString("ko-KR")}자`;
+      }
+    }
+
+    editorEl.addEventListener("keyup", function () {
+      saveSel();
+      updateCharCount();
+    });
+    editorEl.addEventListener("mouseup", saveSel);
+    editorEl.addEventListener("input", updateCharCount);
+
+    toolbarEl.addEventListener("mousedown", function (e) {
+      if (e.target.closest("button")) {
+        e.preventDefault();
+      }
+    });
+
+    toolbarEl.addEventListener("click", function (e) {
+      const cmdBtn = e.target.closest("[data-term-ed-cmd]");
+      if (cmdBtn) {
+        restoreSel();
+        document.execCommand(cmdBtn.getAttribute("data-term-ed-cmd"), false, null);
+        saveSel();
+        updateCharCount();
+        return;
+      }
+      const colorBtn = e.target.closest("[data-term-ed-color]");
+      if (colorBtn) {
+        restoreSel();
+        document.execCommand("foreColor", false, colorBtn.getAttribute("data-term-ed-color"));
+        saveSel();
+        return;
+      }
+      const hiliteBtn = e.target.closest("[data-term-ed-hilite]");
+      if (hiliteBtn) {
+        restoreSel();
+        document.execCommand("hiliteColor", false, hiliteBtn.getAttribute("data-term-ed-hilite"));
+        saveSel();
+      }
+    });
+
+    const blockFmt = document.getElementById("termEdBlockFormat");
+    if (blockFmt) {
+      blockFmt.addEventListener("change", function (e) {
+        restoreSel();
+        document.execCommand("formatBlock", false, e.target.value);
+        saveSel();
+      });
+    }
+
+    const fontSizeSel = document.getElementById("termEdFontSize");
+    if (fontSizeSel) {
+      fontSizeSel.addEventListener("change", function (e) {
+        restoreSel();
+        document.execCommand("fontSize", false, e.target.value);
+        saveSel();
+      });
+    }
+
+    function insertSnippet(htmlSnippet) {
+      restoreSel();
+      document.execCommand("insertHTML", false, htmlSnippet);
+      saveSel();
+      updateCharCount();
+    }
+
+    const quoteBtn = document.getElementById("btnTermInsertQuoteBox");
+    if (quoteBtn) {
+      quoteBtn.addEventListener("click", function () {
+        insertSnippet(`
+          <blockquote>
+            <strong>[중요 약관 · 운영 고지 사항]</strong><br/>
+            고객에게 강조하여 안내할 핵심 기준이나 특약 사항을 입력해 주세요.
+          </blockquote>
+          <p><br/></p>
+        `);
+        Store.showToast("조항 강조 박스가 본문에 삽입되었습니다.");
+      });
+    }
+
+    const tableBtn = document.getElementById("btnTermInsertInfoTable");
+    if (tableBtn) {
+      tableBtn.addEventListener("click", function () {
+        insertSnippet(`
+          <table>
+            <tbody>
+              <tr>
+                <th>구분 항목</th>
+                <td>상세 적용 기준을 입력해 주세요</td>
+              </tr>
+              <tr>
+                <th>보유 · 처리 기한</th>
+                <td>관련 법령 및 내부 운영 기준 기재</td>
+              </tr>
+            </tbody>
+          </table>
+          <p><br/></p>
+        `);
+        Store.showToast("항목 요약표가 본문에 삽입되었습니다.");
+      });
+    }
+
+    const imgBtn = document.getElementById("btnTermInsertInlineImg");
+    const imgInput = document.getElementById("termInlineImgInput");
+    if (imgBtn && imgInput) {
+      imgBtn.addEventListener("click", function () {
+        imgInput.click();
+      });
+      imgInput.addEventListener("change", function (e) {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function (ev) {
+          insertSnippet(`<p><img src="${ev.target.result}" alt="약관 안내 이미지" /></p><p><br/></p>`);
+          Store.showToast("안내 이미지가 본문에 삽입되었습니다.");
+        };
+        reader.readAsDataURL(file);
+        e.target.value = "";
+      });
+    }
+
+    document.querySelectorAll("[data-term-editor-mode]").forEach(function (tab) {
+      tab.addEventListener("click", function () {
+        const mode = tab.getAttribute("data-term-editor-mode");
+        document.querySelectorAll("[data-term-editor-mode]").forEach(function (t) {
+          t.classList.toggle("is-active", t === tab);
+        });
+        if (mode === "preview") {
+          previewBodyEl.innerHTML = Store.sanitizeRichHtml(editorEl.innerHTML);
+          editorEl.style.display = "none";
+          toolbarEl.style.display = "none";
+          previewPaneEl.classList.add("is-visible");
+        } else {
+          previewPaneEl.classList.remove("is-visible");
+          toolbarEl.style.display = "flex";
+          editorEl.style.display = "block";
+        }
+      });
+    });
+
+    updateCharCount();
   }
 
   /* ========================================================================
@@ -2039,10 +2413,45 @@
     modal.classList.add("is-open");
   }
 
+  function formatLocalStamp() {
+    const d = new Date();
+    const pad = function (n) { return ("0" + n).slice(-2); };
+    return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + " " + pad(d.getHours()) + ":" + pad(d.getMinutes());
+  }
+
+  function recordAdminAudit(action, memberId) {
+    state.auditLogs = Array.isArray(state.auditLogs) ? state.auditLogs : [];
+    state.auditLogs.unshift({
+      action: action,
+      memberId: memberId,
+      adminId: "admin",
+      at: formatLocalStamp()
+    });
+    if (state.auditLogs.length > 100) {
+      state.auditLogs.length = 100;
+    }
+  }
+
+  function applyMemberPasswordReset(m, rawPw) {
+    const issued = rawPw || (Store.generateTempPassword ? Store.generateTempPassword() : ("hd" + Math.floor(100000 + Math.random() * 900000) + "!1"));
+    if (Store.hashPassword) {
+      m.passwordHash = Store.hashPassword(issued);
+    } else {
+      m.password = issued;
+    }
+    delete m.password;
+    m.passwordResetAt = formatLocalStamp();
+    recordAdminAudit("MEMBER_PASSWORD_RESET", m.id);
+    Store.saveState(state);
+    return issued;
+  }
+
   function openMemberDetailModal(memberId) {
     const m = state.members.find(function (x) { return x.id === memberId; });
     if (!m) return;
     ui.activeMemberId = memberId;
+    recordAdminAudit("MEMBER_DETAIL_VIEW", m.id);
+    Store.saveState(state);
 
     const gradeCodes = Store.getActiveCodes(state, "MEMBER_GRADE").slice();
     if (m.memberGrade && !gradeCodes.some(function (g) { return g.code === m.memberGrade; })) {
@@ -2069,12 +2478,39 @@
           </select>
         </div>
         <div class="form-field">
-          <label for="mdPoints">보유 적립금 (원)</label>
+          <div class="field-label-with-link">
+            <label for="mdPoints">보유 적립금 (원)</label>
+          </div>
           <input type="number" id="mdPoints" class="form-input" value="${m.points || 0}" step="500" min="0" />
         </div>
       </div>
 
-      <div class="form-field">
+      <div class="member-pw-reset-box">
+        <div class="member-pw-reset-head">
+          <label for="mdResetPwInput">비밀번호 초기화</label>
+          <span id="mdPwResetStatus" class="member-pw-reset-meta">
+            ${m.passwordResetAt
+              ? `<span class="badge badge-brand">최근 초기화: ${Store.escapeHtml(m.passwordResetAt)}</span>`
+              : `<span>단방향 암호화 저장</span>`}
+          </span>
+        </div>
+        <p class="member-pw-reset-desc">
+          직접 지정할 비밀번호(6자 이상)를 입력하거나, 비워둔 채 <strong>[비밀번호 초기화]</strong>를 누르면 안전한 임시 비밀번호가 자동 발급됩니다.
+        </p>
+        <div class="member-pw-reset-controls">
+          <input type="text" id="mdResetPwInput" class="form-input" autocomplete="off" spellcheck="false" placeholder="임시 비밀번호 직접 입력 (미입력 시 자동 생성)" />
+          <button type="button" class="btn btn-outline" id="btnResetMemberPassword">비밀번호 초기화</button>
+        </div>
+        <div id="mdPwResetResult" class="member-pw-issued-banner" hidden>
+          <div class="member-pw-issued-main">
+            <span>발급된 임시 비밀번호: <code id="mdIssuedTempPw"></code></span>
+            <button type="button" class="btn btn-sm btn-soft" id="btnCopyTempPw">복사</button>
+          </div>
+          <small>보안을 위해 창을 닫으면 평문 비밀번호는 다시 표시되지 않습니다.</small>
+        </div>
+      </div>
+
+      <div class="form-field" style="margin-bottom:0;">
         <label for="mdMemo">운영자 참고 메모 (고객에게 보이지 않음)</label>
         <textarea id="mdMemo" class="form-input" rows="3" placeholder="세금계산서 요청 사항, 배송 특이사항 등">${Store.escapeHtml(m.adminMemo || "")}</textarea>
       </div>
@@ -2248,111 +2684,6 @@
     document.getElementById("boardPostModal").classList.add("is-open");
   }
 
-  function openBannerEditModal(bannerId) {
-    const bn = state.banners.find(function (x) { return x.id === bannerId; });
-    if (!bn) return;
-    ui.activeBannerId = bannerId;
-
-    document.getElementById("bannerEditModalTitle").textContent = bn.positionLabel + " 수정";
-    document.getElementById("bannerEditModalBody").innerHTML = `
-      <div class="form-field">
-        <label for="bnImageFileInput">배너 이미지 파일 업로드</label>
-        <input type="file" id="bnImageFileInput" class="form-input" accept="image/*" />
-        <span style="font-size:0.78rem; color:var(--color-text-muted); margin-top:4px; display:block;">
-          이미지 파일 선택 시 실시간 미리보기가 동작하며 Base64 DataURL로 자동 변환 저장됩니다.
-        </span>
-      </div>
-      <div class="form-field">
-        <label for="bnImageUrl">배너 이미지 URL (직접 입력 또는 파일 업로드 시 자동 채움)</label>
-        <input type="text" id="bnImageUrl" class="form-input" placeholder="https://... 또는 images/hero.png" value="${Store.escapeHtml(bn.imageUrl || "")}" />
-      </div>
-      <div class="form-field">
-        <label>배너 이미지 미리보기</label>
-        <div id="bnImagePreviewContainer" style="border:1px dashed var(--color-border); border-radius:var(--radius-sm); padding:12px; text-align:center; background:var(--color-bg); min-height:120px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;">
-          <img id="bnImagePreview" src="${Store.escapeHtml(bn.imageUrl || "")}" alt="배너 이미지 미리보기" style="max-width:100%; max-height:160px; object-fit:contain; border-radius:4px; ${bn.imageUrl ? "" : "display:none;"}" />
-          <span id="bnImagePreviewEmpty" style="font-size:0.82rem; color:var(--color-text-muted); ${bn.imageUrl ? "display:none;" : ""}">
-            등록된 배너 이미지가 없습니다. 상단에서 파일을 선택하거나 이미지 URL을 입력해 주세요.
-          </span>
-          <button type="button" class="btn btn-sm btn-outline" id="btnClearBannerImg" style="${bn.imageUrl ? "" : "display:none;"}">이미지 초기화</button>
-        </div>
-      </div>
-      <div class="form-field">
-        <label for="bnEyebrow">상단 작은 강조 문구</label>
-        <input type="text" id="bnEyebrow" class="form-input" value="${Store.escapeHtml(bn.eyebrow || "")}" />
-      </div>
-      <div class="form-field">
-        <label for="bnTitle">배너 메인 제목 *</label>
-        <input type="text" id="bnTitle" class="form-input" value="${Store.escapeHtml(bn.title)}" required />
-      </div>
-      <div class="form-field">
-        <label for="bnSubtitle">보조 설명 문구</label>
-        <textarea id="bnSubtitle" class="form-input" rows="3">${Store.escapeHtml(bn.subtitle || "")}</textarea>
-      </div>
-      <div class="form-grid-2">
-        <div class="form-field">
-          <label for="bnBtnText">버튼 표시 이름</label>
-          <input type="text" id="bnBtnText" class="form-input" value="${Store.escapeHtml(bn.buttonText || "")}" />
-        </div>
-        <div class="form-field">
-          <label for="bnPeriod">노출 기간 메모</label>
-          <input type="text" id="bnPeriod" class="form-input" value="${Store.escapeHtml(bn.period || "")}" />
-        </div>
-      </div>
-    `;
-
-    const fileInput = document.getElementById("bnImageFileInput");
-    const urlInput = document.getElementById("bnImageUrl");
-    const previewImg = document.getElementById("bnImagePreview");
-    const previewEmpty = document.getElementById("bnImagePreviewEmpty");
-    const clearBtn = document.getElementById("btnClearBannerImg");
-
-    function setPreviewSource(src) {
-      const cleanSrc = (src || "").trim();
-      if (cleanSrc) {
-        previewImg.src = cleanSrc;
-        previewImg.style.display = "";
-        previewEmpty.style.display = "none";
-        clearBtn.style.display = "";
-      } else {
-        previewImg.removeAttribute("src");
-        previewImg.style.display = "none";
-        previewEmpty.style.display = "";
-        clearBtn.style.display = "none";
-      }
-    }
-
-    if (fileInput) {
-      fileInput.addEventListener("change", function () {
-        const file = fileInput.files && fileInput.files[0];
-        if (file) {
-          const reader = new FileReader();
-          reader.onload = function (evt) {
-            const dataUrl = evt.target.result;
-            if (urlInput) urlInput.value = dataUrl;
-            setPreviewSource(dataUrl);
-          };
-          reader.readAsDataURL(file);
-        }
-      });
-    }
-
-    if (urlInput) {
-      urlInput.addEventListener("input", function () {
-        setPreviewSource(urlInput.value);
-      });
-    }
-
-    if (clearBtn) {
-      clearBtn.addEventListener("click", function () {
-        if (fileInput) fileInput.value = "";
-        if (urlInput) urlInput.value = "";
-        setPreviewSource("");
-      });
-    }
-
-    document.getElementById("bannerEditModal").classList.add("is-open");
-  }
-
   /* ========================================================================
      Event Delegation
      ======================================================================== */
@@ -2405,7 +2736,18 @@
     const jumpOrd = e.target.closest("[data-jump-order-filter]");
     if (jumpOrd) {
       ui.section = "orders";
+      ui.orderClaimOnly = false;
       ui.orderFilter = jumpOrd.getAttribute("data-jump-order-filter");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      render();
+      return;
+    }
+
+    const jumpClaimOrd = e.target.closest("[data-jump-claim-orders]");
+    if (jumpClaimOrd) {
+      ui.section = "orders";
+      ui.orderFilter = "ALL";
+      ui.orderClaimOnly = true;
       window.scrollTo({ top: 0, behavior: "smooth" });
       render();
       return;
@@ -2695,6 +3037,40 @@
       return;
     }
 
+    if (e.target.id === "btnResetMemberPassword") {
+      const m = state.members.find(function (x) { return x.id === ui.activeMemberId; });
+      if (!m) return;
+      const pwInput = document.getElementById("mdResetPwInput");
+      const customPw = pwInput ? pwInput.value.trim() : "";
+      if (customPw.length > 0 && customPw.length < 6) {
+        Store.showToast("직접 지정할 비밀번호는 6자 이상 입력해 주세요.");
+        if (pwInput) pwInput.focus();
+        return;
+      }
+      const issuedPw = applyMemberPasswordReset(m, customPw);
+      if (pwInput) pwInput.value = "";
+      const statusEl = document.getElementById("mdPwResetStatus");
+      if (statusEl) {
+        statusEl.innerHTML = `<span class="badge badge-brand">최근 초기화: ${Store.escapeHtml(m.passwordResetAt)}</span>`;
+      }
+      const resultBox = document.getElementById("mdPwResetResult");
+      const codeEl = document.getElementById("mdIssuedTempPw");
+      if (codeEl) codeEl.textContent = issuedPw;
+      if (resultBox) resultBox.hidden = false;
+      Store.showToast(`${m.name} 회원의 비밀번호가 초기화되었습니다. 임시 비밀번호를 복사하여 안내해 주세요.`);
+      return;
+    }
+
+    if (e.target.id === "btnCopyTempPw") {
+      const codeEl = document.getElementById("mdIssuedTempPw");
+      const issued = codeEl ? codeEl.textContent.trim() : "";
+      if (issued && navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(issued).catch(function () {});
+      }
+      Store.showToast("발급된 임시 비밀번호가 복사되었습니다.");
+      return;
+    }
+
     const memBtn = e.target.closest("[data-open-member]");
     if (memBtn) {
       openMemberDetailModal(memBtn.getAttribute("data-open-member"));
@@ -2803,6 +3179,77 @@
       return;
     }
 
+    const toggleHeroCfg = e.target.closest("[data-toggle-hero-cfg]");
+    if (toggleHeroCfg) {
+      const cfgKey = toggleHeroCfg.getAttribute("data-toggle-hero-cfg");
+      if (!state.heroConfig || typeof state.heroConfig !== "object") {
+        state.heroConfig = { enabled: true, autoPlay: true };
+      }
+      state.heroConfig[cfgKey] = state.heroConfig[cfgKey] === false;
+      Store.saveState(state);
+      if (cfgKey === "enabled") {
+        Store.showToast(state.heroConfig.enabled ? "쇼핑몰 메인 대문 큐레이션이 노출됩니다." : "쇼핑몰 메인 대문 큐레이션이 숨김 처리되었습니다.");
+      } else {
+        Store.showToast(state.heroConfig.autoPlay ? "큐레이션 자동 순환이 켜졌습니다." : "큐레이션 자동 순환이 꺼졌습니다.");
+      }
+      render();
+      return;
+    }
+
+    const toggleCuration = e.target.closest("[data-toggle-curation]");
+    if (toggleCuration) {
+      const cId = toggleCuration.getAttribute("data-toggle-curation");
+      const cur = (state.heroCurations || []).find(function (x) { return x.id === cId; });
+      if (cur) {
+        cur.active = cur.active === false;
+        Store.saveState(state);
+        Store.showToast(cur.active ? "큐레이션이 메인 대문에 노출됩니다." : "큐레이션이 숨김 처리되었습니다.");
+        render();
+      }
+      return;
+    }
+
+    const moveCurationBtn = e.target.closest("[data-move-curation]");
+    if (moveCurationBtn && !moveCurationBtn.disabled) {
+      const cId = moveCurationBtn.getAttribute("data-move-curation");
+      const dir = Number(moveCurationBtn.getAttribute("data-move-dir") || 0);
+      const sorted = (state.heroCurations || []).slice().sort(function (a, b) {
+        return Number(a.sortOrder || 0) - Number(b.sortOrder || 0);
+      });
+      const idx = sorted.findIndex(function (x) { return x.id === cId; });
+      const swapIdx = idx + dir;
+      if (idx >= 0 && swapIdx >= 0 && swapIdx < sorted.length) {
+        const tmp = sorted[idx];
+        sorted[idx] = sorted[swapIdx];
+        sorted[swapIdx] = tmp;
+        sorted.forEach(function (item, i) { item.sortOrder = i + 1; });
+        state.heroCurations = sorted;
+        Store.saveState(state);
+        Store.showToast("큐레이션 노출 순서가 변경되었습니다.");
+        render();
+      }
+      return;
+    }
+
+    const delCurationBtn = e.target.closest("[data-delete-curation]");
+    if (delCurationBtn && !delCurationBtn.disabled) {
+      const cId = delCurationBtn.getAttribute("data-delete-curation");
+      if ((state.heroCurations || []).length <= 1) {
+        Store.showToast("최소 1개 이상의 대문 큐레이션은 유지되어야 합니다.");
+        return;
+      }
+      state.heroCurations = (state.heroCurations || [])
+        .filter(function (x) { return x.id !== cId; })
+        .map(function (x, i) {
+          x.sortOrder = i + 1;
+          return x;
+        });
+      Store.saveState(state);
+      Store.showToast("큐레이션 항목이 삭제되었습니다.");
+      render();
+      return;
+    }
+
     const toggleBanner = e.target.closest("[data-toggle-banner]");
     if (toggleBanner) {
       const bId = toggleBanner.getAttribute("data-toggle-banner");
@@ -2816,12 +3263,6 @@
       return;
     }
 
-    const editBanner = e.target.closest("[data-edit-banner]");
-    if (editBanner) {
-      openBannerEditModal(editBanner.getAttribute("data-edit-banner"));
-      return;
-    }
-
     const setTabBtn = e.target.closest("[data-settings-tab]");
     if (setTabBtn) {
       ui.settingsTab = setTabBtn.getAttribute("data-settings-tab");
@@ -2830,7 +3271,21 @@
   });
 
   document.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" || e.key === " ") {
+      const memRow = e.target.closest && e.target.closest("[data-open-member]");
+      if (memRow && e.target === memRow) {
+        e.preventDefault();
+        openMemberDetailModal(memRow.getAttribute("data-open-member"));
+        return;
+      }
+    }
     if (e.key !== "Enter") return;
+    if (e.target.id === "mdResetPwInput") {
+      e.preventDefault();
+      const resetBtn = document.getElementById("btnResetMemberPassword");
+      if (resetBtn) resetBtn.click();
+      return;
+    }
     if (e.target.id === "admBookSearchInput") {
       e.preventDefault();
       ui.bookKeyword = e.target.value;
@@ -2939,6 +3394,13 @@
       e.preventDefault();
       const m = state.members.find(function (x) { return x.id === ui.activeMemberId; });
       if (!m) return;
+      const pendingPwInput = document.getElementById("mdResetPwInput");
+      const pendingPw = pendingPwInput ? pendingPwInput.value.trim() : "";
+      if (pendingPw.length > 0 && pendingPw.length < 6) {
+        Store.showToast("초기화할 비밀번호는 6자 이상 입력하거나 비워두세요.");
+        pendingPwInput.focus();
+        return;
+      }
       const newGrade = document.getElementById("mdGrade").value;
       const newPoints = Math.max(0, Number(document.getElementById("mdPoints").value) || 0);
       const oldPoints = Number(m.points) || 0;
@@ -2955,10 +3417,19 @@
         state.currentMember.points = m.points;
       }
       m.adminMemo = document.getElementById("mdMemo").value.trim();
+      let pwResetSaved = false;
+      if (pendingPw.length >= 6) {
+        applyMemberPasswordReset(m, pendingPw);
+        pwResetSaved = true;
+      }
       Store.saveState(state);
       document.getElementById("memberDetailModal").classList.remove("is-open");
       render();
-      Store.showToast(`${m.name} 회원의 정보 및 적립금이 저장되었습니다.`);
+      Store.showToast(
+        pwResetSaved
+          ? `${m.name} 회원의 정보·적립금 저장 및 비밀번호 초기화가 완료되었습니다.`
+          : `${m.name} 회원의 정보 및 적립금이 저장되었습니다.`
+      );
     } else if (e.target.id === "qnaReplyForm") {
       e.preventDefault();
       const qa = state.qnas.find(function (x) { return x.id === ui.activeQnaId; });
@@ -3025,21 +3496,6 @@
       Store.saveState(state);
       document.getElementById("boardPostModal").classList.remove("is-open");
       render();
-    } else if (e.target.id === "bannerEditForm") {
-      e.preventDefault();
-      const bn = state.banners.find(function (x) { return x.id === ui.activeBannerId; });
-      if (!bn) return;
-      const urlInput = document.getElementById("bnImageUrl");
-      bn.imageUrl = urlInput ? urlInput.value.trim() : (bn.imageUrl || "");
-      bn.eyebrow = document.getElementById("bnEyebrow").value.trim();
-      bn.title = document.getElementById("bnTitle").value.trim();
-      bn.subtitle = document.getElementById("bnSubtitle").value.trim();
-      bn.buttonText = document.getElementById("bnBtnText").value.trim();
-      bn.period = document.getElementById("bnPeriod").value.trim();
-      Store.saveState(state);
-      document.getElementById("bannerEditModal").classList.remove("is-open");
-      render();
-      Store.showToast("배너 이미지와 문구가 수정되었습니다! 쇼핑몰 홈에서 변경된 배너를 확인하실 수 있습니다.");
     } else if (e.target.id === "codeItemForm") {
       e.preventDefault();
       const grp = Store.getCodeGroup(state, ui.codeGroup);
@@ -3143,12 +3599,21 @@
       e.preventDefault();
       const term = state.terms[ui.settingsTab];
       if (!term) return;
+      const editorEl = document.getElementById("termWebEditor");
+      const rawHtml = editorEl ? Store.sanitizeRichHtml(editorEl.innerHTML.trim()) : "";
+      const plainText = editorEl ? (editorEl.innerText || "").trim() : "";
+      if (!plainText) {
+        Store.showToast("약관 · 안내 본문 내용을 입력해 주세요.");
+        if (editorEl) editorEl.focus();
+        return;
+      }
       term.title = document.getElementById("termTitleInput").value.trim();
-      term.content = document.getElementById("termContentInput").value;
-      term.updatedAt = "2026-11-12";
+      term.contentHtml = rawHtml;
+      term.content = plainText;
+      term.updatedAt = new Date().toISOString().slice(0, 10);
       Store.saveState(state);
       render();
-      Store.showToast(`『${term.title}』 내용이 저장되었습니다! 회원가입 및 하단 약관에 즉시 반영됩니다.`);
+      Store.showToast(`『${term.title}』 내용이 저장되었습니다! 회원가입 및 약관 안내 페이지에 즉시 반영됩니다.`);
     }
   });
 

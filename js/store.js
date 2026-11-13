@@ -302,105 +302,105 @@
     }
   }
 
-  function getHeroShowcaseItems() {
-    const heroBanner = state.banners.find(function (b) { return b.position === "HERO" && b.active; });
-    const primaryId = (heroBanner && heroBanner.targetBookId) || "BK-001";
-    const candidateIds = [primaryId, "BK-002", "BK-003", "BK-005"];
-    const picked = [];
-    candidateIds.forEach(function (id) {
-      const bk = findBook(id);
-      if (bk && picked.length < 3 && !picked.some(function (p) { return p.id === bk.id; })) {
-        picked.push(bk);
-      }
-    });
-    state.books.forEach(function (bk) {
-      if (picked.length < 3 && !picked.some(function (p) { return p.id === bk.id; })) {
-        picked.push(bk);
-      }
-    });
-    const sealLabels = ["대표 완간 정본", "임상 필독 의서", "진료실 상비 방제"];
-    const shortTabs = ["동의보감 세트", "현동의감", "현동처방집"];
-    return picked.map(function (bk, i) {
-      return {
-        book: bk,
-        sealLabel: sealLabels[i] || "학당 추천서",
-        tabTitle: i === 0 && bk.id !== "BK-001" ? bk.title : (shortTabs[i] || bk.title)
-      };
-    });
+  function getActiveHeroCurations() {
+    const list = Array.isArray(state.heroCurations) ? state.heroCurations : [];
+    return list
+      .filter(function (c) { return c && c.active !== false; })
+      .slice()
+      .sort(function (a, b) { return Number(a.sortOrder || 0) - Number(b.sortOrder || 0); });
   }
 
-  function renderHeroFeaturedCardInner(slideItem) {
-    const bk = slideItem.book;
-    return `
-      <div class="hero-cover-pedestal" data-open-book="${bk.id}">
-        ${Store.renderBookCoverHTML(bk)}
-      </div>
-      <div>
-        <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-          <span class="badge badge-seal">${Store.escapeHtml(slideItem.sealLabel)}</span>
-          <span class="badge badge-brand">${Store.escapeHtml(bk.categoryName)}</span>
-        </div>
-        <h3 style="margin:8px 0 5px; font-family:var(--font-serif); font-size:1.14rem; line-height:1.35; cursor:pointer; color:var(--color-brand-900);" data-open-book="${bk.id}">
-          ${Store.escapeHtml(bk.title)}
-        </h3>
-        <p style="margin:0 0 8px; font-size:0.83rem; color:var(--color-text-secondary); line-height:1.5;">
-          ${Store.escapeHtml(bk.subtitle)}
-        </p>
-        <div style="font-size:0.76rem; color:var(--color-text-muted); margin-bottom:10px;">
-          ${Store.escapeHtml(bk.author)}${bk.translator ? " · " + Store.escapeHtml(bk.translator) : ""} | ${bk.pageCount.toLocaleString()}쪽
-        </div>
-        <div style="margin-bottom:12px;">
-          <span class="discount-pct">${bk.discountRate}%↓</span>
-          <strong style="font-size:1.18rem; color:var(--color-brand-900);">${Store.formatKRW(bk.salePrice)}</strong>
-          <span class="price-list">${Store.formatKRW(bk.listPrice)}</span>
-        </div>
-        <div style="display:flex; gap:8px; flex-wrap:wrap;">
-          <button type="button" class="btn btn-sm btn-dark" data-add-cart="${bk.id}">장바구니 담기</button>
-          <button type="button" class="btn btn-sm btn-outline" data-open-book="${bk.id}">서지 · 목차 보기</button>
-        </div>
-      </div>
-    `;
+  function resolveCurationHref(cur) {
+    if (!cur) return "./index.html?view=catalog";
+    if (cur.targetType === "URL" && cur.linkUrl && String(cur.linkUrl).trim()) {
+      return String(cur.linkUrl).trim();
+    }
+    const bkId = String(cur.targetBookId || "").trim();
+    if (bkId && findBook(bkId)) {
+      return "./book-detail.html?id=" + encodeURIComponent(bkId);
+    }
+    if (cur.linkUrl && String(cur.linkUrl).trim()) {
+      return String(cur.linkUrl).trim();
+    }
+    return "./index.html?view=catalog";
+  }
+
+  function formatCurationHeadlineHtml(rawTitle) {
+    const lines = String(rawTitle || "").split(/\r?\n/).map(function (l) { return l.trim(); }).filter(Boolean);
+    if (!lines.length) return "";
+    return lines.map(function (line) { return Store.escapeHtml(line); }).join("<br/>");
   }
 
   function updateHeroSlideDOM(nextIdx) {
-    const slides = getHeroShowcaseItems();
+    const slides = getActiveHeroCurations();
     if (!slides.length) return;
     ui.heroSlideIdx = ((nextIdx % slides.length) + slides.length) % slides.length;
     const activeItem = slides[ui.heroSlideIdx];
 
-    const stage = document.getElementById("heroFeaturedStage");
-    const counter = document.getElementById("heroSlideCounter");
-    const prog = document.getElementById("heroProgressBar");
-    if (!stage) return;
+    const sectionEl = document.getElementById("heroCurationSection");
+    const linkEl = document.getElementById("heroCurationLink");
+    const titleEl = document.getElementById("heroCurationTitle");
+    const subEl = document.getElementById("heroCurationSub");
+    const imgEl = document.getElementById("heroCurationImg");
+    if (!sectionEl || !titleEl || !imgEl) return;
 
-    stage.classList.remove("is-swapping");
-    stage.innerHTML = renderHeroFeaturedCardInner(activeItem);
-    void stage.offsetWidth;
-    stage.classList.add("is-swapping");
-
-    if (counter) {
-      counter.textContent = "(0" + (ui.heroSlideIdx + 1) + " / 0" + slides.length + ")";
+    sectionEl.style.setProperty("--hero-stage-bg", activeItem.bgColor || "#1b1917");
+    if (linkEl) {
+      linkEl.setAttribute("href", resolveCurationHref(activeItem));
+      linkEl.classList.remove("is-swapping");
+      void linkEl.offsetWidth;
+      linkEl.classList.add("is-swapping");
     }
-    if (prog) {
-      prog.style.animation = "none";
-      void prog.offsetWidth;
-      prog.style.animation = "";
+    titleEl.innerHTML = formatCurationHeadlineHtml(activeItem.title);
+    if (subEl) {
+      subEl.textContent = activeItem.subtitle || "";
+      subEl.style.display = activeItem.subtitle ? "" : "none";
     }
+    const fallbackPreset = (Store.PRESET_CURATION_IMAGES && Store.PRESET_CURATION_IMAGES[0] && Store.PRESET_CURATION_IMAGES[0].url) || "./images/curation-01.webp";
+    imgEl.setAttribute("src", activeItem.imageUrl || fallbackPreset);
+    imgEl.setAttribute("alt", (activeItem.tabTitle || activeItem.title || "현동서재 대표 큐레이션").replace(/\s+/g, " ").trim());
 
-    document.querySelectorAll(".hero-showcase-tab").forEach(function (tabBtn) {
+    const tabsWrap = document.getElementById("heroCurationTabs");
+    document.querySelectorAll(".hero-curation-tab").forEach(function (tabBtn) {
       const idx = Number(tabBtn.getAttribute("data-hero-slide"));
-      tabBtn.classList.toggle("is-active", idx === ui.heroSlideIdx);
+      const isAct = idx === ui.heroSlideIdx;
+      tabBtn.classList.toggle("is-active", isAct);
+      tabBtn.setAttribute("aria-selected", isAct ? "true" : "false");
+      if (isAct && tabsWrap && tabsWrap.scrollWidth > tabsWrap.clientWidth + 4) {
+        const targetLeft = Math.max(0, tabBtn.offsetLeft - Math.round((tabsWrap.clientWidth - tabBtn.offsetWidth) / 2));
+        tabsWrap.scrollTo({ left: targetLeft, behavior: "smooth" });
+      }
     });
   }
 
   function setupHeroCarousel() {
     stopHeroCarousel();
-    const bookstand = document.getElementById("heroBookstand");
-    if (!bookstand) return;
+    const sectionEl = document.getElementById("heroCurationSection");
+    if (!sectionEl) return;
+
+    const tabsWrap = document.getElementById("heroCurationTabs");
+    if (tabsWrap && Store.enableHorizontalDragScroll) {
+      Store.enableHorizontalDragScroll(tabsWrap, tabsWrap.parentElement);
+    }
 
     let paused = false;
-    bookstand.addEventListener("mouseenter", function () { paused = true; });
-    bookstand.addEventListener("mouseleave", function () { paused = false; });
+    sectionEl.addEventListener("mouseenter", function () { paused = true; });
+    sectionEl.addEventListener("mouseleave", function () { paused = false; });
+
+    if (window.matchMedia && window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+      sectionEl.querySelectorAll(".hero-curation-tab").forEach(function (tabBtn) {
+        tabBtn.addEventListener("mouseenter", function () {
+          const idx = Number(tabBtn.getAttribute("data-hero-slide"));
+          if (Number.isFinite(idx) && idx !== ui.heroSlideIdx) {
+            updateHeroSlideDOM(idx);
+          }
+        });
+      });
+    }
+
+    const slides = getActiveHeroCurations();
+    const autoPlayOn = !state.heroConfig || state.heroConfig.autoPlay !== false;
+    if (!autoPlayOn || slides.length <= 1) return;
 
     heroTimer = setInterval(function () {
       if (paused || ui.view !== "home") return;
@@ -435,12 +435,11 @@
      1. HOME VIEW (메인 배너 · 베스트셀러 · 추천 도서 · 기획 배너 · 공지/후기)
      ======================================================================== */
   function renderHomeView() {
-    const heroBanner = state.banners.find(function (b) { return b.position === "HERO" && b.active; });
     const promoBanner = state.banners.find(function (b) { return b.position === "PROMO" && b.active; });
-    const heroBook = findBook((heroBanner && heroBanner.targetBookId) || "BK-001") || state.books[0];
-    const heroSlides = getHeroShowcaseItems();
+    const heroEnabled = !state.heroConfig || state.heroConfig.enabled !== false;
+    const heroSlides = getActiveHeroCurations();
     if (ui.heroSlideIdx >= heroSlides.length) ui.heroSlideIdx = 0;
-    const currentHeroSlide = heroSlides[ui.heroSlideIdx] || { book: heroBook, sealLabel: "대표 완간 정본", tabTitle: heroBook.title };
+    const currentHeroSlide = heroSlides[ui.heroSlideIdx] || null;
 
     const bestsellers = state.books
       .filter(function (b) { return b.saleStatus !== "HIDDEN"; })
@@ -455,86 +454,47 @@
     const recommendedBooks = state.books.filter(function (b) { return b.mdPick && b.saleStatus !== "HIDDEN"; }).slice(0, 4);
     const visibleReviews = state.reviews.filter(function (r) { return r.visible; }).slice(0, 4);
     const recentNotices = state.notices.filter(function (n) { return n.visible; }).slice(0, 3);
-    const heroBgStyle = heroBanner && heroBanner.imageUrl
-      ? ` style="background-image: linear-gradient(110deg, rgba(247,245,240,0.92), rgba(242,238,229,0.88)), url('${Store.escapeHtml(heroBanner.imageUrl)}'); background-size: cover; background-position: center;"`
-      : "";
     const promoBgStyle = promoBanner && promoBanner.imageUrl
       ? ` style="background-image: linear-gradient(100deg, rgba(46,43,39,0.9), rgba(74,69,61,0.86)), url('${Store.escapeHtml(promoBanner.imageUrl)}'); background-size: cover; background-position: center;"`
       : "";
 
+    const CAT_EDITORIAL_TAG = {
+      DONGEUI: "원문 대조 정본 직역",
+      DIAGNOSIS: "사진 · 정통 맥진 고전",
+      FORMULA: "병증별 처방 · 가감법",
+      CLINICAL: "현동의감 · 입문 강의",
+      PHILOSOPHY: "정기신 생리 · 양생서"
+    };
+
     mainEl.innerHTML = `
-      ${heroBanner ? `
-        <section class="hero-banner"${heroBgStyle}>
-          <!-- 수묵 산수 · 본초 약초문 · 전통 서예 배경 레이어 -->
-          <div class="hero-ink-backdrop" aria-hidden="true">
-            <svg class="hero-ink-mountains" viewBox="0 0 1440 200" preserveAspectRatio="none">
-              <path d="M0,155 C190,105 330,138 520,96 C710,54 880,126 1090,82 C1240,50 1350,95 1440,74 L1440,200 L0,200 Z" fill="rgba(145, 138, 125, 0.13)"></path>
-              <path d="M0,172 C240,126 430,164 660,122 C870,84 1080,148 1280,108 C1360,92 1410,110 1440,104 L1440,200 L0,200 Z" fill="rgba(95, 89, 79, 0.11)"></path>
-              <path d="M0,186 C310,158 580,188 890,154 C1120,130 1290,168 1440,148 L1440,200 L0,200 Z" fill="rgba(247, 245, 240, 0.65)"></path>
-            </svg>
-            <svg class="hero-herb-ornament" viewBox="0 0 180 180" fill="none">
-              <path d="M26 168 C48 126, 76 88, 122 26" stroke="#5f594f" stroke-width="1.8" stroke-linecap="round"/>
-              <path d="M62 122 C42 108, 30 92, 34 72 C52 78, 66 96, 62 122 Z" stroke="#5f594f" stroke-width="1.4" fill="rgba(145,138,125,0.12)"/>
-              <path d="M78 98 C98 96, 118 84, 126 64 C106 62, 88 76, 78 98 Z" stroke="#5f594f" stroke-width="1.4" fill="rgba(145,138,125,0.12)"/>
-              <path d="M94 70 C78 56, 72 38, 80 22 C96 30, 102 48, 94 70 Z" stroke="#5f594f" stroke-width="1.4" fill="rgba(145,138,125,0.12)"/>
-              <circle cx="125" cy="24" r="4" fill="#8c3a32" opacity="0.18"/>
-              <circle cx="134" cy="31" r="3" fill="#8c3a32" opacity="0.14"/>
-            </svg>
-            <div class="hero-calligraphy-watermark">東醫寶鑑 · 法古創新</div>
+      ${heroEnabled && currentHeroSlide ? `
+        <section class="hero-banner hero-curation-showcase" id="heroCurationSection" style="--hero-stage-bg:${Store.escapeHtml(currentHeroSlide.bgColor || "#1b1917")};">
+          <div class="hero-curation-stage">
+            ${heroSlides.length > 1 ? `
+              <button type="button" class="hero-curation-arrow is-prev" data-hero-step="-1" aria-label="이전 큐레이션">‹</button>
+              <button type="button" class="hero-curation-arrow is-next" data-hero-step="1" aria-label="다음 큐레이션">›</button>
+            ` : ""}
+            <div class="store-container hero-curation-stage-wrap">
+              <a class="hero-curation-stage-link" id="heroCurationLink" href="${Store.escapeHtml(resolveCurationHref(currentHeroSlide))}">
+                <div class="hero-curation-copy">
+                  <h1 class="hero-title" id="heroCurationTitle">${formatCurationHeadlineHtml(currentHeroSlide.title)}</h1>
+                  <p class="hero-curation-sub" id="heroCurationSub"${currentHeroSlide.subtitle ? "" : ' style="display:none;"'}>${Store.escapeHtml(currentHeroSlide.subtitle || "")}</p>
+                </div>
+                <div class="hero-curation-visual">
+                  <div class="hero-curation-img-frame">
+                    <img id="heroCurationImg" src="${Store.escapeHtml(currentHeroSlide.imageUrl || "./images/curation-01.webp")}" alt="${Store.escapeHtml((currentHeroSlide.tabTitle || currentHeroSlide.title || "현동서재 대표 큐레이션").replace(/\s+/g, " ").trim())}" onerror="this.onerror=null;this.src='./images/curation-01.webp';" />
+                  </div>
+                </div>
+              </a>
+            </div>
           </div>
 
-          <div class="store-container hero-grid">
-            <div class="hero-editorial">
-              <div class="hero-seal-row">
-                <img src="./images/logo-mark.svg" alt="" width="36" height="36" class="hero-emblem-mark" />
-                <span class="hero-eyebrow">${Store.escapeHtml(heroBanner.eyebrow)}</span>
-              </div>
-              <div class="hero-maxim-bar">
-                <span class="hero-maxim-hanja">「法古創新 · 原文直譯」</span>
-                <span>옛 의서의 본뜻을 바로 세워 오늘의 임상을 밝히다</span>
-              </div>
-              <h1 class="hero-title">${Store.escapeHtml(heroBanner.title)}</h1>
-              <p class="hero-desc">${Store.escapeHtml(heroBanner.subtitle)}</p>
-              <div class="hero-authentic-strip">
-                <span class="hero-authentic-chip"><b>印</b> 원문 대조 정본 직역</span>
-                <span class="hero-authentic-chip"><b>冊</b> 사철 양장 보존판 제본</span>
-                <span class="hero-authentic-chip"><b>發</b> 출판부 직접 검수 · 당일 발송</span>
-              </div>
-              <div class="hero-cta-row">
-                <button type="button" class="btn btn-primary" data-open-book="${heroBook.id}">${Store.escapeHtml(heroBanner.buttonText || "상세보기")}</button>
-                <button type="button" class="btn btn-outline" style="background:rgba(255,253,249,0.78);" data-goto-cat="ALL">전체 출간 의서 보기 (${state.books.length}종)</button>
-              </div>
-            </div>
-
-            <div class="hero-bookstand" id="heroBookstand">
-              <span class="hero-corner tl" aria-hidden="true"></span>
-              <span class="hero-corner tr" aria-hidden="true"></span>
-              <span class="hero-corner bl" aria-hidden="true"></span>
-              <span class="hero-corner br" aria-hidden="true"></span>
-
-              <div class="hero-bookstand-top">
-                <span class="hero-bookstand-label">
-                  書案 · 현동 대표 의서 선집
-                  <small id="heroSlideCounter" style="color:var(--color-text-muted); font-weight:600;">(0${ui.heroSlideIdx + 1} / 0${heroSlides.length})</small>
-                </span>
-                <span class="hero-stamp-mark">正本直譯</span>
-              </div>
-              <div class="hero-progress-track" aria-hidden="true">
-                <div class="hero-progress-bar" id="heroProgressBar"></div>
-              </div>
-
-              <div class="hero-featured-card" id="heroFeaturedStage">
-                ${renderHeroFeaturedCardInner(currentHeroSlide)}
-              </div>
-
-              <div class="hero-showcase-tabs" role="tablist" aria-label="대표 의서 선택">
+          <div class="hero-curation-tabbar">
+            <div class="store-container hero-curation-tabbar-inner">
+              <div class="hero-curation-tabs" id="heroCurationTabs" role="tablist" aria-label="대문 큐레이션 선택">
                 ${heroSlides.map(function (sl, idx) {
-                  return `
-                    <button type="button" class="hero-showcase-tab ${idx === ui.heroSlideIdx ? "is-active" : ""}" data-hero-slide="${idx}">
-                      <small>0${idx + 1} · ${Store.escapeHtml(sl.book.hanjaWatermark || "醫書")}</small>
-                      <span>${Store.escapeHtml(sl.tabTitle)}</span>
-                    </button>
-                  `;
+                  const isAct = idx === ui.heroSlideIdx;
+                  return `<button type="button" role="tab" aria-selected="${isAct ? "true" : "false"}" class="hero-curation-tab ${isAct ? "is-active" : ""}" data-hero-slide="${idx}">${Store.escapeHtml(sl.tabTitle || ("큐레이션 " + (idx + 1)))}</button>`;
                 }).join("")}
               </div>
             </div>
@@ -543,20 +503,21 @@
       ` : ""}
 
       <div class="store-container">
-        <!-- 한의학 분야별 서가(書架) 한자 문패 바로가기 (공통코드 실시간 연동) -->
+        <!-- 한의학 분야별 서가(書架) 바로가기 (공통코드 실시간 연동) -->
         <section class="hanui-plaque-section" aria-label="한의학 분야별 서가 바로가기">
           <div class="hanui-plaque-grid">
             ${Store.getActiveCodes(state, "BOOK_CATEGORY").map(function (cat) {
               const cnt = state.books.filter(function (b) { return b.categoryId === cat.code; }).length;
               const hanjaText = cat.hanja || String(cat.name || "").slice(0, 2);
-              const shortSub = cat.desc ? (cat.desc.length > 18 ? cat.desc.slice(0, 18) + "…" : cat.desc) : "출간 도서 서가";
+              const cleanSub = CAT_EDITORIAL_TAG[cat.code] || (cat.desc ? (cat.desc.length > 20 ? cat.desc.slice(0, 20) + "…" : cat.desc) : "출간 도서 서가");
               return `
                 <button type="button" class="hanui-plaque-card" data-goto-cat="${Store.escapeHtml(cat.code)}">
                   <span class="hanui-plaque-hanja" aria-hidden="true">${Store.escapeHtml(hanjaText)}</span>
                   <div class="hanui-plaque-text">
                     <strong>${Store.escapeHtml(cat.name)}</strong>
-                    <span>${Store.escapeHtml(shortSub)} · ${cnt}종</span>
+                    <span>${Store.escapeHtml(cleanSub)}</span>
                   </div>
+                  <em class="hanui-plaque-count">${cnt}종</em>
                 </button>
               `;
             }).join("")}
@@ -611,28 +572,30 @@
             </div>
             <button type="button" class="btn btn-sm btn-outline" data-gnb-preset="NEWEST">신간 전체 보기 →</button>
           </div>
-          <div class="form-grid-2">
+          <div class="form-grid-2 home-recommend-grid">
             ${newestBooks.map(function (book) {
               const soldOut = book.saleStatus === "OUT_OF_STOCK" || book.stockQuantity <= 0;
               return `
-                <div class="panel-card recommend-card-home" style="margin-bottom:0; display:grid; grid-template-columns: 88px minmax(0, 1fr); gap:14px; align-items:center;">
-                  <div data-open-book="${book.id}" style="cursor:pointer;">
+                <div class="panel-card recommend-card-home">
+                  <div class="recommend-card-cover" data-open-book="${book.id}">
                     ${Store.renderBookCoverHTML(book)}
                   </div>
-                  <div>
-                    <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
-                      <span class="badge badge-seal">출간 ${Store.escapeHtml(book.publishedDate)}</span>
-                      <span class="badge badge-brand">${Store.escapeHtml(book.categoryName)}</span>
+                  <div class="recommend-card-body">
+                    <div>
+                      <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+                        <span class="badge badge-seal">출간 ${Store.escapeHtml(book.publishedDate)}</span>
+                        <span class="badge badge-brand">${Store.escapeHtml(book.categoryName)}</span>
+                      </div>
+                      <h3 class="recommend-card-title" data-open-book="${book.id}">
+                        ${Store.escapeHtml(book.title)}
+                      </h3>
+                      <div class="recommend-card-meta">
+                        ${Store.escapeHtml(book.author)}${book.translator ? " · " + Store.escapeHtml(book.translator) : ""} | ${book.pageCount.toLocaleString()}쪽
+                      </div>
                     </div>
-                    <h3 style="margin:6px 0 4px; font-size:0.98rem; font-family:var(--font-serif); cursor:pointer;" data-open-book="${book.id}">
-                      ${Store.escapeHtml(book.title)}
-                    </h3>
-                    <div style="font-size:0.78rem; color:var(--color-text-muted); margin-bottom:8px;">
-                      ${Store.escapeHtml(book.author)}${book.translator ? " · " + Store.escapeHtml(book.translator) : ""} | ${book.pageCount.toLocaleString()}쪽
-                    </div>
-                    <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap;">
+                    <div class="recommend-card-foot">
                       <strong>${Store.formatKRW(book.salePrice)}</strong>
-                      <div style="display:flex; gap:6px;">
+                      <div style="display:flex; gap:6px; align-items:center;">
                         <button type="button" class="btn btn-sm btn-outline" data-open-book="${book.id}">상세보기</button>
                         <button type="button" class="btn btn-sm btn-primary" data-add-cart="${book.id}" ${soldOut ? "disabled" : ""}>${soldOut ? "품절" : "담기"}</button>
                       </div>
@@ -651,25 +614,28 @@
               <h2>학당 추천 필독 도서</h2>
               <p>입문 강의집부터 진료실 상비 처방집·전집까지 단계별로 권해드립니다</p>
             </div>
+            <button type="button" class="btn btn-sm btn-outline" data-gnb-preset="ALL">추천 도서 전체 →</button>
           </div>
-          <div class="form-grid-2">
+          <div class="form-grid-2 home-recommend-grid">
             ${recommendedBooks.map(function (book) {
               return `
-                <div class="panel-card recommend-card-home" style="margin-bottom:0; display:grid; grid-template-columns: 98px minmax(0, 1fr); gap:16px; align-items:center;">
-                  <div data-open-book="${book.id}" style="cursor:pointer;">
+                <div class="panel-card recommend-card-home recommend-card-md">
+                  <div class="recommend-card-cover" data-open-book="${book.id}">
                     ${Store.renderBookCoverHTML(book)}
                   </div>
-                  <div>
-                    <span class="badge badge-brand">${Store.escapeHtml(book.categoryName)}</span>
-                    <h3 style="margin:6px 0 4px; font-size:1rem; font-family:var(--font-serif); cursor:pointer;" data-open-book="${book.id}">
-                      ${Store.escapeHtml(book.title)}
-                    </h3>
-                    <p style="margin:0 0 10px; font-size:0.83rem; color:var(--color-text-secondary);">
-                      ${Store.escapeHtml(book.summary)}
-                    </p>
-                    <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap;">
+                  <div class="recommend-card-body">
+                    <div>
+                      <span class="badge badge-brand">${Store.escapeHtml(book.categoryName)}</span>
+                      <h3 class="recommend-card-title" data-open-book="${book.id}">
+                        ${Store.escapeHtml(book.title)}
+                      </h3>
+                      <p class="recommend-card-summary">
+                        ${Store.escapeHtml(book.summary)}
+                      </p>
+                    </div>
+                    <div class="recommend-card-foot">
                       <strong>${Store.formatKRW(book.salePrice)}</strong>
-                      <div style="display:flex; gap:6px;">
+                      <div style="display:flex; gap:6px; align-items:center;">
                         <button type="button" class="btn btn-sm btn-outline" data-open-book="${book.id}">상세보기</button>
                         <button type="button" class="btn btn-sm btn-primary" data-add-cart="${book.id}">담기</button>
                       </div>
@@ -683,37 +649,40 @@
 
         <!-- 독자 구매 후기 & 새 소식 -->
         <section class="section-block" style="padding-top: 8px;">
-          <div class="form-grid-2">
-            <div>
+          <div class="home-community-grid">
+            <div class="home-community-col">
               <div class="section-head">
                 <div>
                   <h2>독자 구매 후기</h2>
                   <p>구매 독자분들이 직접 남겨주신 생생한 서평</p>
                 </div>
+                <a href="./qna.html" class="btn btn-sm btn-outline">독자 Q&amp;A 보기 →</a>
               </div>
-              <div style="display:flex; flex-direction:column; gap:12px;">
+              <div class="home-review-stack">
                 ${visibleReviews.slice(0, 2).map(function (rv) {
                   const bk = findBook(rv.bookId);
                   return `
-                    <div class="panel-card" style="margin-bottom:0; padding:18px;">
-                      <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:6px;">
-                        <span>
-                          ${rv.isBest ? `<span class="badge badge-seal">베스트 후기</span> ` : ""}
-                          <span class="badge badge-success">★ ${rv.rating}.0</span>
-                        </span>
-                        <span style="font-size:0.78rem; color:var(--color-text-muted);">${Store.escapeHtml(rv.memberMask)}</span>
+                    <div class="panel-card home-review-card">
+                      <div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:6px;">
+                          <span style="display:inline-flex; align-items:center; gap:6px;">
+                            ${rv.isBest ? `<span class="badge badge-seal">베스트 후기</span>` : ""}
+                            <span class="badge badge-success">★ ${rv.rating}.0</span>
+                          </span>
+                          <span style="font-size:0.78rem; color:var(--color-text-muted);">${Store.escapeHtml(rv.memberMask)}</span>
+                        </div>
+                        <div class="home-review-book-link" data-open-book="${bk ? bk.id : ""}">
+                          ${bk ? Store.escapeHtml(bk.title) : ""}
+                        </div>
                       </div>
-                      <div style="font-weight:700; font-size:0.88rem; color:var(--color-brand-700); margin-bottom:6px; cursor:pointer;" data-open-book="${bk ? bk.id : ""}">
-                        ${bk ? Store.escapeHtml(bk.title) : ""}
-                      </div>
-                      <p style="margin:0; font-size:0.86rem;">${Store.escapeHtml(rv.content)}</p>
+                      <p class="home-review-excerpt">${Store.escapeHtml(rv.content)}</p>
                     </div>
                   `;
                 }).join("")}
               </div>
             </div>
 
-            <div>
+            <div class="home-community-col">
               <div class="section-head">
                 <div>
                   <h2>공지사항 · 고객센터</h2>
@@ -721,22 +690,29 @@
                 </div>
                 <button type="button" class="btn btn-sm btn-outline" data-nav="support">더보기 →</button>
               </div>
-              <div class="panel-card" style="margin-bottom:0; padding:18px;">
-                ${recentNotices.map(function (nt) {
-                  return `
-                    <div style="padding:10px 0; border-bottom:1px solid var(--color-border); display:flex; justify-content:space-between; align-items:center; gap:10px;">
-                      <button type="button" style="background:none; border:none; padding:0; text-align:left; font-size:0.9rem; font-weight:600; cursor:pointer;" data-goto-notice="${nt.id}">
-                        <span class="badge badge-brand" style="margin-right:6px;">${Store.escapeHtml(nt.category)}</span>
-                        ${Store.escapeHtml(nt.title)}
-                      </button>
-                      <span style="font-size:0.78rem; color:var(--color-text-muted); flex-shrink:0;">${nt.createdAt}</span>
-                    </div>
-                  `;
-                }).join("")}
-                <div style="margin-top:14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; background:var(--color-brand-50); padding:12px 14px; border-radius:var(--radius-sm);">
+              <div class="panel-card home-cs-panel">
+                <div class="home-notice-list">
+                  ${recentNotices.map(function (nt) {
+                    return `
+                      <div class="home-notice-row">
+                        <button type="button" class="home-notice-btn" data-goto-notice="${nt.id}">
+                          <span class="badge badge-brand" style="margin-right:6px; flex-shrink:0;">${Store.escapeHtml(nt.category)}</span>
+                          <span class="home-notice-title">${Store.escapeHtml(nt.title)}</span>
+                        </button>
+                        <span style="font-size:0.78rem; color:var(--color-text-muted); flex-shrink:0;">${nt.createdAt}</span>
+                      </div>
+                    `;
+                  }).join("")}
+                </div>
+                <div class="home-cs-shortcuts" aria-label="고객센터 빠른 안내">
+                  <a href="./faq.html" class="home-cs-shortcut-btn">자주 묻는 질문 FAQ</a>
+                  <a href="./shipping-guide.html" class="home-cs-shortcut-btn">배송 · 교환 규정</a>
+                  <a href="./qna.html" class="home-cs-shortcut-btn">독자 Q&amp;A 게시판</a>
+                </div>
+                <div class="home-cs-callout">
                   <div>
-                    <strong style="font-size:0.9rem;">전화 주문 · 대량 구매 문의: ${Store.escapeHtml(state.siteConfig.csPhone)}</strong>
-                    <div style="font-size:0.78rem; color:var(--color-text-muted);">${Store.escapeHtml(state.siteConfig.csHours)}</div>
+                    <strong style="font-size:0.9rem; display:block;">전화 주문 · 대량 구매 문의: ${Store.escapeHtml(state.siteConfig.csPhone)}</strong>
+                    <div style="font-size:0.78rem; color:var(--color-text-muted); margin-top:2px;">${Store.escapeHtml(state.siteConfig.csHours)}</div>
                   </div>
                   <button type="button" class="btn btn-sm btn-primary" data-goto-qna="1">1:1 문의 남기기</button>
                 </div>
@@ -946,8 +922,26 @@
                   <option value="8" ${ui.catalogPageSize === "8" ? "selected" : ""}>8권씩 보기</option>
                   <option value="ALL" ${ui.catalogPageSize === "ALL" ? "selected" : ""}>전체 보기</option>
                 </select>
-                <button type="button" class="btn btn-sm ${ui.viewMode === "list" ? "btn-primary" : "btn-outline"}" data-view-mode="list">목록형</button>
-                <button type="button" class="btn btn-sm ${ui.viewMode === "grid" ? "btn-primary" : "btn-outline"}" data-view-mode="grid">표지형</button>
+                <div class="catalog-view-toggle" role="group" aria-label="도서 목록 보기 방식">
+                  <button type="button" class="btn btn-sm catalog-view-btn ${ui.viewMode === "list" ? "btn-primary is-active" : "btn-outline"}" data-view-mode="list" aria-label="목록형 보기" aria-pressed="${ui.viewMode === "list" ? "true" : "false"}" title="목록형 보기">
+                    <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+                      <circle cx="4" cy="5.5" r="1.05" fill="currentColor" stroke="none" />
+                      <line x1="7.5" y1="5.5" x2="16.5" y2="5.5" />
+                      <circle cx="4" cy="10" r="1.05" fill="currentColor" stroke="none" />
+                      <line x1="7.5" y1="10" x2="16.5" y2="10" />
+                      <circle cx="4" cy="14.5" r="1.05" fill="currentColor" stroke="none" />
+                      <line x1="7.5" y1="14.5" x2="16.5" y2="14.5" />
+                    </svg>
+                  </button>
+                  <button type="button" class="btn btn-sm catalog-view-btn ${ui.viewMode === "grid" ? "btn-primary is-active" : "btn-outline"}" data-view-mode="grid" aria-label="표지형 보기" aria-pressed="${ui.viewMode === "grid" ? "true" : "false"}" title="표지형 보기">
+                    <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round" aria-hidden="true">
+                      <rect x="3.2" y="3.2" width="5.6" height="5.6" rx="1.1" />
+                      <rect x="11.2" y="3.2" width="5.6" height="5.6" rx="1.1" />
+                      <rect x="3.2" y="11.2" width="5.6" height="5.6" rx="1.1" />
+                      <rect x="11.2" y="11.2" width="5.6" height="5.6" rx="1.1" />
+                    </svg>
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -1916,13 +1910,13 @@
       `;
     } else if (activeTab === "activity") {
       subBodyHTML = `
-        <div class="form-grid-2">
-          <div class="panel-card">
+        <div class="form-grid-2 mypage-activity-grid">
+          <div class="panel-card" style="margin-bottom:0;">
             <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:12px;">
               <h3 style="margin:0; font-family:var(--font-serif); font-size:1.06rem;">내 1:1 문의 · Q&amp;A (${myQnas.length})</h3>
               <a href="./inquiry.html" class="btn btn-sm btn-outline">새 문의 쓰기 →</a>
             </div>
-            ${myQnas.length === 0 ? `<p style="color:var(--color-text-muted); font-size:0.88rem;">작성하신 문의 내역이 없습니다.</p>` : myQnas.map(function (q) {
+            ${myQnas.length === 0 ? `<p style="color:var(--color-text-muted); font-size:0.88rem; margin:0;">작성하신 문의 내역이 없습니다.</p>` : myQnas.map(function (q) {
               return `
                 <div style="padding:10px 0; border-bottom:1px solid var(--color-border);">
                   <div style="display:flex; justify-content:space-between; align-items:center; gap:6px; margin-bottom:4px;">
@@ -1935,12 +1929,12 @@
               `;
             }).join("")}
           </div>
-          <div class="panel-card">
+          <div class="panel-card" style="margin-bottom:0;">
             <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:12px;">
               <h3 style="margin:0; font-family:var(--font-serif); font-size:1.06rem;">내가 남긴 독자 서평 (${myReviews.length})</h3>
               <button type="button" class="btn btn-sm btn-outline" data-goto-cat="ALL">도서 보러가기 →</button>
             </div>
-            ${myReviews.length === 0 ? `<p style="color:var(--color-text-muted); font-size:0.88rem;">작성하신 구매 서평이 없습니다.</p>` : myReviews.map(function (rv) {
+            ${myReviews.length === 0 ? `<p style="color:var(--color-text-muted); font-size:0.88rem; margin:0;">작성하신 구매 서평이 없습니다.</p>` : myReviews.map(function (rv) {
               const bk = findBook(rv.bookId);
               return `
                 <div class="mypage-review-item" data-mypage-review-id="${Store.escapeHtml(rv.id)}" style="padding:10px 0; border-bottom:1px solid var(--color-border);">
@@ -2043,11 +2037,13 @@
                     </div>
                   ` : ""}
                 </div>
-                ${!isDefault ? `
-                  <div class="address-card-footer" style="margin-top:12px; padding-top:12px; border-top:1px solid var(--color-border); display:flex; justify-content:flex-end;">
+                <div class="address-card-footer" style="margin-top:12px; padding-top:12px; border-top:1px solid var(--color-border); display:flex; align-items:center; justify-content:flex-end; min-height:49px;">
+                  ${isDefault ? `
+                    <span style="font-size:0.8rem; color:var(--color-brand-700); font-weight:600;">주문서 작성 시 자동 선택되는 기본 배송지</span>
+                  ` : `
                     <button type="button" class="btn btn-sm btn-outline" data-set-default-address="${addr.id}" data-set-default-addr="${addr.id}">기본 배송지로 설정</button>
-                  </div>
-                ` : ""}
+                  `}
+                </div>
               </div>
             `;
           }).join("")}
@@ -2063,7 +2059,7 @@
             <p>${Store.escapeHtml(curMember.name)}님 (${Store.escapeHtml(curMember.grade || "일반회원")})의 다중 배송지록, 적립금, 활동 내역을 한눈에 관리하세요.</p>
           </div>
           <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-            <button type="button" class="btn btn-primary" data-open-address-modal="true" data-open-add-addr="true">+ 새 배송지 추가</button>
+            <button type="button" class="btn btn-sm btn-primary" data-open-address-modal="true" data-open-add-addr="true">+ 새 배송지 추가</button>
             <button type="button" class="btn btn-sm btn-outline" data-nav="orders">주문·배송 조회 (${myOrdersCount}) →</button>
           </div>
         </div>
@@ -2305,7 +2301,7 @@
       `;
     } else {
       tabBodyHTML = `
-        <div style="padding-top:16px; font-size:0.9rem; line-height:1.8; color:var(--color-text-secondary); white-space:pre-line;">${Store.escapeHtml(state.terms.shippingPolicy.content)}</div>
+        <div class="rich-book-content" style="padding-top:16px; font-size:0.9rem; line-height:1.8; color:var(--color-text-secondary);">${Store.formatTermRichHtml(state.terms.shippingPolicy)}</div>
       `;
     }
 
@@ -2858,6 +2854,14 @@
     const heroSlideBtn = e.target.closest("[data-hero-slide]");
     if (heroSlideBtn) {
       updateHeroSlideDOM(Number(heroSlideBtn.getAttribute("data-hero-slide")));
+      setupHeroCarousel();
+      return;
+    }
+
+    const heroStepBtn = e.target.closest("[data-hero-step]");
+    if (heroStepBtn) {
+      const stepDelta = Number(heroStepBtn.getAttribute("data-hero-step")) || 1;
+      updateHeroSlideDOM(ui.heroSlideIdx + stepDelta);
       setupHeroCarousel();
       return;
     }

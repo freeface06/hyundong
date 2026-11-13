@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>배너 상세 수정 — 현동서재 관리자 센터</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" />
+  <link rel="stylesheet" href="./css/tokens.css?v=20261113l" />
+  <link rel="stylesheet" href="./css/admin.css?v=20261113l" />
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg?v=20261113" />
+  <link rel="alternate icon" href="./favicon.ico?v=20261113" />
+</head>
+<body>
+
+  <!-- 모바일 드로어 배경 -->
+  <div class="admin-drawer-backdrop" id="adminDrawerBackdrop"></div>
+
+  <div class="admin-shell">
+    <!-- 좌측 사이드바 (한의학 상징 아이콘 + 간결한 직관형 메뉴) -->
+    <aside class="admin-sidebar" id="adminSidebar" aria-label="관리자 메뉴">
+      <div class="admin-sidebar-brand">
+        <div class="admin-sidebar-brand-left">
+          <img src="./images/logo-mark-light.svg" alt="현동서재 관리자 로고" class="brand-logo-mark admin-brand-logo-mark" width="38" height="38" />
+          <div>
+            <strong style="display:block; font-family:var(--font-serif); font-size:1.02rem;">현동서재 관리자</strong>
+            <span style="font-size:0.72rem; color:#cbc5b8;">한의학 도서 운영센터</span>
+          </div>
+        </div>
+        <button type="button" class="btn btn-sm btn-outline admin-mobile-close-btn" id="btnCloseAdminDrawer" style="min-height:34px; padding:0 10px;">닫기</button>
+      </div>
+
+      <div class="admin-nav-scroll">
+        <div class="admin-nav-group-label">운영 현황</div>
+        <ul class="admin-nav-list">
+          <li>
+            <a href="./admin.html?sec=dashboard" class="admin-nav-btn">
+              <span class="admin-nav-item-main">
+                <span class="admin-nav-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3.5" width="18" height="17" rx="3.5" />
+                    <path d="M6.5 13h2.3l1.7-4.2 2.6 7.4 1.9-3.2h2.5" />
+                  </svg>
+                </span>
+                <span class="admin-nav-btn-text"><strong>대시보드</strong></span>
+              </span>
+            </a>
+          </li>
+        </ul>
+
+        <div class="admin-nav-group-label">도서 · 출고</div>
+        <ul class="admin-nav-list">
+          <li>
+            <a href="./admin.html?sec=books" class="admin-nav-btn">
+              <span class="admin-nav-item-main">
+                <span class="admin-nav-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="4.5" y="3" width="15" height="18" rx="2" />
+                    <line x1="15.5" y1="3" x2="15.5" y2="21" />
+                    <line x1="15.5" y1="6.8" x2="19.5" y2="6.8" />
+                    <line x1="15.5" y1="10.8" x2="19.5" y2="10.8" />
+                    <line x1="15.5" y1="14.8" x2="19.5" y2="14.8" />
+                    <line x1="15.5" y1="18.2" x2="19.5" y2="18.2" />
+                    <rect x="7.5" y="6.5" width="3.2" height="7.5" rx="0.6" />
+                  </svg>
+                </span>
+                <span class="admin-nav-btn-text"><strong>도서 · 재고</strong></span>
+              </span>
+              <span class="badge badge-brand" id="navBookCount">0</span>
+            </a>
+          </li>
+          <li>
+            <a href="./admin.html?sec=orders" class="admin-nav-btn">
+              <span class="admin-nav-item-main">
+                <span class="admin-nav-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="4" y="8.5" width="16" height="12" rx="2.2" />
+                    <line x1="12" y1="8.5" x2="12" y2="20.5" />
+                    <line x1="4" y1="13.5" x2="20" y2="13.5" />
+                    <path d="M12 8.5C10.2 8.5 8 7.2 8 5.4c0-1.2 1-2 2.2-2 1.1 0 1.8 1.2 1.8 3.1Z" />
+                    <path d="M12 8.5c1.8 0 4-1.3 4-3.1 0-1.2-1-2-2.2-2-1.1 0-1.8 1.2-1.8 3.1Z" />
+                  </svg>
+                </span>
+                <span class="admin-nav-btn-text"><strong>주문 · 발송</strong></span>
+              </span>
+              <span class="badge badge-warning" id="navPendingShipCount">0</span>
+            </a>
+          </li>
+        </ul>
+
+        <div class="admin-nav-group-label">회원 · 소통</div>
+        <ul class="admin-nav-list">
+          <li>
+            <a href="./admin.html?sec=members" class="admin-nav-btn">
+              <span class="admin-nav-item-main">
+                <span class="admin-nav-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="7.2" r="3.4" />
+                    <path d="M5 20.2c0-3.8 3.1-6.4 7-6.4s7 2.6 7 6.4" />
+                    <path d="M9.3 14.3L12 18.2l2.7-3.9" />
+                    <line x1="12" y1="18.2" x2="13.6" y2="20.2" />
+                  </svg>
+                </span>
+                <span class="admin-nav-btn-text"><strong>회원 관리</strong></span>
+              </span>
+              <span class="badge badge-brand" id="navMemberCount">0</span>
+            </a>
+          </li>
+          <li>
+            <a href="./admin.html?sec=qna" class="admin-nav-btn">
+              <span class="admin-nav-item-main">
+                <span class="admin-nav-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 12.5v3.3a2.2 2.2 0 0 1-2.2 2.2H8.5L4.5 20.5V6.7A2.2 2.2 0 0 1 6.7 4.5h6.8" />
+                    <path d="M18.8 3.8l1.4 1.4-5.6 5.6-2.4.8.8-2.4 5.8-5.4Z" />
+                  </svg>
+                </span>
+                <span class="admin-nav-btn-text"><strong>문의 답변</strong></span>
+              </span>
+              <span class="badge badge-danger" id="navPendingQnaCount">0</span>
+            </a>
+          </li>
+          <li>
+            <a href="./admin.html?sec=boards" class="admin-nav-btn">
+              <span class="admin-nav-item-main">
+                <span class="admin-nav-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="4" y1="5.5" x2="20" y2="5.5" />
+                    <line x1="4" y1="19.5" x2="20" y2="19.5" />
+                    <path d="M9.5 5.5L12 3l2.5 2.5" />
+                    <rect x="6.2" y="5.5" width="11.6" height="14" />
+                    <line x1="9.2" y1="10" x2="14.8" y2="10" />
+                    <line x1="9.2" y1="14" x2="13.5" y2="14" />
+                  </svg>
+                </span>
+                <span class="admin-nav-btn-text"><strong>공지 · FAQ</strong></span>
+              </span>
+            </a>
+          </li>
+          <li>
+            <a href="./admin.html?sec=reviews" class="admin-nav-btn">
+              <span class="admin-nav-item-main">
+                <span class="admin-nav-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="11.5" y1="20.5" x2="11.5" y2="12.5" />
+                    <path d="M11.5 13c-2.4-2.2-2.4-5.8 0-8 2.4 2.2 2.4 5.8 0 8Z" />
+                    <path d="M11.5 16c-3.5-.2-5.8-2.4-6.2-5.2 2.9.2 5.2 2.1 6.2 5.2Z" />
+                    <path d="M11.5 16c3.5-.2 5.8-2.4 6.2-5.2-2.9.2-5.2 2.1-6.2 5.2Z" />
+                    <path d="M18.5 3.5l.6 1.5 1.5.6-1.5.6-.6 1.5-.6-1.5-1.5-.6 1.5-.6.6-1.5Z" />
+                  </svg>
+                </span>
+                <span class="admin-nav-btn-text"><strong>구매후기</strong></span>
+              </span>
+            </a>
+          </li>
+        </ul>
+
+        <div class="admin-nav-group-label">상점 설정</div>
+        <ul class="admin-nav-list">
+          <li>
+            <a href="./admin.html?sec=codes" class="admin-nav-btn">
+              <span class="admin-nav-item-main">
+                <span class="admin-nav-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3.5" y="4" width="17" height="16" rx="2" />
+                    <line x1="12" y1="4" x2="12" y2="20" />
+                    <line x1="3.5" y1="12" x2="20.5" y2="12" />
+                    <line x1="7" y1="8" x2="8.5" y2="8" />
+                    <line x1="15.5" y1="8" x2="17" y2="8" />
+                    <line x1="7" y1="16" x2="8.5" y2="16" />
+                    <line x1="15.5" y1="16" x2="17" y2="16" />
+                  </svg>
+                </span>
+                <span class="admin-nav-btn-text"><strong>분류 코드</strong></span>
+              </span>
+            </a>
+          </li>
+          <li>
+            <a href="./admin.html?sec=hero" class="admin-nav-btn">
+              <span class="admin-nav-item-main">
+                <span class="admin-nav-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2.5 8.2C7 6.8 17 6.8 21.5 8.2" />
+                    <line x1="4.5" y1="8.2" x2="4.5" y2="20" />
+                    <line x1="19.5" y1="8.2" x2="19.5" y2="20" />
+                    <rect x="7.5" y="10.8" width="9" height="9.2" rx="0.8" />
+                    <line x1="12" y1="10.8" x2="12" y2="20" />
+                    <circle cx="10.3" cy="15.2" r="0.6" fill="currentColor" />
+                    <circle cx="13.7" cy="15.2" r="0.6" fill="currentColor" />
+                  </svg>
+                </span>
+                <span class="admin-nav-btn-text"><strong>대문 관리</strong></span>
+              </span>
+            </a>
+          </li>
+          <li>
+            <a href="./admin.html?sec=banners" class="admin-nav-btn is-active">
+              <span class="admin-nav-item-main">
+                <span class="admin-nav-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="7.5" y1="3.5" x2="7.5" y2="7" />
+                    <line x1="16.5" y1="3.5" x2="16.5" y2="7" />
+                    <rect x="3" y="7" width="18" height="11.5" rx="2" />
+                    <rect x="5.8" y="9.6" width="12.4" height="6.3" rx="0.8" />
+                  </svg>
+                </span>
+                <span class="admin-nav-btn-text"><strong>배너 관리</strong></span>
+              </span>
+            </a>
+          </li>
+          <li>
+            <a href="./admin.html?sec=settings" class="admin-nav-btn">
+              <span class="admin-nav-item-main">
+                <span class="admin-nav-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="6.2" r="2.6" />
+                    <path d="M9.8 8.6L8.5 14h7l-1.3-5.4" />
+                    <rect x="5" y="14" width="14" height="3.5" rx="1.2" />
+                    <line x1="6" y1="20.5" x2="18" y2="20.5" />
+                  </svg>
+                </span>
+                <span class="admin-nav-btn-text"><strong>기본 설정</strong></span>
+              </span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="admin-sidebar-foot">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+          <div>
+            <strong id="sidebarAdminName">출판부 총괄관리자</strong>
+            <div style="font-size:0.72rem; opacity:0.78;">접속 중</div>
+          </div>
+          <a href="./admin-login.html" class="btn btn-sm btn-outline" style="min-height:32px; padding:0 10px; font-size:0.76rem;">로그아웃</a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- 우측 본문 작업 영역 -->
+    <div class="admin-workspace">
+      <header class="admin-topbar">
+        <div class="admin-topbar-left">
+          <button type="button" class="btn btn-sm btn-outline admin-mobile-menu-btn" id="btnOpenAdminDrawer">
+            ☰ 메뉴
+          </button>
+          <a href="./admin.html" class="admin-topbar-logo" aria-label="현동서재 관리자 홈">
+            <img src="./images/logo-mark.svg" alt="현동서재 관리자 로고" width="30" height="30" />
+          </a>
+          <a href="./admin.html?sec=banners" class="btn btn-sm btn-outline">← 배너 목록</a>
+          <h1 class="admin-page-title" id="bannerFormPageHeading">배너 상세 수정</h1>
+        </div>
+        <div class="admin-topbar-right">
+          <a href="./index.html" class="btn btn-sm btn-outline">쇼핑몰 보기 ↗</a>
+        </div>
+      </header>
+
+      <main class="admin-content">
+        <!-- 상단 안내 + 배너 슬롯 빠른 전환 탭 -->
+        <div class="admin-section-guide">
+          <div>
+            <h2 id="bannerGuideHeading">메인 상단 대표 배너 수정</h2>
+            <p id="bannerGuideDesc">배너 이미지, 강조 문구, 제목, 연결 도서를 편집하고 저장하면 쇼핑몰 화면에 즉시 반영됩니다.</p>
+          </div>
+          <div style="display:inline-flex; align-items:center; gap:10px; margin-left:auto; flex-shrink:0;">
+            <span style="font-size:0.84rem; font-weight:600; color:var(--color-text-secondary);">배너 노출</span>
+            <label class="switch-wrap switch-only" aria-label="쇼핑몰 배너 노출 스위치">
+              <input type="checkbox" id="bnActive" checked />
+              <span class="switch-pill"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="admin-filter-box" style="margin-bottom:18px;">
+          <div class="admin-filter-primary" id="bannerSlotTabs" role="tablist" aria-label="수정할 배너 위치 선택"></div>
+        </div>
+
+        <form id="bannerEditPageForm">
+          <!-- 1. 배너 이미지 등록 및 실시간 미리보기 -->
+          <section class="panel-card">
+            <h3 style="margin:0 0 16px; font-size:1.05rem; border-bottom:1px solid var(--color-border); padding-bottom:10px;">
+              1. 배너 이미지 등록 및 실시간 미리보기
+            </h3>
+
+            <div class="admin-2col-grid">
+              <div>
+                <div class="form-field">
+                  <label for="bnImageFileInput">배너 이미지 파일 업로드</label>
+                  <input type="file" id="bnImageFileInput" class="form-input" accept="image/*" style="padding-top:9px;" />
+                  <span style="font-size:0.78rem; color:var(--color-text-muted); margin-top:4px; display:block;">
+                    이미지 파일 선택 시 실시간 미리보기가 동작하며 Base64 DataURL로 자동 변환 저장됩니다.
+                  </span>
+                </div>
+
+                <div class="form-field" style="margin-bottom:0;">
+                  <label for="bnImageUrl">배너 이미지 URL (직접 입력 또는 파일 업로드 시 자동 채움)</label>
+                  <input type="text" id="bnImageUrl" class="form-input" placeholder="https://... 또는 images/hero-bg-pc.webp" />
+                </div>
+              </div>
+
+              <div class="banner-preview-col">
+                <label style="display:block; font-size:0.85rem; font-weight:700; color:var(--color-brand-900); margin-bottom:6px;">배너 이미지 미리보기</label>
+                <div id="bnImagePreviewContainer" style="border:1px dashed var(--color-border-strong); border-radius:var(--radius-sm); padding:14px; text-align:center; background:var(--color-bg); min-height:146px; flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px;">
+                  <img id="bnImagePreview" alt="배너 이미지 미리보기" style="max-width:100%; max-height:180px; object-fit:contain; border-radius:6px; display:none;" />
+                  <span id="bnImagePreviewEmpty" style="font-size:0.83rem; color:var(--color-text-muted);">
+                    등록된 배너 이미지가 없습니다. 좌측에서 파일을 선택하거나 이미지 URL을 입력해 주세요.
+                  </span>
+                  <button type="button" class="btn btn-sm btn-outline" id="btnClearBannerImg" style="display:none;">이미지 초기화</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 쇼핑몰 배너 합성 미리보기 -->
+            <div style="margin-top:18px;">
+              <div style="font-size:0.8rem; font-weight:700; color:var(--color-brand-700); margin-bottom:8px;">
+                실시간 배너 카드 미리보기
+              </div>
+              <div id="liveBannerCardPreview" style="background:linear-gradient(135deg, #f3f1ec 0%, #e6e1d6 100%); padding:20px 22px; border-radius:var(--radius-md); border:1px solid var(--color-border);"></div>
+            </div>
+          </section>
+
+          <!-- 2. 배너 문구 및 버튼 설정 -->
+          <section class="panel-card">
+            <h3 style="margin:0 0 16px; font-size:1.05rem; border-bottom:1px solid var(--color-border); padding-bottom:10px;">
+              2. 배너 문구 · 연결 도서 · 노출 기간 설정
+            </h3>
+
+            <div class="form-grid-2">
+              <div class="form-field">
+                <label for="bnEyebrow">상단 작은 강조 문구</label>
+                <input type="text" id="bnEyebrow" class="form-input" placeholder="예: 현동학당 · 도서출판 물고기 정본 직역 총서" />
+              </div>
+              <div class="form-field">
+                <label for="bnPeriod">노출 기간 메모</label>
+                <input type="text" id="bnPeriod" class="form-input" placeholder="예: 상시 노출 또는 2026-11-01 ~ 2026-12-31" />
+              </div>
+            </div>
+
+            <div class="form-field">
+              <label for="bnTitle">배너 메인 제목 *</label>
+              <input type="text" id="bnTitle" class="form-input" placeholder="배너에 크게 표시될 메인 제목을 입력해 주세요" required />
+            </div>
+
+            <div class="form-field">
+              <label for="bnSubtitle">보조 설명 문구</label>
+              <textarea id="bnSubtitle" class="form-input" rows="3" placeholder="메인 제목 아래에 들어갈 부연 설명을 입력해 주세요 (선택)"></textarea>
+            </div>
+
+            <div class="form-grid-2" style="margin-bottom:0;">
+              <div class="form-field" style="margin-bottom:0;">
+                <label for="bnBtnText">버튼 표시 이름</label>
+                <input type="text" id="bnBtnText" class="form-input" placeholder="예: 대표 완간세트 살펴보기" />
+              </div>
+              <div class="form-field" style="margin-bottom:0;">
+                <label for="bnTargetBookId">버튼 클릭 시 이동 대상</label>
+                <select id="bnTargetBookId" class="form-input"></select>
+              </div>
+            </div>
+          </section>
+
+          <!-- 하단 저장 액션바 -->
+          <div class="book-reg-submit-bar">
+            <div style="font-size:0.88rem; color:var(--color-text-secondary);">
+              저장 즉시 <strong>배너 관리</strong> 목록과 <strong>쇼핑몰 첫 화면</strong>에 반영됩니다.
+            </div>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+              <a href="./admin.html?sec=banners" class="btn btn-outline">취소하고 목록으로</a>
+              <button type="submit" class="btn btn-primary" id="btnSubmitBannerEdit" style="min-width:190px;">
+                배너 변경 저장
+              </button>
+            </div>
+          </div>
+        </form>
+      </main>
+
+      <footer class="admin-footer">
+        <span style="display:inline-flex; align-items:center; gap:8px;">
+          <img src="./images/logo-mark.svg" alt="현동서재 로고" width="22" height="22" style="border-radius:5px; flex-shrink:0;" />
+          <span>현동서재 운영 관리자 센터 · 도서출판 물고기 · 현동학당</span>
+        </span>
+        <span>Copyright © <span class="js-current-year">2026</span> 현동서재 (도서출판 물고기 · 현동학당). All rights reserved.</span>
+      </footer>
+    </div>
+  </div>
+
+  <!-- 모바일 하단 빠른 이동 탭바 -->
+  <nav class="admin-mobile-bottom-bar" aria-label="관리자 모바일 빠른 메뉴">
+    <a href="./admin.html?sec=dashboard" class="admin-mob-tab" style="display:flex;align-items:center;justify-content:center;">대시보드</a>
+    <a href="./admin.html?sec=books" class="admin-mob-tab" style="display:flex;align-items:center;justify-content:center;">도서관리</a>
+    <a href="./admin.html?sec=orders" class="admin-mob-tab" style="display:flex;align-items:center;justify-content:center;">주문·발송</a>
+    <a href="./admin.html?sec=qna" class="admin-mob-tab" style="display:flex;align-items:center;justify-content:center;">문의답변</a>
+    <button type="button" class="admin-mob-tab" id="btnMobMoreMenu">전체메뉴 ☰</button>
+  </nav>
+
+  <script src="./js/mock-data.js?v=20261113l"></script>
+  <script src="./js/admin-banner-form.js?v=20261113l"></script>
+</body>
+</html>

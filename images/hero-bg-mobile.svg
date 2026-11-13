@@ -1,76 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 750 1200" width="750" height="1200" preserveAspectRatio="xMidYMid slice">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 750 1200" width="750" height="1200">
   <defs>
-    <!-- Background Hanji Gradient -->
-    <linearGradient id="hanjiMobGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#faf7f0"/>
-      <stop offset="35%" stop-color="#f4eee3"/>
-      <stop offset="70%" stop-color="#ebe2d4"/>
-      <stop offset="100%" stop-color="#dfd4c2"/>
+    <linearGradient id="hanjiMobBg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f8f5ee"/>
+      <stop offset="68%" stop-color="#efe9dd"/>
+      <stop offset="100%" stop-color="#ded5c4"/>
     </linearGradient>
-
-    <!-- Mobile Mountain Gradients using #918a7d -->
-    <linearGradient id="mtnMobGrad1" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#918a7d" stop-opacity="0.18"/>
-      <stop offset="60%" stop-color="#918a7d" stop-opacity="0.08"/>
-      <stop offset="100%" stop-color="#f4eee3" stop-opacity="0"/>
-    </linearGradient>
-
-    <linearGradient id="mtnMobGrad2" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#787165" stop-opacity="0.16"/>
-      <stop offset="70%" stop-color="#787165" stop-opacity="0.05"/>
-      <stop offset="100%" stop-color="#ebe2d4" stop-opacity="0"/>
-    </linearGradient>
-
-    <!-- Hanji Fiber Pattern -->
-    <pattern id="hanjiFiberMob" width="120" height="120" patternUnits="userSpaceOnUse">
-      <path d="M10,20 Q40,26 70,14 T110,22" stroke="#918a7d" stroke-width="0.5" stroke-opacity="0.07" fill="none"/>
-      <path d="M20,60 Q50,70 80,55 T120,65" stroke="#787165" stroke-width="0.4" stroke-opacity="0.06" fill="none"/>
-      <circle cx="35" cy="40" r="1" fill="#918a7d" fill-opacity="0.06"/>
-      <circle cx="90" cy="85" r="1.1" fill="#787165" fill-opacity="0.05"/>
-    </pattern>
-
-    <radialGradient id="sunGlowMob" cx="30%" cy="20%" r="55%">
-      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.8"/>
-      <stop offset="60%" stop-color="#fdfbf6" stop-opacity="0.25"/>
-      <stop offset="100%" stop-color="#f4eee3" stop-opacity="0"/>
-    </radialGradient>
   </defs>
-
-  <!-- Base Hanji Texture Background -->
-  <rect width="750" height="1200" fill="url(#hanjiMobGrad)"/>
-  <rect width="750" height="1200" fill="url(#hanjiFiberMob)"/>
-  <rect width="750" height="1200" fill="url(#sunGlowMob)"/>
-
-  <!-- Distant Mountain Ridge 1 -->
-  <path d="M-20,780 C120,680 240,740 420,660 C580,590 680,690 770,640 L770,1200 L-20,1200 Z" fill="url(#mtnMobGrad1)"/>
-
-  <!-- Mid-distance Mountain Ridge 2 -->
-  <path d="M-10,870 C140,790 320,860 510,780 C630,730 710,810 770,770 L770,1200 L-10,1200 Z" fill="url(#mtnMobGrad2)"/>
-
-  <!-- Botanical Medicinal Herb Silhouettes Left (본초 약초문) -->
-  <g transform="translate(18, 760)" stroke="#787165" stroke-opacity="0.28" fill="none">
-    <path d="M50,420 C56,310 75,200 125,90" stroke-width="2.2" stroke-linecap="round"/>
-    <path d="M95,260 C70,230 45,210 52,175 C78,182 92,215 95,260 Z" stroke-width="1.5" fill="#918a7d" fill-opacity="0.12"/>
-    <path d="M110,210 C138,198 160,178 162,148 C138,158 120,185 110,210 Z" stroke-width="1.5" fill="#918a7d" fill-opacity="0.12"/>
-    <circle cx="128" cy="85" r="4.2" fill="#8c3a32" fill-opacity="0.65" stroke="none"/>
-    <circle cx="137" cy="92" r="3.4" fill="#8c3a32" fill-opacity="0.55" stroke="none"/>
-    <circle cx="122" cy="96" r="2.8" fill="#8c3a32" fill-opacity="0.50" stroke="none"/>
-  </g>
-
-  <!-- Right Accent Leaf Silhouette -->
-  <g transform="translate(620, 850)" stroke="#787165" stroke-opacity="0.20" fill="none">
-    <path d="M60,340 C52,250 35,160 5,60" stroke-width="1.8" stroke-linecap="round"/>
-    <path d="M30,200 C50,175 68,155 64,120 C42,130 32,160 30,200 Z" stroke-width="1.3" fill="#918a7d" fill-opacity="0.10"/>
-    <circle cx="3" cy="55" r="3.5" fill="#8c3a32" fill-opacity="0.55" stroke="none"/>
-  </g>
-
-  <!-- Top-Right Calligraphy Stamp -->
-  <g transform="translate(680, 50)" opacity="0.13">
-    <text x="0" y="0" font-family="'Noto Serif KR', 'Batang', serif" font-weight="700" font-size="16" fill="#2c2925" letter-spacing="0.35em" writing-mode="vertical-rl">
-      玄同書齋 · 正本直譯
-    </text>
-  </g>
-
-  <!-- Bottom Border Trim -->
-  <line x1="0" y1="1197" x2="750" y2="1197" stroke="#918a7d" stroke-width="2" stroke-opacity="0.25"/>
+  <rect width="750" height="1200" fill="url(#hanjiMobBg)"/>
 </svg>

@@ -742,6 +742,28 @@
     if (hash) {
       b.coverImage = "https://www.hyundong.co.kr/data/book_img/" + hash + ".jpg";
       b.coverThumb = "https://www.hyundong.co.kr/data/book_img/thumb-" + hash + "_98x142.jpg";
+      if (b.id === "BK-001") {
+        b.galleryImages = [
+          {
+            url: b.coverImage,
+            thumb: b.coverThumb,
+            label: "대표 표지 (전4권 세트)"
+          },
+          {
+            url: "https://www.hyundong.co.kr/data/book_img/635be3bebed40948478bd7e5903c1633.jpg",
+            thumb: "https://www.hyundong.co.kr/data/book_img/thumb-635be3bebed40948478bd7e5903c1633_98x142.jpg",
+            label: "내경편 단권 표지"
+          }
+        ];
+      } else {
+        b.galleryImages = [
+          {
+            url: b.coverImage,
+            thumb: b.coverThumb,
+            label: "대표 표지"
+          }
+        ];
+      }
     }
     return b;
   });
@@ -782,6 +804,107 @@
       targetBookId: "BK-003",
       period: "2026-11-01 ~ 2026-12-31",
       active: true
+    }
+  ];
+
+  const PRESET_CURATION_IMAGES = [
+    {
+      id: "PRESET-01",
+      label: "동의보감 전4권 원목 케이스 세트",
+      url: "./images/curation-01.webp"
+    },
+    {
+      id: "PRESET-02",
+      label: "현동의감 전5권 서재 양장본",
+      url: "./images/curation-02.webp"
+    },
+    {
+      id: "PRESET-03",
+      label: "본초 약재 · 실전 처방 고서",
+      url: "./images/curation-03.webp"
+    },
+    {
+      id: "PRESET-04",
+      label: "경락 도해 · 벼루와 맥진 고서",
+      url: "./images/curation-04.webp"
+    },
+    {
+      id: "PRESET-05",
+      label: "전통 한의학 서재 · 강독 풍경",
+      url: "./images/curation-05.webp"
+    }
+  ];
+
+  const INITIAL_HERO_CONFIG = {
+    enabled: true,
+    autoPlay: true
+  };
+
+  const INITIAL_HERO_CURATIONS = [
+    {
+      id: "CUR-01",
+      tabTitle: "동의보감 완간세트",
+      title: "현동직역 동의보감\n전4권 완간 양장세트",
+      subtitle: "허준 원문 한 글자의 가감 없는 정본 직역 · 전용 원목풍 보관 케이스 증정",
+      imageUrl: "./images/curation-01.webp",
+      bgColor: "#1b1917",
+      targetType: "BOOK",
+      targetBookId: "BK-001",
+      linkUrl: "",
+      active: true,
+      sortOrder: 1
+    },
+    {
+      id: "CUR-02",
+      tabTitle: "현동의감 전5권",
+      title: "임상 변증의 정수\n현동의감 전5권 완간",
+      subtitle: "병인병기부터 사진맥진 · 난치 질환 치법까지 집대성한 임상 지침서",
+      imageUrl: "./images/curation-02.webp",
+      bgColor: "#1f1c19",
+      targetType: "BOOK",
+      targetBookId: "BK-002",
+      linkUrl: "",
+      active: true,
+      sortOrder: 2
+    },
+    {
+      id: "CUR-03",
+      tabTitle: "실전 현동처방집",
+      title: "진료실 상비 필독서\n현동처방집 상·하 세트",
+      subtitle: "다빈도 핵심 처방의 배오 원리와 병증별 가감 운용법 수록",
+      imageUrl: "./images/curation-03.webp",
+      bgColor: "#1d1a17",
+      targetType: "BOOK",
+      targetBookId: "BK-003",
+      linkUrl: "",
+      active: true,
+      sortOrder: 3
+    },
+    {
+      id: "CUR-04",
+      tabTitle: "정통 맥진·진단학",
+      title: "손끝으로 읽는 병기\n찬도방론맥결집성 직역",
+      subtitle: "24맥상 형상과 장부 허실 감별 기준을 도해로 밝힌 맥진 고전",
+      imageUrl: "./images/curation-04.webp",
+      bgColor: "#191b1a",
+      targetType: "BOOK",
+      targetBookId: "BK-005",
+      linkUrl: "",
+      active: true,
+      sortOrder: 4
+    },
+    {
+      id: "CUR-05",
+      tabTitle: "한의원 직판 혜택",
+      title: "출판부 직영 서점\n학술 의서 특별 혜택",
+      subtitle: "5만원 이상 무료배송 · 평일 오후 3시 당일발송 · 지출증빙 즉시 발행",
+      imageUrl: "./images/curation-05.webp",
+      bgColor: "#201c19",
+      targetType: "URL",
+      targetBookId: "",
+      linkUrl: "./index.html?view=catalog",
+      active: true,
+      sortOrder: 5
     }
   ];
 
@@ -1246,17 +1369,20 @@
     serviceTerms: {
       title: "서비스 이용약관 (필수)",
       updatedAt: "2026-10-01",
-      content: "제1조 (목적)\n이 약관은 도서출판 물고기(이하 '회사')가 운영하는 현동서재 온라인 서점에서 제공하는 도서 구매 및 관련 서비스의 이용 조건과 절차를 규정함을 목적으로 합니다.\n\n제2조 (회원가입 및 계정 관리)\n1. 이용자는 회사가 정한 가입 양식에 따라 회원정보를 기입한 후 본 약관에 동의함으로써 회원가입을 신청합니다.\n2. 회원은 등록사항에 변경이 있는 경우 마이페이지 또는 고객센터를 통해 수정할 수 있습니다.\n\n제3조 (주문 및 배송)\n1. 회사는 결제(무통장 입금 확인 포함) 완료 후 영업일 기준 1~2일 이내에 도서를 발송합니다.\n2. 천재지변 또는 일시 품절 사유 발생 시 지체 없이 사유를 안내하고 환불 또는 재입고 일정을 고지합니다."
+      content: "제1조 (목적)\n이 약관은 도서출판 물고기(이하 '회사')가 운영하는 현동서재 온라인 서점에서 제공하는 도서 구매 및 관련 서비스의 이용 조건과 절차를 규정함을 목적으로 합니다.\n\n제2조 (회원가입 및 계정 관리)\n1. 이용자는 회사가 정한 가입 양식에 따라 회원정보를 기입한 후 본 약관에 동의함으로써 회원가입을 신청합니다.\n2. 회원은 등록사항에 변경이 있는 경우 마이페이지 또는 고객센터를 통해 수정할 수 있습니다.\n\n제3조 (주문 및 배송)\n1. 회사는 결제(무통장 입금 확인 포함) 완료 후 영업일 기준 1~2일 이내에 도서를 발송합니다.\n2. 천재지변 또는 일시 품절 사유 발생 시 지체 없이 사유를 안내하고 환불 또는 재입고 일정을 고지합니다.",
+      contentHtml: "<h3>제1조 (목적)</h3><p>이 약관은 도서출판 물고기(이하 '회사')가 운영하는 현동서재 온라인 서점에서 제공하는 도서 구매 및 관련 서비스의 이용 조건과 절차를 규정함을 목적으로 합니다.</p><h3>제2조 (회원가입 및 계정 관리)</h3><ol><li>이용자는 회사가 정한 가입 양식에 따라 회원정보를 기입한 후 본 약관에 동의함으로써 회원가입을 신청합니다.</li><li>회원은 등록사항에 변경이 있는 경우 마이페이지 또는 고객센터를 통해 수정할 수 있습니다.</li></ol><h3>제3조 (주문 및 배송)</h3><ol><li>회사는 결제(무통장 입금 확인 포함) 완료 후 영업일 기준 1~2일 이내에 도서를 발송합니다.</li><li>천재지변 또는 일시 품절 사유 발생 시 지체 없이 사유를 안내하고 환불 또는 재입고 일정을 고지합니다.</li></ol>"
     },
     privacyPolicy: {
       title: "개인정보 수집 및 이용 동의 (필수)",
       updatedAt: "2026-10-01",
-      content: "1. 수집하는 개인정보 항목\n- 회원가입 시: 아이디, 비밀번호, 이름, 휴대폰 번호, 이메일 주소, 회원 구분\n- 도서 주문 시: 수령인 성명, 연락처, 배송지 주소, 결제 및 현금영수증 정보\n\n2. 수집 및 이용 목적\n- 도서 주문 접수, 택배 발송, 배송 조회 안내 및 고객 상담 응대\n- 구매 적립금 부여 및 세금계산서/영수증 발급 처리\n\n3. 보유 및 이용 기간\n- 회원 탈퇴 시 지체 없이 파기합니다. 단, 전자상거래 등에서의 소비자보호에 관한 법률에 따라 계약·결제 및 배송 기록은 5년간 안전하게 보관 후 파기합니다."
+      content: "1. 수집하는 개인정보 항목\n- 회원가입 시: 아이디, 비밀번호, 이름, 휴대폰 번호, 이메일 주소, 회원 구분\n- 도서 주문 시: 수령인 성명, 연락처, 배송지 주소, 결제 및 현금영수증 정보\n\n2. 수집 및 이용 목적\n- 도서 주문 접수, 택배 발송, 배송 조회 안내 및 고객 상담 응대\n- 구매 적립금 부여 및 세금계산서/영수증 발급 처리\n\n3. 보유 및 이용 기간\n- 회원 탈퇴 시 지체 없이 파기합니다. 단, 전자상거래 등에서의 소비자보호에 관한 법률에 따라 계약·결제 및 배송 기록은 5년간 안전하게 보관 후 파기합니다.",
+      contentHtml: "<h3>1. 수집하는 개인정보 항목</h3><ul><li><strong>회원가입 시:</strong> 아이디, 비밀번호, 이름, 휴대폰 번호, 이메일 주소, 회원 구분</li><li><strong>도서 주문 시:</strong> 수령인 성명, 연락처, 배송지 주소, 결제 및 현금영수증 정보</li></ul><h3>2. 수집 및 이용 목적</h3><ul><li>도서 주문 접수, 택배 발송, 배송 조회 안내 및 고객 상담 응대</li><li>구매 적립금 부여 및 세금계산서/영수증 발급 처리</li></ul><h3>3. 보유 및 이용 기간</h3><p>회원 탈퇴 시 지체 없이 파기합니다. 단, 전자상거래 등에서의 소비자보호에 관한 법률에 따라 계약·결제 및 배송 기록은 <strong>5년간 안전하게 보관 후 파기</strong>합니다.</p>"
     },
     shippingPolicy: {
       title: "배송 · 교환 · 반품 안내",
       updatedAt: "2026-10-15",
-      content: "· 발송 택배사: 로젠택배 (고객센터 1588-9988) (서울 중랑구 현동학당 출판부 직접 검수 발송)\n· 운송장 배송조회: 도서 발송 시 [주문·배송] 화면에 로젠택배 운송장 번호가 등록되며, 로젠택배 공식 배송조회 웹페이지(https://www.ilogen.com/web/personal/tkSearch)에서 고객님이 직접 상세 배송 현황을 조회하실 수 있습니다.\n· 배송비 안내: 실결제 금액 50,000원 이상 무료배송 (50,000원 미만 시 3,500원)\n· 출고 마감: 평일 오후 3시 이전 입금·결제 완료 건 당일 발송\n· 교환 및 반품: 인쇄 파본·낙장 또는 배송 중 파손 발견 시 수령일로부터 14일 이내 100% 출판사 부담 새 책 교환 (단순 변심 반품은 미개봉 새 책 상태에 한해 수령 후 7일 이내 가능)"
+      content: "· 발송 택배사: 로젠택배 (고객센터 1588-9988) (서울 중랑구 현동학당 출판부 직접 검수 발송)\n· 운송장 배송조회: 도서 발송 시 [주문·배송] 화면에 로젠택배 운송장 번호가 등록되며, 로젠택배 공식 배송조회 웹페이지(https://www.ilogen.com/web/personal/tkSearch)에서 고객님이 직접 상세 배송 현황을 조회하실 수 있습니다.\n· 배송비 안내: 실결제 금액 50,000원 이상 무료배송 (50,000원 미만 시 3,500원)\n· 출고 마감: 평일 오후 3시 이전 입금·결제 완료 건 당일 발송\n· 교환 및 반품: 인쇄 파본·낙장 또는 배송 중 파손 발견 시 수령일로부터 14일 이내 100% 출판사 부담 새 책 교환 (단순 변심 반품은 미개봉 새 책 상태에 한해 수령 후 7일 이내 가능)",
+      contentHtml: "<h3>출고 및 배송 안내</h3><ul><li><strong>발송 택배사:</strong> 로젠택배 (고객센터 1588-9988 · 서울 중랑구 현동학당 출판부 직접 검수 발송)</li><li><strong>운송장 배송조회:</strong> 도서 발송 시 [주문·배송] 화면에 로젠택배 운송장 번호가 등록되며, 로젠택배 공식 배송조회 웹페이지(https://www.ilogen.com/web/personal/tkSearch)에서 고객님이 직접 상세 배송 현황을 조회하실 수 있습니다.</li><li><strong>배송비 안내:</strong> 실결제 금액 50,000원 이상 무료배송 (50,000원 미만 시 3,500원)</li><li><strong>출고 마감:</strong> 평일 오후 3시 이전 입금·결제 완료 건 당일 발송</li></ul><h3>교환 및 반품 기준</h3><p>인쇄 파본·낙장 또는 배송 중 파손 발견 시 수령일로부터 <strong>14일 이내 100% 출판사 부담 새 책 교환</strong>을 진행합니다. (단순 변심 반품은 미개봉 새 책 상태에 한해 수령 후 7일 이내 가능)</p>"
     }
   };
 
@@ -1291,6 +1417,22 @@
       next.isSet = next.bookTypeCode !== "SINGLE";
       next.categoryName = getCodeLabel(mockState, "BOOK_CATEGORY", next.categoryId, next.categoryName);
       next.bookTypeName = getCodeLabel(mockState, "BOOK_TYPE", next.bookTypeCode, next.isSet ? "전집 · 세트 상품" : "단권 도서");
+      if (!Array.isArray(next.galleryImages)) {
+        if (next.id === "BK-001" && next.coverImage) {
+          next.galleryImages = [
+            { url: next.coverImage, thumb: next.coverThumb || next.coverImage, label: "대표 표지 (전4권 세트)" },
+            {
+              url: "https://www.hyundong.co.kr/data/book_img/635be3bebed40948478bd7e5903c1633.jpg",
+              thumb: "https://www.hyundong.co.kr/data/book_img/thumb-635be3bebed40948478bd7e5903c1633_98x142.jpg",
+              label: "내경편 단권 표지"
+            }
+          ];
+        } else if (next.coverImage) {
+          next.galleryImages = [{ url: next.coverImage, thumb: next.coverThumb || next.coverImage, label: "대표 표지" }];
+        } else {
+          next.galleryImages = [];
+        }
+      }
       return next;
     });
   }
@@ -1300,6 +1442,8 @@
     return {
       codeGroups: codeGroups,
       books: normalizeBooks(JSON.parse(JSON.stringify(INITIAL_BOOKS)), codeGroups),
+      heroConfig: JSON.parse(JSON.stringify(INITIAL_HERO_CONFIG)),
+      heroCurations: JSON.parse(JSON.stringify(INITIAL_HERO_CURATIONS)),
       banners: JSON.parse(JSON.stringify(INITIAL_BANNERS)),
       notices: JSON.parse(JSON.stringify(INITIAL_NOTICES)),
       faqs: JSON.parse(JSON.stringify(INITIAL_FAQS)),
@@ -1435,6 +1579,34 @@
       merged.books = normalizeBooks(merged.books, merged.codeGroups);
       merged.orders = normalizeOrders(merged.orders);
       merged.members = normalizeMembers(merged.members);
+      if (!merged.heroConfig || typeof merged.heroConfig !== "object") {
+        merged.heroConfig = JSON.parse(JSON.stringify(INITIAL_HERO_CONFIG));
+      } else {
+        if (typeof merged.heroConfig.enabled !== "boolean") merged.heroConfig.enabled = true;
+        if (typeof merged.heroConfig.autoPlay !== "boolean") merged.heroConfig.autoPlay = true;
+      }
+      if (!Array.isArray(merged.heroCurations) || merged.heroCurations.length === 0) {
+        merged.heroCurations = JSON.parse(JSON.stringify(INITIAL_HERO_CURATIONS));
+      } else {
+        merged.heroCurations = merged.heroCurations.map(function (c, idx) {
+          const fallback = INITIAL_HERO_CURATIONS[idx % INITIAL_HERO_CURATIONS.length];
+          return Object.assign({}, fallback, c, {
+            id: c.id || ("CUR-" + String(idx + 1).padStart(2, "0")),
+            tabTitle: String(c.tabTitle != null ? c.tabTitle : fallback.tabTitle),
+            title: String(c.title != null ? c.title : fallback.title),
+            subtitle: String(c.subtitle != null ? c.subtitle : ""),
+            imageUrl: String(c.imageUrl != null ? c.imageUrl : fallback.imageUrl),
+            bgColor: String(c.bgColor || fallback.bgColor || "#1b1917"),
+            targetType: c.targetType === "URL" ? "URL" : "BOOK",
+            targetBookId: String(c.targetBookId != null ? c.targetBookId : ""),
+            linkUrl: String(c.linkUrl != null ? c.linkUrl : ""),
+            active: c.active !== false,
+            sortOrder: Number.isFinite(Number(c.sortOrder)) ? Number(c.sortOrder) : (idx + 1)
+          });
+        }).sort(function (a, b) {
+          return Number(a.sortOrder || 0) - Number(b.sortOrder || 0);
+        });
+      }
       if (Array.isArray(merged.banners)) {
         merged.banners.forEach(function (bn) {
           if (
@@ -1624,6 +1796,38 @@
     }, true);
   }
 
+  function getBookGalleryImages(book) {
+    if (!book) return [];
+    const seen = {};
+    const list = [];
+    function pushItem(url, thumb, label) {
+      const cleanUrl = String(url || "").trim();
+      if (!cleanUrl || seen[cleanUrl]) return;
+      seen[cleanUrl] = true;
+      list.push({
+        url: cleanUrl,
+        thumb: String(thumb || cleanUrl).trim(),
+        label: String(label || (list.length === 0 ? "대표 표지" : `추가 이미지 ${list.length + 1}`)).trim()
+      });
+    }
+    if (book.coverImage) {
+      const firstLabel = Array.isArray(book.galleryImages) && book.galleryImages[0] && book.galleryImages[0].label
+        ? book.galleryImages[0].label
+        : "대표 표지";
+      pushItem(book.coverImage, book.coverThumb || book.coverImage, firstLabel);
+    }
+    if (Array.isArray(book.galleryImages)) {
+      book.galleryImages.forEach(function (item, idx) {
+        if (typeof item === "string") {
+          pushItem(item, item, idx === 0 ? "대표 표지" : `추가 이미지 ${idx + 1}`);
+        } else if (item && item.url) {
+          pushItem(item.url, item.thumb || item.url, item.label || (idx === 0 ? "대표 표지" : `추가 이미지 ${idx + 1}`));
+        }
+      });
+    }
+    return list;
+  }
+
   function renderBookCoverHTML(book) {
     const setRibbon = book.setBadge
       ? `<span class="book-set-ribbon">${escapeHtml(book.setBadge)}</span>`
@@ -1698,6 +1902,31 @@
       });
     });
     return doc.body.innerHTML;
+  }
+
+  function formatTermRichHtml(termObj) {
+    if (!termObj) return "";
+    if (termObj.contentHtml && String(termObj.contentHtml).trim()) {
+      return sanitizeRichHtml(termObj.contentHtml);
+    }
+    const raw = String(termObj.content || "").trim();
+    if (!raw) return "";
+    if (/<[a-z][\s\S]*>/i.test(raw)) {
+      return sanitizeRichHtml(raw);
+    }
+    const blocks = raw.split(/\n{2,}/);
+    return blocks
+      .map(function (blk) {
+        const lines = blk.split("\n").map(function (l) { return l.trim(); }).filter(Boolean);
+        if (!lines.length) return "";
+        const first = lines[0];
+        if (/^(제\s*\d+\s*조|\d+\.\s)/.test(first) && lines.length > 1) {
+          const rest = lines.slice(1).map(escapeHtml).join("<br/>");
+          return `<h3>${escapeHtml(first)}</h3><p>${rest}</p>`;
+        }
+        return `<p>${lines.map(escapeHtml).join("<br/>")}</p>`;
+      })
+      .join("");
   }
 
   function escapeHtml(str) {
@@ -2265,12 +2494,29 @@
             <button type="button" class="suggest-clear-btn" data-close-quick-recent="true">닫기</button>
           </div>
           ${recents.length ? `
-            <div style="display:flex; flex-direction:column; gap:8px; max-height:240px; overflow-y:auto;">
+            <div class="quick-recent-list">
               ${recents.slice(0, 5).map(function (b) {
+                const thumbSrc = (b.coverImage && b.coverImage.indexOf("data:image/") === 0)
+                  ? b.coverImage
+                  : (b.coverThumb || b.coverImage || "");
+                const fallbackSrc = b.coverImage || "";
+                const hasPhotoClass = thumbSrc ? " has-real-photo" : "";
+                const imgTag = thumbSrc
+                  ? `<img class="book-real-img" src="${escapeHtml(thumbSrc)}" data-fallback="${escapeHtml(fallbackSrc)}" alt="${escapeHtml(b.title)} 표지" />`
+                  : "";
                 return `
                   <a href="./book-detail.html?id=${encodeURIComponent(b.id)}" class="quick-recent-item">
-                    <span class="quick-recent-title">${escapeHtml(b.title)}</span>
-                    <span class="quick-recent-price">${formatKRW(b.salePrice)}</span>
+                    <span class="quick-recent-thumb${hasPhotoClass}">
+                      ${imgTag}
+                      <span class="quick-recent-thumb-fallback">${escapeHtml((b.hanjaWatermark || b.title || "冊").slice(0, 2))}</span>
+                    </span>
+                    <span class="quick-recent-meta">
+                      <span class="quick-recent-title">${escapeHtml(b.title)}</span>
+                      <span class="quick-recent-sub">
+                        <span class="quick-recent-cat">${escapeHtml(b.categoryName || "")}</span>
+                        <span class="quick-recent-price">${formatKRW(b.salePrice)}</span>
+                      </span>
+                    </span>
                   </a>
                 `;
               }).join("")}
@@ -2759,6 +3005,128 @@
     mountQuickFloatingBar();
   }
 
+  /* ==========================================================================
+     One-Way Salted Password Hashing & CSPRNG Temporary Password Helpers
+     (Pure-JS SHA-256 64-round salted digest — works over both https:// and file://)
+     ========================================================================== */
+  const SHA256_K = [
+    0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+    0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+    0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+    0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+    0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+    0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+    0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+    0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
+  ];
+
+  function rotr32(n, x) {
+    return (x >>> n) | (x << (32 - n));
+  }
+
+  function sha256Hex(asciiText) {
+    const bytes = typeof TextEncoder !== "undefined"
+      ? Array.from(new TextEncoder().encode(String(asciiText)))
+      : Array.from(unescape(encodeURIComponent(String(asciiText)))).map(function (c) { return c.charCodeAt(0); });
+    const bitLen = bytes.length * 8;
+    bytes.push(0x80);
+    while ((bytes.length % 64) !== 56) bytes.push(0);
+    const hi = Math.floor(bitLen / 0x100000000);
+    const lo = bitLen >>> 0;
+    bytes.push((hi >>> 24) & 0xff, (hi >>> 16) & 0xff, (hi >>> 8) & 0xff, hi & 0xff);
+    bytes.push((lo >>> 24) & 0xff, (lo >>> 16) & 0xff, (lo >>> 8) & 0xff, lo & 0xff);
+
+    let h0 = 0x6a09e667, h1 = 0xbb67ae85, h2 = 0x3c6ef372, h3 = 0xa54ff53a;
+    let h4 = 0x510e527f, h5 = 0x9b05688c, h6 = 0x1f83d9ab, h7 = 0x5be0cd19;
+    const w = new Array(64);
+
+    for (let i = 0; i < bytes.length; i += 64) {
+      for (let t = 0; t < 16; t++) {
+        const j = i + t * 4;
+        w[t] = ((bytes[j] << 24) | (bytes[j + 1] << 16) | (bytes[j + 2] << 8) | bytes[j + 3]) >>> 0;
+      }
+      for (let t = 16; t < 64; t++) {
+        const s0 = (rotr32(7, w[t - 15]) ^ rotr32(18, w[t - 15]) ^ (w[t - 15] >>> 3)) >>> 0;
+        const s1 = (rotr32(17, w[t - 2]) ^ rotr32(19, w[t - 2]) ^ (w[t - 2] >>> 10)) >>> 0;
+        w[t] = (w[t - 16] + s0 + w[t - 7] + s1) >>> 0;
+      }
+      let a = h0, b = h1, c = h2, d = h3, e = h4, f = h5, g = h6, h = h7;
+      for (let t = 0; t < 64; t++) {
+        const S1 = (rotr32(6, e) ^ rotr32(11, e) ^ rotr32(25, e)) >>> 0;
+        const ch = ((e & f) ^ ((~e) & g)) >>> 0;
+        const temp1 = (h + S1 + ch + SHA256_K[t] + w[t]) >>> 0;
+        const S0 = (rotr32(2, a) ^ rotr32(13, a) ^ rotr32(22, a)) >>> 0;
+        const maj = ((a & b) ^ (a & c) ^ (b & c)) >>> 0;
+        const temp2 = (S0 + maj) >>> 0;
+        h = g; g = f; f = e; e = (d + temp1) >>> 0;
+        d = c; c = b; b = a; a = (temp1 + temp2) >>> 0;
+      }
+      h0 = (h0 + a) >>> 0; h1 = (h1 + b) >>> 0; h2 = (h2 + c) >>> 0; h3 = (h3 + d) >>> 0;
+      h4 = (h4 + e) >>> 0; h5 = (h5 + f) >>> 0; h6 = (h6 + g) >>> 0; h7 = (h7 + h) >>> 0;
+    }
+
+    return [h0, h1, h2, h3, h4, h5, h6, h7].map(function (v) {
+      return ("00000000" + (v >>> 0).toString(16)).slice(-8);
+    }).join("");
+  }
+
+  function randomHexSalt(byteLen) {
+    const arr = new Uint8Array(byteLen || 12);
+    if (typeof window !== "undefined" && window.crypto && window.crypto.getRandomValues) {
+      window.crypto.getRandomValues(arr);
+    } else {
+      for (let i = 0; i < arr.length; i++) arr[i] = Math.floor(Math.random() * 256);
+    }
+    return Array.from(arr).map(function (b) { return ("00" + b.toString(16)).slice(-2); }).join("");
+  }
+
+  function hashPassword(plain, explicitSalt) {
+    const salt = explicitSalt || randomHexSalt(12);
+    let digest = sha256Hex(salt + ":" + String(plain || ""));
+    for (let r = 0; r < 64; r++) {
+      digest = sha256Hex(salt + ":" + digest + ":" + r);
+    }
+    return "sha256v1$" + salt + "$" + digest;
+  }
+
+  function verifyPassword(member, plain) {
+    if (!plain) return false;
+    if (!member) return true;
+    if (member.passwordHash && String(member.passwordHash).indexOf("sha256v1$") === 0) {
+      const parts = String(member.passwordHash).split("$");
+      if (parts.length !== 3) return false;
+      const expected = hashPassword(plain, parts[1]);
+      if (expected.length !== member.passwordHash.length) return false;
+      let diff = 0;
+      for (let i = 0; i < expected.length; i++) {
+        diff |= expected.charCodeAt(i) ^ member.passwordHash.charCodeAt(i);
+      }
+      return diff === 0;
+    }
+    if (member.password) {
+      return member.password === plain;
+    }
+    return true;
+  }
+
+  function generateTempPassword() {
+    const chars = "abcdefghjkmnpqrstuvwxyz23456789";
+    const bytes = new Uint8Array(8);
+    if (typeof window !== "undefined" && window.crypto && window.crypto.getRandomValues) {
+      window.crypto.getRandomValues(bytes);
+    } else {
+      for (let i = 0; i < bytes.length; i++) bytes[i] = Math.floor(Math.random() * 256);
+    }
+    let body = "";
+    for (let i = 0; i < 6; i++) {
+      body += chars.charAt(bytes[i] % chars.length);
+    }
+    const digit = String((bytes[6] % 9) + 1);
+    const symbols = "!@#";
+    const sym = symbols.charAt(bytes[7] % symbols.length);
+    return "hd" + body + sym + digit;
+  }
+
   function syncFooterCopyrightYears() {
     const yr = String(new Date().getFullYear());
     document.querySelectorAll(".js-current-year").forEach(function (el) {
@@ -2780,6 +3148,7 @@
     CATEGORIES: CATEGORIES,
     CARRIERS: CARRIERS,
     SAMPLE_COVERS: SAMPLE_COVERS,
+    PRESET_CURATION_IMAGES: PRESET_CURATION_IMAGES,
     FREE_SHIPPING_THRESHOLD: 50000,
     BASE_SHIPPING_FEE: 3500,
     loadState: loadState,
@@ -2803,9 +3172,14 @@
     setDefaultMemberAddress: setDefaultMemberAddress,
     maskKoreanName: maskKoreanName,
     maskPhone: maskPhone,
+    hashPassword: hashPassword,
+    verifyPassword: verifyPassword,
+    generateTempPassword: generateTempPassword,
+    getBookGalleryImages: getBookGalleryImages,
     renderBookCoverHTML: renderBookCoverHTML,
     renderBookThumbHTML: renderBookThumbHTML,
     sanitizeRichHtml: sanitizeRichHtml,
+    formatTermRichHtml: formatTermRichHtml,
     escapeHtml: escapeHtml,
     showToast: showToast,
     POPULAR_KEYWORDS: POPULAR_KEYWORDS,

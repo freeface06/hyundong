@@ -4,12 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>회원가입 — 현동서재 (玄同書齋)</title>
+  <link rel="stylesheet" href="./css/tokens.css?v=20261113l" />
+  <link rel="stylesheet" href="./css/store.css?v=20261113l" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" />
-  <link rel="stylesheet" href="./css/tokens.css?v=20261113" />
-  <link rel="stylesheet" href="./css/store.css?v=20261113" />
   <link rel="icon" type="image/svg+xml" href="./favicon.svg?v=20261113" />
   <link rel="alternate icon" href="./favicon.ico?v=20261113" />
 </head>
@@ -199,7 +199,7 @@
     </div>
   </footer>
 
-  <script src="./js/mock-data.js?v=20261113"></script>
+  <script src="./js/mock-data.js?v=20261113l"></script>
   <script>
     (function () {
       const Store = window.HyundongStore;
@@ -240,9 +240,9 @@
         }
       }
 
-      // 관리기에서 설정된 약관 본문 연동
-      document.getElementById("boxTermService").textContent = state.terms.serviceTerms.content;
-      document.getElementById("boxTermPrivacy").textContent = state.terms.privacyPolicy.content;
+      // 관리기에서 설정된 약관 본문(웹 에디터 서식 포함) 연동
+      document.getElementById("boxTermService").innerHTML = `<div class="rich-book-content">${Store.formatTermRichHtml(state.terms.serviceTerms)}</div>`;
+      document.getElementById("boxTermPrivacy").innerHTML = `<div class="rich-book-content">${Store.formatTermRichHtml(state.terms.privacyPolicy)}</div>`;
 
       const chkAll = document.getElementById("chkAgreeAll");
       const termChks = Array.from(document.querySelectorAll(".term-chk"));
@@ -377,6 +377,7 @@
         const newMember = {
           id: "MB-" + Math.floor(1005 + Math.random() * 8990),
           loginId: loginId,
+          passwordHash: Store.hashPassword ? Store.hashPassword(pw) : undefined,
           name: name,
           clinicName: clinic,
           nameMasked: Store.maskKoreanName(name),

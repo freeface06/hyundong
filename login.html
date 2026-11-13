@@ -4,12 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>회원 로그인 — 현동서재 (玄同書齋)</title>
+  <link rel="stylesheet" href="./css/tokens.css?v=20261113l" />
+  <link rel="stylesheet" href="./css/store.css?v=20261113l" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" />
-  <link rel="stylesheet" href="./css/tokens.css?v=20261113" />
-  <link rel="stylesheet" href="./css/store.css?v=20261113" />
   <link rel="icon" type="image/svg+xml" href="./favicon.svg?v=20261113" />
   <link rel="alternate icon" href="./favicon.ico?v=20261113" />
 </head>
@@ -182,7 +182,7 @@
     </div>
   </footer>
 
-  <script src="./js/mock-data.js?v=20261113"></script>
+  <script src="./js/mock-data.js?v=20261113l"></script>
   <script>
     (function () {
       const Store = window.HyundongStore;
@@ -254,7 +254,10 @@
           return m.loginId.toLowerCase() === idVal.toLowerCase();
         });
 
-        if (found && found.password && pwVal && found.password !== pwVal) {
+        const isPwValid = Store.verifyPassword
+          ? Store.verifyPassword(found, pwVal)
+          : !(found && found.password && pwVal && found.password !== pwVal);
+        if (found && !isPwValid) {
           Store.showToast("비밀번호가 일치하지 않습니다. 다시 확인해 주세요.");
           return;
         }
@@ -456,7 +459,12 @@
           return;
         }
 
-        member.password = newPw;
+        if (Store.hashPassword) {
+          member.passwordHash = Store.hashPassword(newPw);
+          delete member.password;
+        } else {
+          member.password = newPw;
+        }
         Store.saveState(latest);
         document.getElementById("loginIdInput").value = member.loginId;
         document.getElementById("loginPwInput").value = newPw;

@@ -97,10 +97,10 @@ def test_t2_f6_03_admin_multi_column_table_spacing(page: Page):
 @pytest.mark.tier2
 def test_t2_f6_04_admin_modal_width_containment(widescreen_page: Page):
     """Verify modal panels remain comfortably constrained (<=850px) on wide monitors."""
-    url = get_page_url("admin.html?sec=banners")
+    url = get_page_url("admin.html?sec=boards")
     widescreen_page.goto(url)
-    widescreen_page.click("[data-edit-banner]")
-    modal_panel = widescreen_page.locator("#bannerEditModal .modal-panel")
+    widescreen_page.click("[data-edit-notice]")
+    modal_panel = widescreen_page.locator("#boardPostModal .modal-panel")
     expect(modal_panel).to_be_visible()
     modal_width = modal_panel.bounding_box()["width"]
     assert modal_width <= 850
@@ -350,23 +350,25 @@ def test_t1_f8_03_banner_row_switch_far_right(page: Page):
 
 @pytest.mark.tier1
 def test_t1_f8_04_switch_toggle_interaction(page: Page):
-    """Verify clicking exposure switch toggles between active and inactive state."""
+    """Verify clicking exposure switch toggles active state with zero redundant status text and zero position shift."""
     url = get_page_url("admin.html?sec=boards")
     page.goto(url)
     switch_el = page.locator("[data-toggle-notice-vis]").first
     expect(switch_el).to_be_visible()
+    assert switch_el.inner_text().strip() == ""
+    init_box = switch_el.bounding_box()
     init_on = switch_el.locator(".switch-pill").evaluate("el => el.classList.contains('is-on')")
-    init_text = switch_el.inner_text().strip()
+    init_aria = switch_el.get_attribute("aria-checked")
     switch_el.click()
     updated_switch = page.locator("[data-toggle-notice-vis]").first
+    new_box = updated_switch.bounding_box()
     new_on = updated_switch.locator(".switch-pill").evaluate("el => el.classList.contains('is-on')")
-    new_text = updated_switch.inner_text().strip()
+    new_aria = updated_switch.get_attribute("aria-checked")
+    assert updated_switch.inner_text().strip() == ""
     assert init_on != new_on
-    assert init_text != new_text
-    if init_on:
-        assert new_on is False and "숨김" in new_text
-    else:
-        assert new_on is True and "노출 중" in new_text
+    assert init_aria != new_aria
+    assert abs(init_box["x"] - new_box["x"]) <= 1
+    assert abs(init_box["width"] - new_box["width"]) <= 1
 
 @pytest.mark.tier1
 def test_t1_f8_05_switches_consistent_right_offset(page: Page):
@@ -419,26 +421,29 @@ def test_t2_f8_03_mobile_admin_switch_wrap(mobile_page: Page):
 
 @pytest.mark.tier2
 def test_t2_f8_04_switch_keyboard_accessibility(page: Page):
-    """Verify exposure switch interactive styling and toggle response."""
-    url = get_page_url("admin.html?sec=boards")
+    """Verify exposure switch interactive styling, aria-checked state, and fixed position across Banners & Codes."""
+    url = get_page_url("admin.html?sec=banners")
     page.goto(url)
-    switch_el = page.locator("[data-toggle-notice-vis]").first
+    switch_el = page.locator("[data-toggle-banner]").first
+    edit_btn = page.locator("[data-edit-banner]").first
     expect(switch_el).to_be_visible()
-    
-    # Verify switch has pointer cursor indicating interactive control
+
     cursor_style = switch_el.evaluate("el => window.getComputedStyle(el).cursor")
     assert cursor_style == "pointer"
-    
-    # Verify text label reflects state
-    label_text = switch_el.inner_text()
-    assert ("노출" in label_text) or ("숨김" in label_text)
-    
-    # Verify interaction toggles state
+    assert switch_el.inner_text().strip() == ""
+    assert (switch_el.get_attribute("aria-label") or "").strip() != ""
+
+    sw_before = switch_el.bounding_box()
+    btn_before = edit_btn.bounding_box()
     pill = switch_el.locator(".switch-pill")
     has_is_on = "is-on" in (pill.get_attribute("class") or "")
     switch_el.click()
-    new_pill_class = pill.get_attribute("class") or ""
+    sw_after = page.locator("[data-toggle-banner]").first.bounding_box()
+    btn_after = page.locator("[data-edit-banner]").first.bounding_box()
+    new_pill_class = page.locator("[data-toggle-banner]").first.locator(".switch-pill").get_attribute("class") or ""
     assert ("is-on" in new_pill_class) != has_is_on
+    assert abs(sw_before["x"] - sw_after["x"]) <= 1
+    assert abs(btn_before["x"] - btn_after["x"]) <= 1
 
 @pytest.mark.tier2
 def test_t2_f8_05_banner_multi_switch_alignment(page: Page):
@@ -452,27 +457,29 @@ def test_t2_f8_05_banner_multi_switch_alignment(page: Page):
     assert page.locator(".switch-wrap").count() >= 1
 
 # ==============================================================================
-# FEATURE 9: ADMIN BANNER IMAGE REGISTRATION (F09)
+# FEATURE 9: ADMIN STANDALONE BANNER EDIT PAGE & IMAGE REGISTRATION (F09)
 # ==============================================================================
 
 @pytest.mark.tier1
-def test_t1_f9_01_banner_modal_has_file_and_url_inputs(page: Page):
-    """Verify banner edit modal includes file upload and image URL inputs."""
+def test_t1_f9_01_banner_edit_navigates_to_standalone_page_with_inputs(page: Page):
+    """Verify clicking banner edit navigates to standalone admin-banner-edit.html (no popup modal) with file & URL inputs."""
     url = get_page_url("admin.html?sec=banners")
     page.goto(url)
+    assert page.locator("#bannerEditModal").count() == 0
     edit_btn = page.locator("[data-edit-banner]").first
     expect(edit_btn).to_be_visible()
     edit_btn.click()
-    expect(page.locator("#bannerEditModal")).to_have_class(re.compile(r"is-open"))
+    expect(page).to_have_url(re.compile(r"admin-banner-edit\.html\?id="))
     expect(page.locator("#bnImageFileInput")).to_be_visible()
     expect(page.locator("#bnImageUrl")).to_be_visible()
 
 @pytest.mark.tier1
-def test_t1_f9_02_banner_modal_live_image_preview(page: Page):
-    """Verify live image preview element exists inside banner modal."""
+def test_t1_f9_02_banner_page_live_image_preview(page: Page):
+    """Verify live image preview element exists on standalone banner edit page."""
     url = get_page_url("admin.html?sec=banners")
     page.goto(url)
     page.click("[data-edit-banner]")
+    expect(page).to_have_url(re.compile(r"admin-banner-edit\.html"))
     preview_container = page.locator("#bnImagePreviewContainer")
     expect(preview_container).to_be_visible()
     img = page.locator("#bnImagePreview")
@@ -504,14 +511,14 @@ def test_t1_f9_04_banner_file_input_accepts_images(page: Page):
 
 @pytest.mark.tier1
 def test_t1_f9_05_save_banner_persists_image_url(page: Page):
-    """Verify saving banner persists imageUrl to state and list DOM."""
+    """Verify saving banner on standalone page returns to banners list and persists imageUrl."""
     url = get_page_url("admin.html?sec=banners")
     page.goto(url)
     page.click("[data-edit-banner]")
     test_img = "images/hero-bg-pc.webp"
     page.fill("#bnImageUrl", test_img)
     page.click("#btnSubmitBannerEdit")
-    expect(page.locator("#bannerEditModal")).not_to_have_class(re.compile(r"is-open"))
+    expect(page).to_have_url(re.compile(r"admin\.html\?sec=banners"))
     card_img = page.locator(".panel-card img").first
     expect(card_img).to_be_visible()
     assert "hero-bg-pc.webp" in (card_img.get_attribute("src") or "")
@@ -526,7 +533,7 @@ def test_t1_f9_06_storefront_hero_displays_banner_image(page: Page):
 
 @pytest.mark.tier2
 def test_t2_f9_01_banner_invalid_image_url_fallback(page: Page):
-    """Verify entering broken URL triggers graceful onerror fallback."""
+    """Verify entering broken URL triggers graceful onerror fallback on banner edit page."""
     url = get_page_url("admin.html?sec=banners")
     page.goto(url)
     page.click("[data-edit-banner]")
@@ -537,7 +544,8 @@ def test_t2_f9_01_banner_invalid_image_url_fallback(page: Page):
     assert preview.get_attribute("src") == bad_url
     expect(page.locator("#btnClearBannerImg")).to_be_visible()
     page.evaluate("document.getElementById('bnImagePreview').dispatchEvent(new Event('error'))")
-    expect(page.locator("#bannerEditModal")).to_have_class(re.compile(r"is-open"))
+    expect(page).to_have_url(re.compile(r"admin-banner-edit\.html"))
+    expect(page.locator("#bannerEditPageForm")).to_be_visible()
 
 @pytest.mark.tier2
 def test_t2_f9_02_banner_large_file_upload_safety(page: Page):
@@ -589,12 +597,13 @@ def test_t2_f9_05_banner_empty_image_submission(page: Page):
     page.click("[data-edit-banner]")
     page.fill("#bnImageUrl", "images/hero-bg-pc.webp")
     page.click("#btnSubmitBannerEdit")
-    expect(page.locator("#bannerEditModal")).not_to_have_class(re.compile(r"is-open"))
+    expect(page).to_have_url(re.compile(r"admin\.html\?sec=banners"))
     page.click("[data-edit-banner]")
+    expect(page).to_have_url(re.compile(r"admin-banner-edit\.html"))
     assert page.locator("#bnImageUrl").input_value() == "images/hero-bg-pc.webp"
     page.fill("#bnTitle", "보존 테스트 제목 확인")
     page.click("#btnSubmitBannerEdit")
-    expect(page.locator("#bannerEditModal")).not_to_have_class(re.compile(r"is-open"))
+    expect(page).to_have_url(re.compile(r"admin\.html\?sec=banners"))
     card = page.locator(".panel-card:has-text('보존 테스트 제목 확인')").first
     expect(card).to_be_visible()
     img = card.locator("img")

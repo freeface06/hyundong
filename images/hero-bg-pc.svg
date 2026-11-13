@@ -1,98 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 600" width="1440" height="600" preserveAspectRatio="xMidYMid slice">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 600" width="1440" height="600">
   <defs>
-    <!-- Background Hanji Gradient -->
-    <linearGradient id="hanjiPcGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#faf7f0"/>
-      <stop offset="45%" stop-color="#f3ede2"/>
-      <stop offset="80%" stop-color="#ece4d6"/>
-      <stop offset="100%" stop-color="#dfd5c4"/>
+    <linearGradient id="hanjiPcBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f8f5ee"/>
+      <stop offset="55%" stop-color="#efe9dd"/>
+      <stop offset="100%" stop-color="#dfd6c5"/>
     </linearGradient>
-
-    <!-- Mountain Mist Gradients using #918a7d -->
-    <linearGradient id="mtnGrad1" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#918a7d" stop-opacity="0.18"/>
-      <stop offset="70%" stop-color="#918a7d" stop-opacity="0.08"/>
-      <stop offset="100%" stop-color="#f3ede2" stop-opacity="0"/>
-    </linearGradient>
-
-    <linearGradient id="mtnGrad2" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#787165" stop-opacity="0.16"/>
-      <stop offset="65%" stop-color="#787165" stop-opacity="0.06"/>
-      <stop offset="100%" stop-color="#f3ede2" stop-opacity="0"/>
-    </linearGradient>
-
-    <linearGradient id="mtnGrad3" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#5f594f" stop-opacity="0.12"/>
-      <stop offset="85%" stop-color="#5f594f" stop-opacity="0.03"/>
-      <stop offset="100%" stop-color="#faf7f0" stop-opacity="0"/>
-    </linearGradient>
-
-    <!-- Hanji Fiber Pattern -->
-    <pattern id="hanjiFiber" width="160" height="160" patternUnits="userSpaceOnUse">
-      <path d="M10,24 Q50,30 90,18 T150,28" stroke="#918a7d" stroke-width="0.5" stroke-opacity="0.07" fill="none"/>
-      <path d="M30,80 Q70,95 110,75 T160,88" stroke="#787165" stroke-width="0.4" stroke-opacity="0.06" fill="none"/>
-      <path d="M5,130 Q65,115 125,140 T155,128" stroke="#918a7d" stroke-width="0.6" stroke-opacity="0.05" fill="none"/>
-      <circle cx="45" cy="55" r="1" fill="#918a7d" fill-opacity="0.06"/>
-      <circle cx="120" cy="110" r="1.2" fill="#787165" fill-opacity="0.05"/>
-    </pattern>
-
-    <!-- Radial Sunlight Wash -->
-    <radialGradient id="sunGlow" cx="22%" cy="25%" r="45%">
-      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.75"/>
-      <stop offset="50%" stop-color="#fffdf8" stop-opacity="0.3"/>
-      <stop offset="100%" stop-color="#f3ede2" stop-opacity="0"/>
+    <radialGradient id="sunGlowPc" cx="24%" cy="32%" r="58%">
+      <stop offset="0%" stop-color="#fffdf9" stop-opacity="0.92"/>
+      <stop offset="100%" stop-color="#f5efe4" stop-opacity="0"/>
     </radialGradient>
   </defs>
-
-  <!-- Base Hanji Texture Background -->
-  <rect width="1440" height="600" fill="url(#hanjiPcGrad)"/>
-  <rect width="1440" height="600" fill="url(#hanjiFiber)"/>
-  <rect width="1440" height="600" fill="url(#sunGlow)"/>
-
-  <!-- Distant Mountain Ridge 1 (Far background) -->
-  <path d="M-40,320 C180,210 320,290 540,195 C740,110 920,260 1140,170 C1280,115 1380,210 1480,180 L1480,600 L-40,600 Z" fill="url(#mtnGrad1)"/>
-
-  <!-- Mid-distance Mountain Ridge 2 -->
-  <path d="M-20,380 C160,280 380,360 620,270 C840,185 1060,320 1260,240 C1370,195 1420,260 1480,230 L1480,600 L-20,600 Z" fill="url(#mtnGrad2)"/>
-
-  <!-- Foreground Mountain Ridge 3 (Softer mist) -->
-  <path d="M0,450 C260,360 480,440 760,360 C1020,285 1240,410 1440,340 L1440,600 L0,600 Z" fill="url(#mtnGrad3)"/>
-
-  <!-- Botanical Medicinal Herb Silhouettes (인삼 · 당귀 · 길경 本草 藥草文) -->
-  <!-- Herb Cluster Left -->
-  <g transform="translate(48, 280)" stroke="#787165" stroke-opacity="0.32" fill="none">
-    <!-- Main Stem -->
-    <path d="M80,310 C86,220 110,130 160,40" stroke-width="2.4" stroke-linecap="round"/>
-    <!-- Leaves Left -->
-    <path d="M125,185 C95,160 70,140 76,105 C102,112 120,145 125,185 Z" stroke-width="1.6" fill="#918a7d" fill-opacity="0.12"/>
-    <path d="M105,235 C70,225 50,195 60,170 C84,180 98,205 105,235 Z" stroke-width="1.4" fill="#918a7d" fill-opacity="0.10"/>
-    <!-- Leaves Right -->
-    <path d="M140,145 C170,135 195,115 198,85 C172,94 150,120 140,145 Z" stroke-width="1.6" fill="#918a7d" fill-opacity="0.12"/>
-    <path d="M115,200 C150,205 178,190 182,160 C158,168 135,185 115,200 Z" stroke-width="1.4" fill="#918a7d" fill-opacity="0.10"/>
-    <!-- Terminal Berry Cluster (Ginseng Cinnabar Seeds) -->
-    <circle cx="163" cy="36" r="4.5" fill="#8c3a32" fill-opacity="0.65" stroke="none"/>
-    <circle cx="172" cy="42" r="3.8" fill="#8c3a32" fill-opacity="0.55" stroke="none"/>
-    <circle cx="158" cy="46" r="3.2" fill="#8c3a32" fill-opacity="0.50" stroke="none"/>
-    <circle cx="168" cy="50" r="2.8" fill="#8c3a32" fill-opacity="0.45" stroke="none"/>
-  </g>
-
-  <!-- Herb Cluster Right Accent -->
-  <g transform="translate(1260, 260)" stroke="#787165" stroke-opacity="0.22" fill="none">
-    <path d="M90,320 C82,230 65,140 20,40" stroke-width="2" stroke-linecap="round"/>
-    <path d="M55,180 C80,155 100,135 95,100 C72,110 58,140 55,180 Z" stroke-width="1.4" fill="#918a7d" fill-opacity="0.10"/>
-    <path d="M40,140 C15,130 -5,110 -8,80 C15,90 32,115 40,140 Z" stroke-width="1.4" fill="#918a7d" fill-opacity="0.10"/>
-    <circle cx="17" cy="35" r="4" fill="#8c3a32" fill-opacity="0.55" stroke="none"/>
-    <circle cx="26" cy="42" r="3.2" fill="#8c3a32" fill-opacity="0.45" stroke="none"/>
-  </g>
-
-  <!-- Traditional Seal Watermark Top-Right: 東醫寶鑑 · 法古創新 -->
-  <g transform="translate(1330, 40)" opacity="0.15">
-    <text x="0" y="0" font-family="'Noto Serif KR', 'Batang', serif" font-weight="700" font-size="20" fill="#2c2925" letter-spacing="0.4em" writing-mode="vertical-rl">
-      東醫寶鑑 · 法古創新
-    </text>
-  </g>
-
-  <!-- Elegant Bottom Lattice Border Trim -->
-  <line x1="0" y1="597" x2="1440" y2="597" stroke="#918a7d" stroke-width="2" stroke-opacity="0.25"/>
-  <line x1="0" y1="599" x2="1440" y2="599" stroke="#787165" stroke-width="1" stroke-opacity="0.15"/>
+  <rect width="1440" height="600" fill="url(#hanjiPcBg)"/>
+  <rect width="1440" height="600" fill="url(#sunGlowPc)"/>
 </svg>

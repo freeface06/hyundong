@@ -13,12 +13,41 @@
     ? state.books.find(function (b) { return b.id === editBookId; })
     : null;
 
-  // 현재 선택된 표지 이미지 상태
+  const MAX_GALLERY_IMAGES = 8;
+
+  // 초기 갤러리 목록 구성 (1장 단독 표지 또는 대표 표지 + 추가 사진 여러 장)
+  function buildInitialGallery(book) {
+    if (book) {
+      return Store.getBookGalleryImages(book).map(function (it) {
+        return { url: it.url, thumb: it.thumb || it.url, label: it.label || "" };
+      });
+    }
+    return [
+      {
+        url: Store.SAMPLE_COVERS[1].full,
+        thumb: Store.SAMPLE_COVERS[1].thumb,
+        label: "대표 표지"
+      }
+    ];
+  }
+
+  // 현재 선택된 표지 및 다중 이미지 갤러리 상태
   let coverState = {
-    coverImage: editingBook ? (editingBook.coverImage || "") : Store.SAMPLE_COVERS[1].full,
-    coverThumb: editingBook ? (editingBook.coverThumb || "") : Store.SAMPLE_COVERS[1].thumb,
+    galleryImages: buildInitialGallery(editingBook),
+    activePreviewIdx: 0,
+    isInitialSample: !editingBook,
     coverTheme: editingBook ? (editingBook.coverTheme || "sumuk-gold") : "sumuk-gold"
   };
+
+  function syncPrimaryFromGallery() {
+    const first = coverState.galleryImages[0] || null;
+    coverState.coverImage = first ? first.url : "";
+    coverState.coverThumb = first ? (first.thumb || first.url) : "";
+    if (coverState.activePreviewIdx >= coverState.galleryImages.length) {
+      coverState.activePreviewIdx = Math.max(0, coverState.galleryImages.length - 1);
+    }
+  }
+  syncPrimaryFromGallery();
 
   let savedSelectionRange = null;
   const editorEl = document.getElementById("bookWebEditor");
@@ -90,12 +119,15 @@
   document.getElementById("btnMobMoreMenu").addEventListener("click", openAdminDrawer);
 
   /* ========================================================================
-     2. 표지 미리보기, 로컬 이미지 업로드(자동 리사이즈), 샘플 표지 선택
+     2. 표지 · 다중 이미지 갤러리 미리보기, 여러 장 업로드(자동 압축), 순서/대표 지정
      ======================================================================== */
   function renderSampleCoverStrip() {
     const strip = document.getElementById("sampleCoverStrip");
+    if (!strip) return;
     strip.innerHTML = Store.SAMPLE_COVERS.map(function (sc, idx) {
-      const selected = coverState.coverImage === sc.full || coverState.coverThumb === sc.thumb;
+      const selected = coverState.galleryImages.some(function (it) {
+        return it.url === sc.full || it.thumb === sc.thumb;
+      });
       return `
         <button type="button" class="sample-cover-btn ${selected ? "is-selected" : ""}" data-sample-idx="${idx}" title="${Store.escapeHtml(sc.label)}">
           <img class="book-real-img" src="${Store.escapeHtml(sc.thumb)}" data-fallback="${Store.escapeHtml(sc.full)}" alt="${Store.escapeHtml(sc.label)}" />
@@ -104,37 +136,88 @@
     }).join("");
   }
 
+  function renderBookGalleryList() {
+    const listEl = document.getElementById("bookGalleryList");
+    const countBadge = document.getElementById("coverGalleryCountBadge");
+    if (countBadge) {
+      countBadge.textContent = coverState.galleryImages.length > 0
+        ? `${coverState.galleryImages.length}장 등록`
+        : "전통 표지";
+    }
+    if (!listEl) return;
+
+    if (coverState.galleryImages.length === 0) {
+      listEl.innerHTML = `<div class="book-gallery-empty">등록된 사진 없음 · 기본 전통 표지 사용 중</div>`;
+      return;
+    }
+
+    listEl.innerHTML = coverState.galleryImages.map(function (item, idx) {
+      const isCover = idx === 0;
+      const isActive = idx === coverState.activePreviewIdx;
+      const thumbSrc = (item.url && item.url.indexOf("data:image/") === 0)
+        ? item.url
+        : (item.thumb || item.url);
+      return `
+        <div class="book-gallery-item ${isActive ? "is-active" : ""}" data-preview-gallery-idx="${idx}" title="${isCover ? "대표 표지 이미지" : `추가 이미지 #${idx + 1} (클릭하여 미리보기)`}">
+          <img class="book-real-img" src="${Store.escapeHtml(thumbSrc)}" data-fallback="${Store.escapeHtml(item.url)}" alt="${isCover ? "대표 표지" : `추가 이미지 ${idx + 1}`}" />
+          <span class="book-gallery-badge ${isCover ? "" : "is-sub"}">${isCover ? "대표" : `#${idx + 1}`}</span>
+          <button type="button" class="book-gallery-del-btn" data-remove-gallery-idx="${idx}" aria-label="이미지 삭제" title="이 이미지 삭제">✕</button>
+          ${!isCover ? `<button type="button" class="book-gallery-make-cover-btn" data-set-cover-idx="${idx}">대표 지정</button>` : ""}
+        </div>
+      `;
+    }).join("");
+  }
+
   function renderCoverLivePreview() {
+    syncPrimaryFromGallery();
     const titleVal = document.getElementById("bfTitle").value.trim() || "현동직역 상한론 강해";
     const authorVal = document.getElementById("bfAuthor").value.trim() || "장중경 원저";
     const transVal = document.getElementById("bfTranslator").value.trim();
     const badgeVal = document.getElementById("bfSetBadge").value.trim();
     const pubVal = document.getElementById("bfPublisher").value.trim() || "도서출판 물고기";
 
-    const previewBook = {
-      title: titleVal,
-      author: authorVal,
-      translator: transVal,
-      publisher: pubVal,
-      setBadge: badgeVal,
-      hanjaWatermark: "玄同",
-      coverTheme: coverState.coverTheme,
-      coverImage: coverState.coverImage,
-      coverThumb: coverState.coverThumb
-    };
+    const activeIdx = coverState.activePreviewIdx;
+    const activeItem = coverState.galleryImages[activeIdx] || null;
+    const previewEl = document.getElementById("coverLivePreview");
 
-    document.getElementById("coverLivePreview").innerHTML = Store.renderBookCoverHTML(previewBook);
+    if (activeItem && activeIdx > 0) {
+      previewEl.innerHTML = `
+        <div class="cover-preview-sub-photo">
+          <img class="book-real-img" src="${Store.escapeHtml(activeItem.url)}" data-fallback="${Store.escapeHtml(activeItem.thumb || activeItem.url)}" alt="${Store.escapeHtml(titleVal)} 추가 이미지 ${activeIdx + 1}" />
+          <span class="cover-preview-sub-tag">추가 이미지 ${activeIdx + 1} / ${coverState.galleryImages.length}</span>
+        </div>
+      `;
+    } else {
+      const previewBook = {
+        title: titleVal,
+        author: authorVal,
+        translator: transVal,
+        publisher: pubVal,
+        setBadge: badgeVal,
+        hanjaWatermark: "玄同",
+        coverTheme: coverState.coverTheme,
+        coverImage: coverState.coverImage,
+        coverThumb: coverState.coverThumb
+      };
+      previewEl.innerHTML = Store.renderBookCoverHTML(previewBook);
+    }
+
+    renderBookGalleryList();
     renderSampleCoverStrip();
   }
 
   // 이미지 파일을 캔버스로 적정 해상도 압축하여 용량 초과 없이 선명하게 저장
   function readImageFileAsCompressedDataUrl(file, maxWidth, callback) {
     if (!file || !file.type.startsWith("image/")) {
-      Store.showToast("이미지 파일(JPG, PNG, WEBP)을 선택해 주세요.");
+      Store.showToast("이미지 파일(JPG, PNG, WEBP, SVG)을 선택해 주세요.");
       return;
     }
     const reader = new FileReader();
     reader.onload = function (ev) {
+      if (file.type === "image/svg+xml") {
+        callback(ev.target.result);
+        return;
+      }
       const img = new Image();
       img.onload = function () {
         const scale = Math.min(1, maxWidth / img.width);
@@ -147,11 +230,75 @@
         ctx.fillStyle = "#ffffff";
         ctx.fillRect(0, 0, w, h);
         ctx.drawImage(img, 0, 0, w, h);
-        callback(canvas.toDataURL("image/jpeg", 0.86));
+        callback(canvas.toDataURL("image/jpeg", 0.85));
+      };
+      img.onerror = function () {
+        callback(ev.target.result);
       };
       img.src = ev.target.result;
     };
     reader.readAsDataURL(file);
+  }
+
+  function handleMultipleFilesUpload(fileList, replaceCoverFirst) {
+    const files = Array.from(fileList || []).filter(function (f) {
+      return f && f.type && f.type.startsWith("image/");
+    });
+    if (files.length === 0) {
+      Store.showToast("이미지 파일(JPG, PNG, WEBP)을 선택해 주세요.");
+      return;
+    }
+
+    const baseList = (replaceCoverFirst && coverState.isInitialSample)
+      ? []
+      : coverState.galleryImages.slice();
+
+    const availableSlots = MAX_GALLERY_IMAGES - (replaceCoverFirst && !coverState.isInitialSample ? Math.max(0, baseList.length - 1) : baseList.length);
+    if (availableSlots <= 0) {
+      Store.showToast(`도서 이미지는 최대 ${MAX_GALLERY_IMAGES}장까지 등록할 수 있습니다.`);
+      return;
+    }
+
+    const targetFiles = files.slice(0, availableSlots);
+    const results = new Array(targetFiles.length);
+    let doneCount = 0;
+
+    targetFiles.forEach(function (file, i) {
+      readImageFileAsCompressedDataUrl(file, 560, function (dataUrl) {
+        results[i] = {
+          url: dataUrl,
+          thumb: dataUrl,
+          label: file.name ? file.name.replace(/\.[^.]+$/, "") : `도서 이미지 ${i + 1}`
+        };
+        doneCount += 1;
+        if (doneCount === targetFiles.length) {
+          const validItems = results.filter(Boolean);
+          if (replaceCoverFirst) {
+            if (coverState.isInitialSample || coverState.galleryImages.length === 0) {
+              coverState.galleryImages = validItems.slice(0, MAX_GALLERY_IMAGES);
+            } else {
+              const rest = coverState.galleryImages.slice(1);
+              coverState.galleryImages = [validItems[0]].concat(validItems.slice(1), rest).slice(0, MAX_GALLERY_IMAGES);
+            }
+            coverState.activePreviewIdx = 0;
+          } else {
+            if (coverState.isInitialSample) {
+              coverState.isInitialSample = false;
+            }
+            const startIdx = coverState.galleryImages.length;
+            coverState.galleryImages = coverState.galleryImages.concat(validItems).slice(0, MAX_GALLERY_IMAGES);
+            coverState.activePreviewIdx = Math.min(startIdx, coverState.galleryImages.length - 1);
+          }
+          coverState.isInitialSample = false;
+          renderCoverLivePreview();
+          Store.showToast(
+            validItems.length > 1
+              ? `도서 이미지 ${validItems.length}장이 등록되었습니다 (총 ${coverState.galleryImages.length}장).`
+              : "선택하신 도서 이미지가 등록되었습니다."
+          );
+        }
+      });
+    });
   }
 
   document.getElementById("btnTriggerCoverUpload").addEventListener("click", function () {
@@ -159,20 +306,103 @@
   });
 
   document.getElementById("bfCoverFileInput").addEventListener("change", function (e) {
-    const file = e.target.files && e.target.files[0];
-    if (!file) return;
-    readImageFileAsCompressedDataUrl(file, 480, function (dataUrl) {
-      coverState.coverImage = dataUrl;
-      coverState.coverThumb = dataUrl;
-      renderCoverLivePreview();
-      Store.showToast("선택하신 책 표지 사진이 적용되었습니다.");
-    });
+    if (e.target.files && e.target.files.length > 0) {
+      handleMultipleFilesUpload(e.target.files, true);
+    }
     e.target.value = "";
   });
 
+  const btnAddGallery = document.getElementById("btnAddGalleryImages");
+  const addGalleryInput = document.getElementById("bfAddGalleryFileInput");
+  if (btnAddGallery && addGalleryInput) {
+    btnAddGallery.addEventListener("click", function () {
+      addGalleryInput.click();
+    });
+    addGalleryInput.addEventListener("change", function (e) {
+      if (e.target.files && e.target.files.length > 0) {
+        handleMultipleFilesUpload(e.target.files, false);
+      }
+      e.target.value = "";
+    });
+  }
+
+  const btnAddUrl = document.getElementById("btnAddImageUrl");
+  const urlInput = document.getElementById("bfImageUrlInput");
+  if (btnAddUrl && urlInput) {
+    btnAddUrl.addEventListener("click", function () {
+      const rawUrl = urlInput.value.trim();
+      if (!rawUrl) {
+        Store.showToast("추가할 이미지 URL을 입력해 주세요.");
+        urlInput.focus();
+        return;
+      }
+      if (coverState.galleryImages.length >= MAX_GALLERY_IMAGES && !coverState.isInitialSample) {
+        Store.showToast(`도서 이미지는 최대 ${MAX_GALLERY_IMAGES}장까지 등록할 수 있습니다.`);
+        return;
+      }
+      if (coverState.isInitialSample) {
+        coverState.galleryImages = [{ url: rawUrl, thumb: rawUrl, label: "대표 표지" }];
+        coverState.isInitialSample = false;
+        coverState.activePreviewIdx = 0;
+      } else {
+        coverState.galleryImages.push({
+          url: rawUrl,
+          thumb: rawUrl,
+          label: coverState.galleryImages.length === 0 ? "대표 표지" : `추가 이미지 ${coverState.galleryImages.length + 1}`
+        });
+        coverState.activePreviewIdx = coverState.galleryImages.length - 1;
+      }
+      urlInput.value = "";
+      renderCoverLivePreview();
+      Store.showToast("이미지 URL이 도서 갤러리에 추가되었습니다.");
+    });
+  }
+
+  const galleryListEl = document.getElementById("bookGalleryList");
+  if (galleryListEl) {
+    galleryListEl.addEventListener("click", function (e) {
+      const delBtn = e.target.closest("[data-remove-gallery-idx]");
+      if (delBtn) {
+        e.stopPropagation();
+        const delIdx = Number(delBtn.getAttribute("data-remove-gallery-idx"));
+        coverState.galleryImages.splice(delIdx, 1);
+        coverState.isInitialSample = false;
+        if (coverState.activePreviewIdx >= coverState.galleryImages.length) {
+          coverState.activePreviewIdx = Math.max(0, coverState.galleryImages.length - 1);
+        }
+        renderCoverLivePreview();
+        Store.showToast("선택한 이미지가 목록에서 제외되었습니다.");
+        return;
+      }
+
+      const setCoverBtn = e.target.closest("[data-set-cover-idx]");
+      if (setCoverBtn) {
+        e.stopPropagation();
+        const targetIdx = Number(setCoverBtn.getAttribute("data-set-cover-idx"));
+        const picked = coverState.galleryImages.splice(targetIdx, 1)[0];
+        if (picked) {
+          picked.label = "대표 표지";
+          coverState.galleryImages.unshift(picked);
+          coverState.activePreviewIdx = 0;
+          coverState.isInitialSample = false;
+          renderCoverLivePreview();
+          Store.showToast("선택한 사진이 대표 표지 이미지로 변경되었습니다.");
+        }
+        return;
+      }
+
+      const itemCard = e.target.closest("[data-preview-gallery-idx]");
+      if (itemCard) {
+        coverState.activePreviewIdx = Number(itemCard.getAttribute("data-preview-gallery-idx"));
+        renderCoverLivePreview();
+      }
+    });
+  }
+
   document.getElementById("btnClearCoverPhoto").addEventListener("click", function () {
-    coverState.coverImage = "";
-    coverState.coverThumb = "";
+    coverState.galleryImages = [];
+    coverState.activePreviewIdx = 0;
+    coverState.isInitialSample = false;
     renderCoverLivePreview();
     Store.showToast("기본 전통 표지 디자인으로 전환되었습니다.");
   });
@@ -182,10 +412,27 @@
     if (!btn) return;
     const sc = Store.SAMPLE_COVERS[Number(btn.getAttribute("data-sample-idx"))];
     if (sc) {
-      coverState.coverImage = sc.full;
-      coverState.coverThumb = sc.thumb;
-      renderCoverLivePreview();
-      Store.showToast(`『${sc.label}』 샘플 이미지가 적용되었습니다.`);
+      const existingIdx = coverState.galleryImages.findIndex(function (it) {
+        return it.url === sc.full || it.thumb === sc.thumb;
+      });
+      if (existingIdx !== -1) {
+        coverState.activePreviewIdx = existingIdx;
+        renderCoverLivePreview();
+        Store.showToast(`『${sc.label}』 이미지를 미리보기합니다.`);
+      } else if (coverState.isInitialSample || coverState.galleryImages.length === 0) {
+        coverState.galleryImages = [{ url: sc.full, thumb: sc.thumb, label: sc.label }];
+        coverState.activePreviewIdx = 0;
+        coverState.isInitialSample = false;
+        renderCoverLivePreview();
+        Store.showToast(`『${sc.label}』 샘플 표지가 적용되었습니다.`);
+      } else if (coverState.galleryImages.length < MAX_GALLERY_IMAGES) {
+        coverState.galleryImages.push({ url: sc.full, thumb: sc.thumb, label: sc.label });
+        coverState.activePreviewIdx = coverState.galleryImages.length - 1;
+        renderCoverLivePreview();
+        Store.showToast(`『${sc.label}』 샘플이 추가 이미지로 등록되었습니다 (총 ${coverState.galleryImages.length}장).`);
+      } else {
+        Store.showToast(`도서 이미지는 최대 ${MAX_GALLERY_IMAGES}장까지 등록할 수 있습니다.`);
+      }
     }
   });
 
@@ -434,8 +681,12 @@
     document.getElementById("bfToc").value =
       "제1편 변태양병맥증병치 (상·중·하)\n제2편 변양명병맥증병치\n제3편 변소양병맥증병치\n제4편 변태음·소음·궐음병맥증병치\n부록 상한론 핵심 처방 가감 색인";
     editorEl.innerHTML = DEFAULT_SAMPLE_RICH_HTML;
-    coverState.coverImage = Store.SAMPLE_COVERS[1].full;
-    coverState.coverThumb = Store.SAMPLE_COVERS[1].thumb;
+    coverState.galleryImages = [
+      { url: Store.SAMPLE_COVERS[1].full, thumb: Store.SAMPLE_COVERS[1].thumb, label: "대표 표지" },
+      { url: Store.SAMPLE_COVERS[2].full, thumb: Store.SAMPLE_COVERS[2].thumb, label: "추가 표지 예시" }
+    ];
+    coverState.activePreviewIdx = 0;
+    coverState.isInitialSample = false;
     updatePriceCalcBanner();
     updateEditorCharCount();
     renderCoverLivePreview();
@@ -564,6 +815,13 @@
       authorBio: document.getElementById("bfAuthorBio").value.trim(),
       coverImage: coverState.coverImage,
       coverThumb: coverState.coverThumb || coverState.coverImage,
+      galleryImages: coverState.galleryImages.map(function (it, idx) {
+        return {
+          url: it.url,
+          thumb: it.thumb || it.url,
+          label: it.label || (idx === 0 ? "대표 표지" : `추가 이미지 ${idx + 1}`)
+        };
+      }),
       coverTheme: coverState.coverTheme
     };
 

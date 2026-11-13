@@ -8,8 +8,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" />
-  <link rel="stylesheet" href="./css/tokens.css?v=20261113" />
-  <link rel="stylesheet" href="./css/store.css?v=20261113" />
+  <link rel="stylesheet" href="./css/tokens.css?v=20261113l" />
+  <link rel="stylesheet" href="./css/store.css?v=20261113l" />
   <link rel="icon" type="image/svg+xml" href="./favicon.svg?v=20261113" />
   <link rel="alternate icon" href="./favicon.ico?v=20261113" />
 </head>
@@ -291,7 +291,7 @@
     </div>
   </footer>
 
-  <script src="./js/mock-data.js?v=20261113"></script>
+  <script src="./js/mock-data.js?v=20261113l"></script>
   <script>
     (function () {
       const Store = window.HyundongStore;
@@ -315,9 +315,9 @@
         }
 
         const dynShipBox = document.getElementById("dynamicShippingContent");
-        if (dynShipBox && state.terms && state.terms.shippingPolicy && state.terms.shippingPolicy.content) {
-          dynShipBox.style.cssText = "display:block; margin-bottom:22px; padding:16px 18px; background:var(--color-brand-50); border:1px solid var(--color-border); border-radius:var(--radius-sm); font-size:0.88rem; line-height:1.75; white-space:pre-wrap; color:var(--color-text-secondary);";
-          dynShipBox.innerHTML = `<strong style="display:block; margin-bottom:6px; color:var(--color-brand-900);">[관리자 센터 현행 출고·교환 운영 규정 · 최종 개정: ${Store.escapeHtml(state.terms.shippingPolicy.updatedAt || "2026-11-12")}]</strong>${Store.escapeHtml(state.terms.shippingPolicy.content)}`;
+        if (dynShipBox && state.terms && state.terms.shippingPolicy && (state.terms.shippingPolicy.contentHtml || state.terms.shippingPolicy.content)) {
+          dynShipBox.style.cssText = "display:block; margin-bottom:22px; padding:18px 20px; background:var(--color-brand-50); border:1px solid var(--color-border); border-radius:var(--radius-sm); font-size:0.9rem; line-height:1.75; color:var(--color-text-secondary);";
+          dynShipBox.innerHTML = `<strong style="display:block; margin-bottom:10px; color:var(--color-brand-900);">[관리자 센터 현행 출고·교환 운영 규정 · 최종 개정: ${Store.escapeHtml(state.terms.shippingPolicy.updatedAt || "2026-11-12")}]</strong><div class="rich-book-content">${Store.formatTermRichHtml(state.terms.shippingPolicy)}</div>`;
         }
 
         const foot = document.getElementById("storeFooterInfo");

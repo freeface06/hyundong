@@ -102,6 +102,32 @@ def test_track1_03_catalog_subsearch_pagesize_and_pagination(page: Page):
     for title_text in page.locator(".book-summary-row h3").all_inner_texts():
         assert "하늘기운" in title_text
 
+    # Verify list/grid view-mode buttons render SVG icons (zero text) and sit pinned at the far right
+    for w, h in [(1440, 900), (690, 900), (375, 812)]:
+        page.set_viewport_size({"width": w, "height": h})
+        assert assert_no_horizontal_overflow(page)
+        toggle_info = page.evaluate("""() => {
+            const tb = document.querySelector('.catalog-toolbar');
+            const tbRect = tb.getBoundingClientRect();
+            const padR = parseFloat(getComputedStyle(tb).paddingRight) || 16;
+            const grp = document.querySelector('.catalog-view-toggle').getBoundingClientRect();
+            const listBtn = document.querySelector('[data-view-mode="list"]');
+            const gridBtn = document.querySelector('[data-view-mode="grid"]');
+            return {
+                rightGap: Math.abs((tbRect.right - padR - 1) - grp.right),
+                hasSvg: Boolean(listBtn.querySelector('svg') && gridBtn.querySelector('svg')),
+                texts: [listBtn.textContent.trim(), gridBtn.textContent.trim()]
+            };
+        }""")
+        assert toggle_info["hasSvg"] is True
+        assert toggle_info["texts"] == ["", ""]
+        assert toggle_info["rightGap"] <= 2, f"View-mode toggle not flush right at {w}px: {toggle_info['rightGap']}px"
+
+    page.click("[data-view-mode='grid']")
+    expect(page.locator(".book-summary-list")).to_have_class(re.compile(r"is-grid-view"))
+    page.click("[data-view-mode='list']")
+    expect(page.locator(".book-summary-list")).not_to_have_class(re.compile(r"is-grid-view"))
+
 
 @pytest.mark.tier1
 def test_track1_04_floating_quick_recent_books_count_and_drawer(page: Page):
@@ -119,6 +145,19 @@ def test_track1_04_floating_quick_recent_books_count_and_drawer(page: Page):
     recent_pop = page.locator("#quickRecentPopover")
     expect(recent_pop).to_have_class(re.compile(r"is-open"))
     expect(recent_pop.locator(".quick-recent-item").first).to_contain_text("난경본의")
+
+    # Verify every recent-book item renders a loaded book cover thumbnail image
+    page.wait_for_function("""() => {
+        const items = Array.from(document.querySelectorAll('#quickRecentPopover .quick-recent-item'));
+        return items.length >= 4 && items.every(el => {
+            const img = el.querySelector('.quick-recent-thumb img.book-real-img');
+            return Boolean(img && img.complete && img.naturalWidth > 0);
+        });
+    }""")
+
+    # Check 320px viewport overflow when recent popover is open
+    page.set_viewport_size({"width": 320, "height": 740})
+    assert assert_no_horizontal_overflow(page)
 
 
 # ==============================================================================
@@ -518,14 +557,21 @@ def test_track5_02_admin_terms_live_sync_to_terms_html_and_default_pii_masking(p
     assert "010-****-4821" in orders_tbody
     assert "010-3928-4821" not in orders_tbody
 
-    # 2. Edit serviceTerms in Admin settings -> verify live sync on terms.html
+    # 2. Edit serviceTerms in Admin settings (WYSIWYG Web Editor) -> verify live rich HTML sync on terms.html
     page.goto(get_page_url("admin.html?sec=settings"))
     page.click("[data-settings-tab='serviceTerms']")
     marker_phrase = "[2026-11-13 실시간 약관 개정 검증] 학술 직판 도서 무상 맞교환 보증 특약"
-    term_textarea = page.locator("#termContentInput")
-    expect(term_textarea).to_be_visible()
-    current_val = term_textarea.input_value()
-    term_textarea.fill(current_val + "\n\n" + marker_phrase)
+    term_editor = page.locator("#termWebEditor")
+    expect(term_editor).to_be_visible()
+    expect(page.locator("#termEditorToolbar")).to_be_visible()
+    page.evaluate(
+        """(phrase) => {
+            const ed = document.getElementById('termWebEditor');
+            ed.innerHTML += `<h3>제4조 (특약 보증)</h3><p><strong>${phrase}</strong></p>`;
+            ed.dispatchEvent(new Event('input', { bubbles: true }));
+        }""",
+        marker_phrase,
+    )
     page.locator("#siteTermEditForm button[type='submit']").click()
 
     page.goto(get_page_url("terms.html"))
@@ -533,6 +579,7 @@ def test_track5_02_admin_terms_live_sync_to_terms_html_and_default_pii_masking(p
     dyn_term = page.locator("#dynamicTermContent")
     expect(dyn_term).to_be_visible()
     expect(dyn_term).to_contain_text(marker_phrase)
+    expect(dyn_term.locator("h3", has_text="제4조 (특약 보증)")).to_be_visible()
 
 
 @pytest.mark.tier1
@@ -564,4 +611,359 @@ def test_track5_03_restock_ssot_roundtrip_and_mobile_320px_responsive_guard(page
     ]:
         page.goto(get_page_url(target))
         assert assert_no_horizontal_overflow(page), f"Horizontal overflow detected at 320px on {target}"
+
+
+@pytest.mark.tier1
+def test_track5_04_book_detail_sticky_tabs_zero_bleed_across_viewports(page: Page):
+    """Verify #detailStickyTabs docks flush against .store-sticky-chrome with zero top bleed on PC, Z Fold 8, and Mobile."""
+    for width, height in [(1440, 900), (690, 829), (375, 812)]:
+        page.set_viewport_size({"width": width, "height": height})
+        page.goto(get_page_url("book-detail.html"))
+        assert assert_no_horizontal_overflow(page), f"Overflow on book-detail.html at {width}px"
+
+        page.evaluate("""() => {
+            const el = document.getElementById('secIntro');
+            const y = Math.round(el.getBoundingClientRect().top + window.scrollY - 60);
+            window.scrollTo({ top: y, behavior: 'instant' });
+        }""")
+        page.wait_for_timeout(120)
+
+        metrics = page.evaluate("""() => {
+            const chrome = document.querySelector('.store-sticky-chrome').getBoundingClientRect();
+            const tabsEl = document.getElementById('detailStickyTabs');
+            const tabs = tabsEl.getBoundingClientRect();
+            return {
+                chromeBottom: chrome.bottom,
+                tabsTop: tabs.top,
+                gap: tabs.top - chrome.bottom,
+                zIndex: Number(getComputedStyle(tabsEl).zIndex || 0),
+                activeTab: document.querySelector('#detailStickyTabs .detail-tab-btn.is-active')?.getAttribute('data-tab-target')
+            };
+        }""")
+        assert metrics["gap"] <= 0.5, f"Background bleed gap above sticky tabs at {width}px: {metrics}"
+        assert metrics["zIndex"] >= 80, f"Sticky tabs z-index too low at {width}px: {metrics}"
+        assert metrics["activeTab"] == "secIntro", f"Scroll-spy did not activate secIntro tab at {width}px: {metrics}"
+
+
+@pytest.mark.tier1
+def test_track5_05_multi_book_image_gallery_and_global_textarea_no_resize(page: Page):
+    """Verify 1-or-multiple book image registration -> Storefront gallery switching + global textarea resize:none."""
+    # 1. Global textarea resize:none check across Admin & Storefront
+    for target in ["admin-book-new.html", "admin-banner-edit.html", "inquiry.html", "qna.html"]:
+        page.goto(get_page_url(target))
+        resizes = page.evaluate("""() => Array.from(document.querySelectorAll('textarea')).map(t => getComputedStyle(t).resize)""")
+        assert len(resizes) >= 1, f"Expected textarea on {target}"
+        assert all(r == "none" for r in resizes), f"Found resizable textarea on {target}: {resizes}"
+
+    # Check dynamic modal textarea (#mdMemo in Admin member detail)
+    page.goto(get_page_url("admin.html?sec=members"))
+    page.locator("[data-open-member]").first.click()
+    expect(page.locator("#mdMemo")).to_be_visible()
+    assert page.evaluate("() => getComputedStyle(document.getElementById('mdMemo')).resize") == "none"
+
+    # 2. Multi-image registration on admin-book-new.html -> Storefront book-detail.html gallery
+    page.goto(get_page_url("admin-book-new.html"))
+    assert assert_no_horizontal_overflow(page)
+
+    # Fill sample book (populates 2 gallery images), then add a 3rd URL image & promote #2 to primary cover
+    page.click("#btnFillSampleBook")
+    expect(page.locator("#bookGalleryList .book-gallery-item")).to_have_count(2)
+
+    svg_extra = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='400'><rect width='100%25' height='100%25' fill='%23ede9e0'/><text x='50%25' y='50%25' text-anchor='middle' fill='%235a5347' font-size='22'>내지 조판 견본</text></svg>"
+    page.fill("#bfImageUrlInput", svg_extra)
+    page.click("#btnAddImageUrl")
+    expect(page.locator("#bookGalleryList .book-gallery-item")).to_have_count(3)
+    expect(page.locator("#coverGalleryCountBadge")).to_contain_text("3장")
+
+    # Promote 3rd image (index 2) to primary cover, then submit
+    page.locator("[data-set-cover-idx='2']").click()
+    page.locator("#standaloneBookForm button[type='submit']").click()
+    page.wait_for_url(re.compile(r"admin\.html\?sec=books"))
+
+    new_book_id = page.evaluate("() => window.Store.loadState().books[0].id")
+    page.goto(get_page_url(f"book-detail.html?id={new_book_id}"))
+    assert assert_no_horizontal_overflow(page)
+
+    thumbs = page.locator("#detailGalleryStrip .detail-gallery-thumb")
+    expect(thumbs).to_have_count(3)
+    expect(page.locator(".detail-gallery-counter")).to_contain_text("1 / 3")
+
+    # Click 2nd thumbnail -> counter updates to 2 / 3 and displays sub photo
+    thumbs.nth(1).click()
+    expect(page.locator(".detail-gallery-counter")).to_contain_text("2 / 3")
+    expect(page.locator("#detailCoverContainer .detail-cover-sub-photo img")).to_be_visible()
+
+
+@pytest.mark.tier1
+def test_track5_06_hero_curation_showcase_and_admin_hero_management(page: Page):
+    """Verify YES24-style Hero Curation Showcase (16:9 single image, zero progress bar, bottom tab strip) & Admin Hero Management SSOT."""
+    # 1. Storefront Hero Curation Showcase across 1440px, 690px (Z Fold 8), and 320px
+    for w, h in [(1440, 900), (690, 828), (320, 740)]:
+        page.set_viewport_size({"width": w, "height": h})
+        page.goto(get_page_url("index.html"))
+        assert assert_no_horizontal_overflow(page), f"Overflow on index.html at {w}x{h}"
+
+        hero_metrics = page.evaluate("""() => {
+            const sec = document.getElementById('heroCurationSection');
+            const img = document.getElementById('heroCurationImg');
+            const tabs = document.getElementById('heroCurationTabs');
+            const progCount = document.querySelectorAll('#heroProgressBar, .hero-progress-track, .hero-progress-bar').length;
+            const tabTops = new Set();
+            if (tabs) {
+                tabs.querySelectorAll('.hero-curation-tab').forEach(btn => {
+                    const r = btn.getBoundingClientRect();
+                    if (r.width > 0 && r.height > 0) tabTops.add(Math.round(r.top / 6) * 6);
+                });
+            }
+            return {
+                visible: Boolean(sec && sec.offsetParent !== null),
+                progCount,
+                imgLoadedLandscape: Boolean(img && img.complete && img.naturalWidth > img.naturalHeight),
+                tabCount: tabs ? tabs.querySelectorAll('.hero-curation-tab').length : 0,
+                tabRows: tabTops.size,
+                scrollbarWidth: tabs ? getComputedStyle(tabs).scrollbarWidth : ''
+            };
+        }""")
+        assert hero_metrics["visible"] is True
+        assert hero_metrics["progCount"] == 0, "Progress bar must be completely absent from Hero Curation Showcase"
+        assert hero_metrics["imgLoadedLandscape"] is True, "Hero curation image must be a loaded wide horizontal (landscape) image"
+        assert hero_metrics["tabCount"] == 5
+        assert hero_metrics["tabRows"] == 1, f"Bottom curation tabs wrapped at {w}x{h}"
+        assert hero_metrics["scrollbarWidth"] == "none"
+
+    # Click tab #3 -> verifies live swap of headline, wide image, and dark active tab state
+    page.set_viewport_size({"width": 1440, "height": 900})
+    page.goto(get_page_url("index.html"))
+    tab3 = page.locator(".hero-curation-tab[data-hero-slide='2']")
+    tab3.click()
+    expect(tab3).to_have_class(re.compile(r"is-active"))
+    expect(page.locator("#heroCurationTitle")).to_contain_text("현동처방집")
+    assert "curation-03.webp" in (page.locator("#heroCurationImg").get_attribute("src") or "")
+
+    # 2. Admin Hero Management (`admin.html?sec=hero`) & Standalone Curation Editor (`admin-curation-edit.html`)
+    page.goto(get_page_url("admin.html?sec=hero"))
+    assert assert_no_horizontal_overflow(page)
+    expect(page.locator("[data-admin-sec='hero']")).to_have_class(re.compile(r"is-active"))
+    expect(page.locator("[data-curation-card]")).to_have_count(5)
+
+    # Verify all switches on sec=hero have zero text inside and stay fixed-position on toggle
+    switch_texts = page.evaluate("""() => Array.from(document.querySelectorAll('.switch-wrap')).map(el => el.textContent.trim())""")
+    assert all(t == "" for t in switch_texts), f"Switches must have zero text label: {switch_texts}"
+
+    # Navigate to standalone curation edit page & update CUR-01 -> verify live Storefront SSOT sync
+    page.locator("[data-edit-curation='CUR-01']").click()
+    expect(page).to_have_url(re.compile(r"admin-curation-edit\.html\?id=CUR-01"))
+    assert assert_no_horizontal_overflow(page)
+    assert page.evaluate("() => getComputedStyle(document.getElementById('curTitle')).resize") == "none"
+
+    page.fill("#curTabTitle", "동의보감 특별기획")
+    page.fill("#curTitle", "원문 대조 완역 정본\n현동직역 동의보감 세트")
+    page.fill("#curSubtitle", "한의원 상비 필독 완간 양장본 특별 혜택")
+    page.locator("[data-preset-url='./images/curation-04.webp']").click()
+    page.click("#btnSubmitCurationForm")
+    expect(page).to_have_url(re.compile(r"admin\.html\?sec=hero"))
+
+    page.goto(get_page_url("index.html"))
+    expect(page.locator(".hero-curation-tab.is-active")).to_have_text("동의보감 특별기획")
+    expect(page.locator("#heroCurationTitle")).to_contain_text("원문 대조 완역 정본")
+    expect(page.locator("#heroCurationSub")).to_have_text("한의원 상비 필독 완간 양장본 특별 혜택")
+    assert "curation-04.webp" in (page.locator("#heroCurationImg").get_attribute("src") or "")
+
+
+@pytest.mark.tier1
+def test_track5_07_balanced_column_and_card_heights_across_storefront_and_admin(page: Page):
+    """Verify paired multi-column panels, cards, and form columns align naturally in height across Storefront and Admin."""
+    page.set_viewport_size({"width": 1440, "height": 960})
+
+    # 1. Storefront Home: Community 2-col (`독자 구매 후기` vs `공지사항 · 고객센터`) & Recommended 2x2 grid
+    page.emulate_media(reduced_motion="reduce")
+    page.goto(get_page_url("index.html"))
+    assert assert_no_horizontal_overflow(page)
+    home_metrics = page.evaluate("""() => {
+        const heads = Array.from(document.querySelectorAll('.home-community-col > .section-head'));
+        const revCards = Array.from(document.querySelectorAll('.home-review-stack > .panel-card'));
+        const rightCs = document.querySelector('.home-cs-panel');
+        const recs = Array.from(document.querySelectorAll('.recommend-card-home'));
+        const hb0 = heads[0].getBoundingClientRect(), hb1 = heads[1].getBoundingClientRect();
+        const lTop = revCards[0].getBoundingClientRect().top;
+        const lBot = revCards[revCards.length - 1].getBoundingClientRect().bottom;
+        const rb = rightCs.getBoundingClientRect();
+        return {
+            headBotDelta: Math.abs(hb0.bottom - hb1.bottom),
+            bodyTopDelta: Math.abs(lTop - rb.top),
+            bodyBotDelta: Math.abs(lBot - rb.bottom),
+            recRow1Delta: recs.length >= 2 ? Math.abs(recs[0].getBoundingClientRect().height - recs[1].getBoundingClientRect().height) : 99,
+            recRow2Delta: recs.length >= 4 ? Math.abs(recs[2].getBoundingClientRect().height - recs[3].getBoundingClientRect().height) : 99
+        };
+    }""")
+    assert home_metrics["headBotDelta"] <= 2
+    assert home_metrics["bodyTopDelta"] <= 2
+    assert home_metrics["bodyBotDelta"] <= 2
+    assert home_metrics["recRow1Delta"] <= 2
+    assert home_metrics["recRow2Delta"] <= 2
+
+    # 2. Book Detail: Left gallery bottom button vs Right buy action row + Related books row
+    page.goto(get_page_url("book-detail.html?id=BK-001"))
+    assert assert_no_horizontal_overflow(page)
+    detail_metrics = page.evaluate("""() => {
+        const previewBtn = document.getElementById('btnOpenBookPreview').getBoundingClientRect();
+        const actionRow = document.getElementById('detailHeroActionRow').getBoundingClientRect();
+        const rels = Array.from(document.querySelectorAll('#relatedBooksGrid .related-book-card')).map(el => el.getBoundingClientRect().height);
+        return {
+            heroBotDelta: Math.abs(previewBtn.bottom - actionRow.bottom),
+            relSpread: rels.length ? (Math.max(...rels) - Math.min(...rels)) : 0
+        };
+    }""")
+    assert detail_metrics["heroBotDelta"] <= 2
+    assert detail_metrics["relSpread"] <= 2
+
+    # 3. Admin Dashboard: Row 2 chart+donut, Row 3 5-bar stage vs TOP-5, Row 4 todo cards
+    page.goto(get_page_url("admin.html?sec=dashboard"))
+    assert assert_no_horizontal_overflow(page)
+    dash_metrics = page.evaluate("""() => {
+        const mainCards = Array.from(document.querySelectorAll('.chart-grid-main > .chart-card')).map(el => el.getBoundingClientRect().bottom);
+        const grid2 = Array.from(document.querySelectorAll('.admin-2col-grid'));
+        const row3Cards = Array.from(grid2[0].children).map(el => el.getBoundingClientRect().bottom);
+        const row4Cards = Array.from(grid2[1].children).map(el => el.getBoundingClientRect().bottom);
+        return {
+            mainBotDelta: Math.abs(mainCards[0] - mainCards[1]),
+            row3BotDelta: Math.abs(row3Cards[0] - row3Cards[1]),
+            row4BotDelta: Math.abs(row4Cards[0] - row4Cards[1])
+        };
+    }""")
+    assert dash_metrics["mainBotDelta"] <= 2
+    assert dash_metrics["row3BotDelta"] <= 2
+    assert dash_metrics["row4BotDelta"] <= 2
+
+    # 4. Admin Code Management (`sec=codes`) — both 5-row group and 3-row group stay balanced
+    page.goto(get_page_url("admin.html?sec=codes"))
+    assert assert_no_horizontal_overflow(page)
+    for grp_code in ["BOOK_CATEGORY", "BOOK_TYPE"]:
+        page.locator(f"[data-select-code-group='{grp_code}']").click()
+        codes_delta = page.evaluate("""() => {
+            const left = document.querySelector('.code-group-panel').getBoundingClientRect();
+            const right = document.querySelector('.code-detail-section .admin-table-wrap').getBoundingClientRect();
+            return Math.abs(left.bottom - right.bottom);
+        }""")
+        assert codes_delta <= 2, f"Code management bottom mismatch for {grp_code}: {codes_delta}px"
+
+    # 5. Standalone Admin Book Registration (`admin-book-new.html`): Top 2-col & Bottom 2-col
+    page.goto(get_page_url("admin-book-new.html"))
+    assert assert_no_horizontal_overflow(page)
+    book_new_metrics = page.evaluate("""() => {
+        const leftPanel = document.querySelector('.cover-upload-panel').getBoundingClientRect();
+        const rightFields = document.querySelector('.book-reg-fields-col').getBoundingClientRect();
+        const toc = document.getElementById('bfToc').getBoundingClientRect();
+        const bio = document.getElementById('bfAuthorBio').getBoundingClientRect();
+        return {
+            topBotDelta: Math.abs(leftPanel.bottom - rightFields.bottom),
+            bottomBotDelta: Math.abs(toc.bottom - bio.bottom)
+        };
+    }""")
+    assert book_new_metrics["topBotDelta"] <= 2
+    assert book_new_metrics["bottomBotDelta"] <= 2
+
+    # 6. Responsive stack integrity (Galaxy Z Fold 8 690px & Mobile 375px)
+    for w, h in [(690, 960), (375, 812)]:
+        page.set_viewport_size({"width": w, "height": h})
+        for target in ["index.html", "book-detail.html?id=BK-001", "admin.html?sec=dashboard", "admin-book-new.html"]:
+            page.goto(get_page_url(target))
+            assert assert_no_horizontal_overflow(page), f"Horizontal overflow on {target} at {w}x{h}"
+
+
+@pytest.mark.tier1
+def test_track5_08_admin_member_row_td_click_and_password_reset_flow(page: Page):
+    """Verify buttonless member row/td click UX (with full-td pointer cursor) and hashed password reset flow."""
+    page.set_viewport_size({"width": 1440, "height": 960})
+    page.goto(get_page_url("admin.html?sec=members"))
+    assert assert_no_horizontal_overflow(page)
+
+    # 1. Verify old '정보 · 적립금 관리' button & action column are gone, and all TDs have cursor: pointer
+    table_info = page.evaluate("""() => {
+        const ths = Array.from(document.querySelectorAll('.admin-members-table thead th')).map(el => el.textContent.trim());
+        const btns = document.querySelectorAll('.admin-members-table button').length;
+        const tds = Array.from(document.querySelectorAll('.admin-members-table tbody tr:first-child td'));
+        const cursors = tds.map(td => getComputedStyle(td).cursor);
+        return { ths, btns, tdCount: tds.length, cursors };
+    }""")
+    assert "상세 · 적립금 관리" not in table_info["ths"]
+    assert table_info["btns"] == 0
+    assert table_info["tdCount"] == 6
+    assert all(c == "pointer" for c in table_info["cursors"]), f"Expected pointer cursor on every td: {table_info['cursors']}"
+
+    # 2. Hover & click on a middle td (휴대폰 / 이메일 cell) -> opens #memberDetailModal
+    target_td = page.locator(".admin-members-table tbody tr").first.locator("td").nth(2)
+    target_td.hover()
+    target_td.click()
+    modal = page.locator("#memberDetailModal")
+    expect(modal).to_have_class(re.compile(r"is-open"))
+
+    # Verify modal field & password-reset control height alignment
+    modal_align = page.evaluate("""() => {
+        const g = document.getElementById('mdGrade').getBoundingClientRect();
+        const p = document.getElementById('mdPoints').getBoundingClientRect();
+        const inp = document.getElementById('mdResetPwInput').getBoundingClientRect();
+        const btn = document.getElementById('btnResetMemberPassword').getBoundingClientRect();
+        return {
+            gradePointsBotDelta: Math.abs(g.bottom - p.bottom),
+            pwInputBtnHeightDelta: Math.abs(inp.height - btn.height)
+        };
+    }""")
+    assert modal_align["gradePointsBotDelta"] <= 2
+    assert modal_align["pwInputBtnHeightDelta"] <= 2
+
+    # 3. Click #btnResetMemberPassword (auto-generated temp password) -> verify hashed storage & zero plaintext in storage
+    page.click("#btnResetMemberPassword")
+    expect(page.locator("#mdPwResetResult")).to_be_visible()
+    issued_pw = page.locator("#mdIssuedTempPw").inner_text().strip()
+    assert len(issued_pw) >= 8
+
+    sec_check = page.evaluate("""(pw) => {
+        const st = window.HyundongStore.loadState();
+        const m = st.members.find(x => x.id === 'MB-1001');
+        const serialized = JSON.stringify(st);
+        return {
+            containsPlainPw: serialized.includes(pw),
+            hasSaltedHash: Boolean(m.passwordHash && m.passwordHash.startsWith('sha256v1$')),
+            hasPlainField: Object.prototype.hasOwnProperty.call(m, 'password'),
+            hasAuditLog: Array.isArray(st.auditLogs) && st.auditLogs.some(a => a.action === 'MEMBER_PASSWORD_RESET' && a.memberId === 'MB-1001')
+        };
+    }""", issued_pw)
+    assert sec_check["containsPlainPw"] is False
+    assert sec_check["hasSaltedHash"] is True
+    assert sec_check["hasPlainField"] is False
+    assert sec_check["hasAuditLog"] is True
+
+    # 4. Verify Storefront login rejects wrong password and accepts the newly issued temp password
+    page.goto(get_page_url("login.html"))
+    page.fill("#loginIdInput", "dr_jeong82")
+    page.fill("#loginPwInput", "wrongPassword999")
+    page.locator("#memberLoginForm button[type='submit']").click()
+    expect(page).to_have_url(re.compile(r"login\.html"))
+
+    page.fill("#loginPwInput", issued_pw)
+    page.locator("#memberLoginForm button[type='submit']").click()
+    page.wait_for_url(re.compile(r"index\.html"))
+
+    # 5. Verify mobile/tablet (<1024px) clickable member card & zero overflow
+    for w, h in [(690, 960), (375, 812), (320, 740)]:
+        page.set_viewport_size({"width": w, "height": h})
+        page.goto(get_page_url("admin.html?sec=members"))
+        assert assert_no_horizontal_overflow(page)
+        assert page.locator(".admin-mobile-cards button").count() == 0
+        page.locator(".admin-member-card").first.click()
+        expect(page.locator("#memberDetailModal")).to_have_class(re.compile(r"is-open"))
+        assert assert_no_horizontal_overflow(page)
+
+    # 6. Verify redundant waybill guide banner is removed from Admin Orders (`admin.html?sec=orders`)
+    page.set_viewport_size({"width": 1440, "height": 960})
+    page.goto(get_page_url("admin.html?sec=orders"))
+    assert assert_no_horizontal_overflow(page)
+    assert "운송장 번호 입력 및 고객 직접 조회 안내 방식" not in page.locator("#adminMainContent").inner_text()
+
+
+
+
+
+
 

@@ -52,13 +52,13 @@ def test_t3_03_admin_faq_edit_to_live_faq_accordion(page: Page):
 
 @pytest.mark.tier3
 def test_t3_04_full_width_admin_banner_image_upload(widescreen_page: Page):
-    """F06 + F09: Admin registers banner image with live preview inside full-width layout."""
+    """F06 + F09: Admin registers banner image with live preview on standalone banner edit page."""
     url = get_page_url("admin.html?sec=banners")
     widescreen_page.goto(url)
     edit_btn = widescreen_page.locator("[data-edit-banner]").first
     expect(edit_btn).to_be_visible()
     edit_btn.click()
-    expect(widescreen_page.locator("#bannerEditModal")).to_have_class(re.compile(r"is-open"))
+    expect(widescreen_page).to_have_url(re.compile(r"admin-banner-edit\.html"))
     file_input = widescreen_page.locator("#bnImageFileInput")
     expect(file_input).to_be_visible()
     assert file_input.get_attribute("accept") == "image/*"

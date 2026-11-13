@@ -364,6 +364,8 @@ def test_t1_f19_06_herbal_book_logo_visible_across_storefront_and_admin_all_view
         "signup.html",
         "admin.html",
         "admin-book-new.html",
+        "admin-banner-edit.html",
+        "admin-curation-edit.html",
         "admin-login.html",
     ]
     viewports = [(344, 820), (690, 860), (830, 880), (1440, 900)]
